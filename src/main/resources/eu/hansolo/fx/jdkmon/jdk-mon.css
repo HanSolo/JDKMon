@@ -530,6 +530,7 @@
     -fx-pref-height     : 14px;
     -fx-background-color: -dark-text-color;
     -fx-scale-shape     : true;
+    -fx-translate-y     : 1px;
 }
 .jdk-mon:dark .icon {
     -fx-background-color: rgb(242, 241, 241);

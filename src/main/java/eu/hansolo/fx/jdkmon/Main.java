@@ -123,8 +123,8 @@ public class Main extends Application {
     private              StackPane                    pane;
     private              BorderPane                   mainPane;
     private              ScheduledExecutorService     executor;
-    private              FileWatcher                  fileWatcher;
-    private              FileObserver                 fileObserver;
+    //private              FileWatcher                  fileWatcher;
+    //private              FileObserver                 fileObserver;
     private              Stage                        stage;
     private              ObservableList<Distribution> distros;
     private              Finder                       finder;
@@ -200,13 +200,13 @@ public class Main extends Application {
 
         searchPath = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
 
-        fileWatcher  = new FileWatcher(new File(searchPath));
-        fileObserver = new FileObserver() {
-            @Override public void onCreated(final FileEvent evt) { rescan(); }
-            @Override public void onModified(final FileEvent evt) { }
-            @Override public void onDeleted(final FileEvent evt) { rescan(); }
-        };
-        setupFileWatcher();
+        //fileWatcher  = new FileWatcher(new File(searchPath));
+        //fileObserver = new FileObserver() {
+        //    @Override public void onCreated(final FileEvent evt) { rescan(); }
+        //    @Override public void onModified(final FileEvent evt) { }
+        //    @Override public void onDeleted(final FileEvent evt) { rescan(); }
+        //};
+        //setupFileWatcher();
 
         directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Choose search path");
@@ -446,14 +446,8 @@ public class Main extends Application {
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
         HBox hBox = new HBox(5, distroLabel);
-        hBox.setAlignment(Pos.CENTER);
 
-        if (pkgs.isEmpty()) {
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            hBox.getChildren().add(spacer);
-            return hBox;
-        }
+        if (pkgs.isEmpty()) { return hBox; }
 
         Pkg     firstPkg         = pkgs.get(0);
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
@@ -596,18 +590,20 @@ public class Main extends Application {
         if (null != selectedFolder) {
             searchPath = selectedFolder.getAbsolutePath() + File.separator;
             PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPath);
-            setupFileWatcher();
+            //setupFileWatcher();
             searchPathLabel.setText(searchPath);
             rescan();
         }
     }
 
+    /*
     private void setupFileWatcher() {
         if (null != fileWatcher) { fileWatcher.removeObserver(fileObserver); }
         fileWatcher = new FileWatcher(new File(searchPath));
         fileWatcher.addObserver(fileObserver);
         fileWatcher.watch();
     }
+    */
 
     public static void main(String[] args) {
         launch(args);
