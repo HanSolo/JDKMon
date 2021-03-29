@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2021 by Gerrit Grunwald
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.macos-window-button {
+    -RED       : #ff6058;
+    -YELLOW    : #ffbc35;
+    -GREEN     : #00c844;
+    -GRAY      : #535353;
+    -DARK_GRAY : #343535;
+    -LIGHT_GRAY: #cecbca;
+}
+
+.macos-window-button .circle {
+    -fx-stroke-width: 0.5px;
+}
+
+.macos-window-button:close .circle,
+.macos-window-button:close:hovered .circle {
+    -fx-fill  : -RED;
+    -fx-stroke: derive(-RED, -10%);
+}
+.macos-window-button:close:pressed .circle {
+    -fx-fill  : derive(-RED, -20%);
+    -fx-stroke: derive(-RED, -30%);
+}
+
+.macos-window-button:minimize .circle,
+.macos-window-button:minimize:hovered .circle {
+    -fx-fill  : -YELLOW;
+    -fx-stroke: derive(-YELLOW, -10%);
+}
+.macos-window-button:minimize:pressed .circle {
+    -fx-fill  : derive(-YELLOW, -20%);
+    -fx-stroke: derive(-YELLOW, -30%);
+}
+
+.macos-window-button:zoom .circle,
+.macos-window-button:zoom:hovered .circle {
+    -fx-fill  : -GREEN;
+    -fx-stroke: derive(-GREEN, -10%);
+}
+.macos-window-button:zoom:pressed .circle {
+    -fx-fill  : derive(-GREEN, -20%);
+    -fx-stroke: derive(-GREEN, -30%);
+}
+
+.macos-window-button:disabled:close .circle,
+.macos-window-button:disabled:minimize .circle,
+.macos-window-button:disabled:zoom .circle {
+    -fx-fill  : -GRAY;
+    -fx-stroke: transparent;
+}
+
+.macos-window-button:close .symbol,
+.macos-window-button:minimize .symbol,
+.macos-window-button:zoom .symbol {
+    -fx-background-color: transparent;
+}
+
+.macos-window-button:hovered:close .symbol {
+    -fx-background-color: -DARK_GRAY;
+    -fx-border-color    : -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M6.001,5.429l2.554,-2.555l0.571,0.571l-2.555,2.554l2.55,2.55l-0.572,0.572l-2.55,-2.55l-2.554,2.555l-0.571,-0.571l2.555,-2.554l-2.55,-2.55l0.572,-0.572l2.55,2.55Z";
+}
+.macos-window-button:hovered:minimize .symbol {
+    -fx-background-color: -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M2.0,5.5l8,0l0,1l-8,0l0,-1Z";
+}
+.macos-window-button:hovered:zoom .symbol {
+    -fx-background-color: -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M2.696,2.582l4.545,0.656l-3.889,3.889l-0.656,-4.545ZM9.533,9.418l-0.656,-4.545l-3.889,3.889l4.545,0.656Z";
+}
+
+.macos-window-button:hovered:close .symbol-small {
+    -fx-background-color: -DARK_GRAY;
+    -fx-border-color    : -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M4.508,4.065L6.426,2.147L6.854,2.576L4.936,4.493L6.85,6.406L6.421,6.835L4.507,4.922L2.59,6.839L2.162,6.411L4.079,4.494L2.166,2.58L2.595,2.151L4.508,4.065Z";
+}
+.macos-window-button:hovered:minimize .symbol-small {
+    -fx-background-color: -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M1.4934,4.118 l6.029,0 l0,0.751 l-6.029,0 l0,-1.4934Z";
+}
+.macos-window-button:hovered:zoom .symbol-small {
+    -fx-background-color: -DARK_GRAY;
+    -fx-scale-shape     : false;
+    -fx-shape           : "M7.159,7.059L6.667,3.648L3.748,6.566L7.159,7.059ZM2.028,1.928L5.439,2.42L2.521,5.339L2.028,1.928Z";
+}

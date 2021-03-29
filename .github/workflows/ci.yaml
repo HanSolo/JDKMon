@@ -1,0 +1,50 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+
+    runs-on: [ windows-latest ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+          architecture: x64
+      - name: Build with Gradle
+        run: .\gradlew.bat assemble
+      - name: Create Distribution
+        run: .\build_app.bat
+      - uses: actions/upload-artifact@v2
+        with:
+          name: JDKMon
+          files: '.\build\installer\JDKMon-15.0.0.msi'
+
+
+
+  build-mac:
+
+    runs-on: [ macos-latest ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+          architecture: x64
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Grant execute permission for build.sh
+        run: chmod +x ./build_app.sh
+      - name: Create Distribution
+        run: ./build_app.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: JDKMon
+          path: ./build/installer/JDKMon-15.0.0.pkg

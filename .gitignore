@@ -1,0 +1,7 @@
+/.idea
+/.gradle
+.DS_Store
+/build
+/out
+/classes
+/JDKMon.iml

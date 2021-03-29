@@ -1,0 +1,102 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
+        classpath 'org.javamodularity:moduleplugin:1.7.0'
+        classpath 'org.beryx:badass-jlink-plugin:2.23.2'
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'com.google.osdetector' version '1.7.0'
+    id 'org.javamodularity.moduleplugin' version '1.7.0'
+    id 'org.beryx.jlink' version '2.23.3'
+}
+
+ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
+
+normalization {
+    runtimeClasspath {
+        ignore('/META-INF/MANIFEST.MF')
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'io.foojay.api:discoclient:1.0'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.apache.logging.log4j:log4j-api:2.13.3'
+    implementation 'org.apache.logging.log4j:log4j-core:2.13.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.3'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
+    implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
+    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:2.7.2'
+}
+
+mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
+
+jar {
+    from {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        configurations.runtimeClasspath.collect {  it.isDirectory() ? it : zipTree(it)  }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    manifest {
+        attributes(
+                'Implementation-Title': 'JDKMon',
+                'Class-Path': 'jdkmon-15.0.jar',
+                'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
+        )
+    }
+}
+
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'eu.hansolo.fx.jdkmon'
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += "--enable-preview"
+}
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
+tasks.withType(JavaExec) {
+    jvmArgs += "--enable-preview"
+}
+
+// start the from gradle
+task Main(type: JavaExec) {
+    main = "eu.hansolo.fx.jdkmon.Launcher"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+// Fix problems with loading resources
+sourceSets {
+    main {
+        output.setResourcesDir(java.outputDir)
+    }
+}
