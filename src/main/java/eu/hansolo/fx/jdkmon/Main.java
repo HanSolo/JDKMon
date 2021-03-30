@@ -87,7 +87,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Popup;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -584,8 +583,9 @@ public class Main extends Application {
     }
 
     private void selectSearchPath() {
+        boolean searchPathExists = new File(searchPath).exists();
         directoryChooser.setTitle("Choose search path");
-        directoryChooser.setInitialDirectory(new File(searchPath));
+        directoryChooser.setInitialDirectory(searchPathExists ? new File(searchPath) : new File(System.getProperty("user.home")));
         final File selectedFolder = directoryChooser.showDialog(stage);
         if (null != selectedFolder) {
             searchPath = selectedFolder.getAbsolutePath() + File.separator;

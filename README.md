@@ -8,7 +8,7 @@ MacOS: `/System/Volumes/Data/Library/Java/JavaVirtualMachines/`
 
 Windows: `C:\Program Files\Java\`
 
-Linux: `/usr/java`(FXTrayIcon only supports a few linux distros) 
+Linux: `/usr/lib/jvm`(FXTrayIcon only supports a few linux distros) 
 
 You can change the folder JDKMon is scanning for installed JDK's by selecting
 the "Search path" menu entry. The selected path will be stored in the jdkmon.properties

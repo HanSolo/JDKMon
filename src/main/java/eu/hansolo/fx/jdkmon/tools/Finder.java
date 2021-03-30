@@ -65,7 +65,7 @@ import java.util.stream.Stream;
 public class Finder {
     public  static final String          MACOS_JAVA_INSTALL_PATH   = "/System/Volumes/Data/Library/Java/JavaVirtualMachines/";
     public  static final String          WINDOWS_JAVA_INSTALL_PATH = "C:\\Program Files\\Java\\";
-    public  static final String          LINUX_JAVA_INSTALL_PATH   = "/usr/java";
+    public  static final String          LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
     private static final Pattern         GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
     private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
     private              ExecutorService service                   = Executors.newSingleThreadExecutor();
