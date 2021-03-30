@@ -169,7 +169,7 @@ public class Main extends Application {
         closeWindowButton = new MacOSWindowButton(MacOSWindowButton.Type.CLOSE, Size.SMALL);
         closeWindowButton.setDarkMode(darkMode.get());
 
-        windowTitle = new Label("JDK Man");
+        windowTitle = new Label("JDK Mon");
         windowTitle.setFont(Fonts.sfProTextMedium(12));
         windowTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
         windowTitle.setMouseTransparent(true);
