@@ -26,9 +26,6 @@ import eu.hansolo.fx.jdkmon.tools.Detector;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacOSAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Detector.OperatingSystem;
 import eu.hansolo.fx.jdkmon.tools.Distribution;
-import eu.hansolo.fx.jdkmon.tools.FileEvent;
-import eu.hansolo.fx.jdkmon.tools.FileObserver;
-import eu.hansolo.fx.jdkmon.tools.FileWatcher;
 import eu.hansolo.fx.jdkmon.tools.Finder;
 import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
@@ -96,6 +93,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -411,7 +409,8 @@ public class Main extends Application {
     private void rescan() {
         Platform.runLater(() -> {
             if (checkingForUpdates.get()) { return; }
-            distros.setAll(finder.getDistributions(searchPath));
+            Set<Distribution> distrosFound = finder.getDistributions(searchPath);
+            distros.setAll(distrosFound);
             checkForUpdates();
         });
     }
@@ -421,10 +420,11 @@ public class Main extends Application {
         AtomicBoolean updatesAvailable = new AtomicBoolean(false);
         StringBuilder msgBuilder       = new StringBuilder();
         List<Node>    distroEntries    = new ArrayList<>();
+
         finder.getAvailableUpdates(distros).entrySet().forEach(entry -> {
             HBox distroEntry = getDistroEntry(entry.getKey(), entry.getValue());
             distroEntries.add(distroEntry);
-            if (distroEntry.getChildren().size() > 1) {
+            if (distroEntry.getChildren().size() > 1 && distroEntry.getChildren().get(2) instanceof Label) {
                 msgBuilder.append(entry.getKey().getName()).append(" ").append(((Label)distroEntry.getChildren().get(2)).getText()).append("\n");
                 updatesAvailable.set(true);
             }
@@ -492,7 +492,7 @@ public class Main extends Application {
         popupHeader.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
         popupHeader.getChildren().addAll(closePopupButton, popupTitle);
 
-        Label popupMsg = new Label(firstPkg.getDistributionName() + " " + firstPkg.getJavaVersion().toString(true) + " available");
+        Label popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
         popupMsg.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#868687"));
         popupMsg.getStyleClass().add("msg-label");
 

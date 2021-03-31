@@ -16,19 +16,10 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.fx.jdkmon.tools.Detector.OperatingSystem;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.ArchiveType;
-import io.foojay.api.discoclient.pkg.Bitness;
-import io.foojay.api.discoclient.pkg.Latest;
-import io.foojay.api.discoclient.pkg.LibCType;
-import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.ReleaseStatus;
-import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.TermOfSupport;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,7 +33,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,12 +90,20 @@ public class Finder {
         CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         // Check if there are newer versions from other distributions
-        distrosToUpdate.entrySet().forEach(entry -> {
+        List<CompletableFuture<Void>> pkgFutures = Collections.synchronizedList(new ArrayList<>());
+        distrosToUpdate.entrySet()
+                       .stream()
+                       .filter(entry -> !entry.getKey().getApiString().startsWith("graal"))
+                       .filter(entry -> !entry.getKey().getApiString().equals("mandrel"))
+                       .filter(entry -> !entry.getKey().getApiString().equals("liberica_native"))
+                       .forEach(entry -> {
             if (entry.getValue().isEmpty()) {
                 Distribution distro = entry.getKey();
+                //pkgFutures.add(discoClient.updateAvailableForAsync(io.foojay.api.discoclient.pkg.Distribution.NONE, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).thenAccept(l -> entry.setValue(l)));
                 entry.setValue(discoClient.updateAvailableForAsync(io.foojay.api.discoclient.pkg.Distribution.NONE, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).join());
             }
         });
+        CompletableFuture.allOf(pkgFutures.toArray(new CompletableFuture[pkgFutures.size()])).join();
 
         LinkedHashMap<Distribution, List < Pkg >> sorted = new LinkedHashMap<>();
         distrosToUpdate.entrySet()
