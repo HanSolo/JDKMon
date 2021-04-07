@@ -72,7 +72,7 @@ rem the end we will find all packages inside the target/installer directory.
 
 echo create package using jpackage
 
-for %%s in ("app-image" "msi" "exe") do call "%JPACKAGE_HOME%\bin\jpackage" ^
+for %%s in ("app-image" "msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
   --type %%s ^
   --dest build\installer ^
   --input build\installer\input\libs ^
