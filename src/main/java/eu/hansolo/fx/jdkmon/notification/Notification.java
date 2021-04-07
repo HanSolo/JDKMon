@@ -16,6 +16,8 @@
 
 package eu.hansolo.fx.jdkmon.notification;
 
+import io.foojay.api.discoclient.DiscoClient;
+import io.foojay.api.discoclient.pkg.OperatingSystem;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -78,20 +80,21 @@ public class Notification {
     public enum Notifier {
         INSTANCE;
 
-        private static final double   ICON_WIDTH    = 18;
-        private static final double   ICON_HEIGHT   = 18;
-        private static       double   width         = 345;
-        private static       double   height        = 75;
-        private static       double   offsetX       = 10;
-        private static       double   offsetY       = 36;
-        private static       double   spacingY      = 5;
-        private static       Pos      popupLocation = Pos.TOP_RIGHT;
-        private static       Stage    stageRef      = null;
-        private Duration              popupLifetime;
-        private Duration              popupAnimationTime;
-        private Stage                 stage;
-        private Scene                 scene;
-        private ObservableList<Popup> popups;
+        private static final double                ICON_WIDTH      = 18;
+        private static final double                ICON_HEIGHT     = 18;
+        private static       OperatingSystem       operatingSystem = DiscoClient.getOperatingSystem();
+        private static       double                width           = OperatingSystem.WINDOWS == operatingSystem ? 332 : 345;
+        private static       double                height          = OperatingSystem.WINDOWS == operatingSystem ? 92 : 75;
+        private static       double                offsetX         = OperatingSystem.WINDOWS == operatingSystem ? 0 : 10;
+        private static       double                offsetY         = 36;
+        private static       double                spacingY        = 5;
+        private static       Pos                   popupLocation   = Pos.TOP_RIGHT;
+        private static       Stage                 stageRef        = null;
+        private              Duration              popupLifetime;
+        private              Duration              popupAnimationTime;
+        private              Stage                 stage;
+        private              Scene                 scene;
+        private              ObservableList<Popup> popups;
 
 
         // ******************** Constructor ***************************************
@@ -111,7 +114,7 @@ public class Notification {
         private void initGraphics() {
             scene = new Scene(new Region());
             scene.setFill(null);
-            scene.getStylesheets().add(getClass().getResource("notifier.css").toExternalForm());            
+            scene.getStylesheets().add(getClass().getResource("notification.css").toExternalForm());
 
             stage = new Stage();
             stage.setMinWidth(0);
@@ -355,8 +358,11 @@ public class Notification {
             Label title = new Label(notification.title, icon);
             title.getStyleClass().add("title");
 
+            double winSpacer = OperatingSystem.WINDOWS == operatingSystem ? 23 : 0;
+
             TextArea msgArea = new TextArea(notification.message);
-            msgArea.setMaxWidth(width - 2 * DEFAULT_POPUP_PADDING);
+            msgArea.setMaxWidth(width - 2 * DEFAULT_POPUP_PADDING - winSpacer);
+            msgArea.setTranslateX(winSpacer);
             msgArea.setFocusTraversable(false);
             msgArea.setEditable(false);
             msgArea.getStyleClass().add("msg-area");
@@ -368,7 +374,7 @@ public class Notification {
 
             StackPane popupContent = new StackPane();
             popupContent.setPrefSize(width, height);
-            popupContent.getStyleClass().add("notification");
+            popupContent.getStyleClass().add(OperatingSystem.WINDOWS == operatingSystem ? "notification-win" : "notification-mac");
             popupContent.getChildren().addAll(popupLayout);
 
             final Popup popup = new Popup();
