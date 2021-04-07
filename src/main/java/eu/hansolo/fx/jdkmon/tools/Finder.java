@@ -184,6 +184,7 @@ public class Finder {
                                 case "Amazon.com Inc."   : name = "Corretto";       apiString = "corretto";       break;
                                 case "Azul Systems, Inc.": name = "Zulu";           apiString = "zulu";           break;
                                 case "mandrel"           : name = "Mandrel";        apiString = "mandrel";        break;
+                                case "Microsoft"         : name = "Microsoft";      apiString = "microsoft";      break;
                                 case "ojdkbuild"         : name = "OJDK Build";     apiString = "ojdk_build";     break;
                                 case "Oracle Corporation": name = "Oracle OpenJDK"; apiString = "oracle_openjdk"; break;
                                 case "Red Hat, Inc."     : name = "Red Hat";        apiString = "redhat";         break;
