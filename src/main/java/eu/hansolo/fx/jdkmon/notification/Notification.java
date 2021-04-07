@@ -86,7 +86,7 @@ public class Notification {
         private static       double                width           = OperatingSystem.WINDOWS == operatingSystem ? 332 : 345;
         private static       double                height          = OperatingSystem.WINDOWS == operatingSystem ? 92 : 75;
         private static       double                offsetX         = OperatingSystem.WINDOWS == operatingSystem ? 0 : 10;
-        private static       double                offsetY         = 36;
+        private static       double                offsetY         = OperatingSystem.WINDOWS == operatingSystem ? 72 : 36;
         private static       double                spacingY        = 5;
         private static       Pos                   popupLocation   = Pos.TOP_RIGHT;
         private static       Stage                 stageRef        = null;
@@ -358,7 +358,7 @@ public class Notification {
             Label title = new Label(notification.title, icon);
             title.getStyleClass().add("title");
 
-            double winSpacer = OperatingSystem.WINDOWS == operatingSystem ? 23 : 0;
+            double winSpacer = OperatingSystem.WINDOWS == operatingSystem ? 29 : 0;
 
             TextArea msgArea = new TextArea(notification.message);
             msgArea.setMaxWidth(width - 2 * DEFAULT_POPUP_PADDING - winSpacer);

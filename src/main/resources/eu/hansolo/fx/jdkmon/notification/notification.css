@@ -130,17 +130,17 @@
 }
 
 .notification-win .title {
-    -fx-font-size       : 0.833333em;
+    -fx-font-size       : 1em;
     -fx-font-weight     : bold;
-    -fx-text-fill       : -white;
+    -fx-text-fill       : white;
     -fx-content-display : left;
-    -fx-graphic-text-gap: 5px;
+    -fx-graphic-text-gap: 10px;
 }
 
 .notification-win .msg-area {
     -fx-background-color : -background-color;
     -fx-background-insets: 0;
-    -fx-font-size        : 0.833333em;
+    -fx-font-size        : 1em;
     -fx-text-fill        : -foreground-color;
     -fx-wrap-text        : true;
 }
