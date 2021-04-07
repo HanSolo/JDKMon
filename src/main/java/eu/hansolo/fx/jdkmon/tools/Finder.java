@@ -18,6 +18,7 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
+import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
 
@@ -61,6 +62,7 @@ public class Finder {
     private              ExecutorService service                   = Executors.newSingleThreadExecutor();
     private              Properties      releaseProperties         = new Properties();
     private              DiscoClient     discoClient               = new DiscoClient();
+    private              String          javaFile                  = OperatingSystem.WINDOWS == DiscoClient.getOperatingSystem() ? "java.exe" : "java";
 
 
     public Set<Distribution> getDistributions(final String SEARCH_PATH) {
@@ -71,7 +73,7 @@ public class Finder {
         }
 
         final Path       path      = Paths.get(SEARCH_PATH);
-        final List<Path> javaFiles = findByFileName(path, "java");
+        final List<Path> javaFiles = findByFileName(path, javaFile);
         javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros));
 
         service.shutdown();
@@ -257,6 +259,8 @@ public class Finder {
                                 MatchResult result = results.get(0);
                                 version = VersionNumber.fromText(result.group(2));
                             }
+                        } else if (line3.contains("microsoft")) {
+                            name = "Microsoft";
                         }
                     }
                 }
