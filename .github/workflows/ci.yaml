@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon
-          files: '.\build\installer\JDKMon-15.0.0.msi'
+          files: './build/installer/JDKMon-15.0.0.msi'
 
 
 
