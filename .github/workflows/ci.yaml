@@ -20,7 +20,7 @@ jobs:
         run: .\build_app.bat
       - uses: actions/upload-artifact@v2
         with:
-          name: JDKMon
+          name: JDKMon Windows
           path: '.\build\installer\JDKMon-15.0.0.msi'
 
 
@@ -46,5 +46,5 @@ jobs:
         run: ./build_app.sh
       - uses: actions/upload-artifact@v2
         with:
-          name: JDKMon
+          name: JDKMon Mac
           path: ./build/installer/JDKMon-15.0.0.pkg
