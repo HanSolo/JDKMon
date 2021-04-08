@@ -27,6 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 
 import java.util.function.Consumer;
@@ -52,6 +53,7 @@ public class WinWindowButton extends Region implements WindowButton {
     private              double                           size;
     private              double                           width;
     private              double                           height;
+    private              Rectangle                        rectangle;
     private              Region                           symbol;
     private              Consumer<MouseEvent>             mousePressedConsumer;
     private              Consumer<MouseEvent>             mouseReleasedConsumer;
@@ -122,10 +124,14 @@ public class WinWindowButton extends Region implements WindowButton {
 
         getStyleClass().add("win-window-button");
 
+        rectangle = new Rectangle();
+        rectangle.getStyleClass().add("rect");
+        rectangle.setStrokeType(StrokeType.INSIDE);
+
         symbol = new Region();
         symbol.getStyleClass().add("symbol");
 
-        getChildren().setAll(symbol);
+        getChildren().setAll(rectangle, symbol);
     }
 
     private void registerListeners() {
@@ -178,10 +184,16 @@ public class WinWindowButton extends Region implements WindowButton {
 
 
         if (width > 0 && height > 0) {
-            setMaxSize(size, size);
-            setPrefSize(size, size);
+            setMaxSize(46, 31);
+            setPrefSize(46, 31);
+
+            rectangle.setWidth(46);
+            rectangle.setHeight(31);
 
             symbol.setPrefSize(size, size);
+            symbol.setMaxSize(size, size);
+            symbol.setLayoutX((rectangle.getWidth() - size) * 0.5);
+            symbol.setLayoutY((rectangle.getHeight() - size) * 0.5);
         }
     }
 

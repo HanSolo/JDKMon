@@ -182,8 +182,8 @@ public class Main extends Application {
             windowTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
             windowTitle.setGraphicTextGap(10);
 
-            AnchorPane.setTopAnchor(closeWinWindowButton, 10d);
-            AnchorPane.setRightAnchor(closeWinWindowButton, 10d);
+            AnchorPane.setTopAnchor(closeWinWindowButton, 0d);
+            AnchorPane.setRightAnchor(closeWinWindowButton, 0d);
             AnchorPane.setTopAnchor(windowTitle, 0d);
             AnchorPane.setRightAnchor(windowTitle, 0d);
             AnchorPane.setBottomAnchor(windowTitle, 0d);

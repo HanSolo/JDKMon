@@ -23,11 +23,57 @@
     -LIGHT_GRAY: #969696;
 }
 
-.win-window-button:close .symbol,
-.win-window-button:hovered:close .symbol {
+.win-window-button:close .rect,
+.win-window-button:dark:close .rect {
+    -fx-fill: transparent;
+}
+
+.win-window-button:close:hovered .rect,
+.win-window-button:dark:close:hovered .rect,
+.win-window-button:close:pressed .rect,
+.win-window-button:dark:close:pressed .rect {
+    -fx-fill: -RED;
+}
+
+.win-window-button:minimize .rect,
+.win-window-button:dark.minimize .rect {
+    -fx-fill: transparent;
+}
+
+.win-window-button:minimize:hovered .rect,
+.win-window-button:dark:minimize:hovered .rect,
+.win-window-button:minimized:pressed .rect,
+.win-window-button:dark:minimized:pressed .rect {
+    -fx-fill: -YELLOW;
+}
+
+.win-window-button:zoom .rect,
+.win-window-button:dark:zoom .rect {
+    -fx-fill: transparent;
+}
+
+.win-window-button:zoom:hovered .rect,
+.win-window-button:dark:zoom:hovered .rect,
+.win-window-button:zoom:pressed .rect,
+.win-window-button:dark:zoom:pressed .rect {
+    -fx-fill: -GREEN;
+}
+
+.win-window-button:disabled:close .rect,
+.win-window-button:disabled:minimize .rect,
+.win-window-button:disabled:zoom .rect {
+    -fx-fill: -GRAY;
+}
+
+
+.win-window-button:close .symbol {
+    -fx-padding         : 10;
     -fx-background-color: black;
-    -fx-scale-shape     : true;
+    -fx-scale-shape     : false;
     -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
+}
+.win-window-button:hovered:close .symbol {
+    -fx-background-color: white;
 }
 .win-window-button:minimize .symbol,
 .win-window-button:hovered:minimize .symbol {
