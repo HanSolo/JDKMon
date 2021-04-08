@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2021 by Gerrit Grunwald
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.win-window-button {
+    -RED       : #ff6058;
+    -YELLOW    : #ffbc35;
+    -GREEN     : #00c844;
+    -GRAY      : #515151;
+    -DARK_GRAY : #313131;
+    -LIGHT_GRAY: #969696;
+}
+
+.win-window-button:close .symbol,
+.win-window-button:hovered:close .symbol {
+    -fx-background-color: black;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
+}
+.win-window-button:minimize .symbol,
+.win-window-button:hovered:minimize .symbol {
+    -fx-background-color: black;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M0.4,5.4l12,0l0,2l-12,0l0,-2Z";
+}
+.win-window-button:zoom .symbol,
+.win-window-button:hovered:zoom .symbol {
+    -fx-background-color: black;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M12.368,0.357L0.368,0.357L0.368,12.379L12.368,12.379L12.368,0.357ZM10.359,2.351L2.377,2.351L2.377,10.385L10.359,10.385L10.359,2.351Z";
+}
+
+
+.win-window-button:dark:close .symbol,
+.win-window-button:dark:hovered:close .symbol {
+    -fx-background-color: -LIGHT_GRAY;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
+}
+.win-window-button:dark:minimize .symbol,
+.win-window-button:dark:hovered:minimize .symbol {
+    -fx-background-color: -LIGHT_GRAY;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M0.4,5.4l12,0l0,2l-12,0l0,-2Z";
+}
+.win-window-button:dark:zoom .symbol,
+.win-window-button:dark:hovered:zoom .symbol {
+    -fx-background-color: -LIGHT_GRAY;
+    -fx-scale-shape     : true;
+    -fx-shape           : "M12.368,0.357L0.368,0.357L0.368,12.379L12.368,12.379L12.368,0.357ZM10.359,2.351L2.377,2.351L2.377,10.385L10.359,10.385L10.359,2.351Z";
+}

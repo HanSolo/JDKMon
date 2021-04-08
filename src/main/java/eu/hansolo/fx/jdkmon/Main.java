@@ -18,7 +18,9 @@ package eu.hansolo.fx.jdkmon;
 
 import com.dustinredmond.fxtrayicon.FXTrayIcon;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
-import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton.Size;
+import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
+import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
+import eu.hansolo.fx.jdkmon.controls.WindowButtonType;
 import eu.hansolo.fx.jdkmon.notification.Notification;
 import eu.hansolo.fx.jdkmon.notification.NotificationBuilder;
 import eu.hansolo.fx.jdkmon.notification.NotifierBuilder;
@@ -64,6 +66,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -80,8 +83,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
@@ -107,42 +108,46 @@ import java.util.function.Consumer;
  * Time: 15:35
  */
 public class Main extends Application {
-    private static final long                         INITIAL_DELAY_IN_HOURS   = 3;
-    private static final long                         RESCAN_INTERVAL_IN_HOURS = 3;
-    private static final PseudoClass                  DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
-    private        final Image                        dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
-    private              Notification.Notifier        notifier;
-    private              BooleanProperty              darkMode;
-    private              MacOSAccentColor             accentColor;
-    private              AnchorPane                   headerPane;
-    private              MacOSWindowButton            closeWindowButton;
-    private              Label                        windowTitle;
-    private              StackPane                    pane;
-    private              BorderPane                   mainPane;
-    private              ScheduledExecutorService     executor;
+    private static final long                                          INITIAL_DELAY_IN_HOURS   = 3;
+    private static final long                                          RESCAN_INTERVAL_IN_HOURS = 3;
+    private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
+    private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem          = DiscoClient.getOperatingSystem();
+    private              String                                        cssFile;
+    private              Notification.Notifier                         notifier;
+    private              BooleanProperty                               darkMode;
+    private              MacOSAccentColor                              accentColor;
+    private              AnchorPane                                    headerPane;
+    private              MacOSWindowButton                             closeMacWindowButton;
+    private              WinWindowButton                               closeWinWindowButton;
+    private              Label                                         windowTitle;
+    private              StackPane                                     pane;
+    private              BorderPane                                    mainPane;
+    private              ScheduledExecutorService                      executor;
     //private              FileWatcher                  fileWatcher;
     //private              FileObserver                 fileObserver;
-    private              Stage                        stage;
-    private              ObservableList<Distribution> distros;
-    private              Finder                       finder;
-    private              Label                        titleLabel;
-    private              Label                        searchPathLabel;
-    private              VBox                         distroBox;
-    private              VBox                         vBox;
-    private              String                       searchPath;
-    private              DirectoryChooser             directoryChooser;
-    private              ProgressBar                  progressBar;
-    private              DiscoClient                  discoClient;
-    private              BooleanProperty              blocked;
-    private              AtomicBoolean                checkingForUpdates;
-    private              boolean                      trayIconSupported;
+    private              Stage                                         stage;
+    private              ObservableList<Distribution>                  distros;
+    private              Finder                                        finder;
+    private              Label                                         titleLabel;
+    private              Label                                         searchPathLabel;
+    private              VBox                                          distroBox;
+    private              VBox                                          vBox;
+    private              String                                        searchPath;
+    private              DirectoryChooser                              directoryChooser;
+    private              ProgressBar                                   progressBar;
+    private              DiscoClient                                   discoClient;
+    private              BooleanProperty                               blocked;
+    private              AtomicBoolean                                 checkingForUpdates;
+    private              boolean                                       trayIconSupported;
 
 
     @Override public void init() {
+        cssFile = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? "jdk-mon-win.css" : "jdk-mon.css";
+
         notifier = NotifierBuilder.create()
                                   .popupLocation(OperatingSystem.MACOS == Detector.getOperatingSystem() ? Pos.TOP_RIGHT : Pos.BOTTOM_RIGHT)
                                   .popupLifeTime(Duration.millis(5000))
-                                  //.styleSheet(getClass().getResource("windows-notification.css").toExternalForm())
                                   .build();
 
         pane     = new StackPane();
@@ -163,29 +168,54 @@ public class Main extends Application {
             accentColor = MacOSAccentColor.MULTI_COLOR;
         }
 
-        closeWindowButton = new MacOSWindowButton(MacOSWindowButton.Type.CLOSE, Size.SMALL);
-        closeWindowButton.setDarkMode(darkMode.get());
+        closeMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        closeMacWindowButton.setDarkMode(darkMode.get());
+
+        closeWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        closeWinWindowButton.setDarkMode(darkMode.get());
 
         windowTitle = new Label("JDK Mon");
-        windowTitle.setFont(Fonts.sfProTextMedium(12));
-        windowTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
-        windowTitle.setMouseTransparent(true);
-        windowTitle.setAlignment(Pos.CENTER);
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            windowTitle.setFont(Fonts.segoeUi(9));
+            windowTitle.setTextFill(darkMode.get() ? Color.web("#969696") : Color.web("#000000"));
+            windowTitle.setAlignment(Pos.CENTER_LEFT);
+            windowTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
+            windowTitle.setGraphicTextGap(10);
 
-        AnchorPane.setTopAnchor(closeWindowButton, 5d);
-        AnchorPane.setLeftAnchor(closeWindowButton, 5d);
-        AnchorPane.setTopAnchor(windowTitle, 0d);
-        AnchorPane.setRightAnchor(windowTitle, 0d);
-        AnchorPane.setBottomAnchor(windowTitle, 0d);
-        AnchorPane.setLeftAnchor(windowTitle, 0d);
+            AnchorPane.setTopAnchor(closeWinWindowButton, 10d);
+            AnchorPane.setRightAnchor(closeWinWindowButton, 10d);
+            AnchorPane.setTopAnchor(windowTitle, 0d);
+            AnchorPane.setRightAnchor(windowTitle, 0d);
+            AnchorPane.setBottomAnchor(windowTitle, 0d);
+            AnchorPane.setLeftAnchor(windowTitle, 10d);
+        } else {
+            windowTitle.setFont(Fonts.sfProTextMedium(12));
+            windowTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
+            windowTitle.setAlignment(Pos.CENTER);
+
+            AnchorPane.setTopAnchor(closeMacWindowButton, 5d);
+            AnchorPane.setLeftAnchor(closeMacWindowButton, 5d);
+            AnchorPane.setTopAnchor(windowTitle, 0d);
+            AnchorPane.setRightAnchor(windowTitle, 0d);
+            AnchorPane.setBottomAnchor(windowTitle, 0d);
+            AnchorPane.setLeftAnchor(windowTitle, 0d);
+        }
+        windowTitle.setMouseTransparent(true);
 
         headerPane = new AnchorPane();
         headerPane.getStyleClass().add("header");
-        headerPane.setMinHeight(21);
-        headerPane.setMaxHeight(21);
-        headerPane.setPrefHeight(21);
         headerPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
-        headerPane.getChildren().addAll(closeWindowButton, windowTitle);
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            headerPane.setMinHeight(31);
+            headerPane.setMaxHeight(31);
+            headerPane.setPrefHeight(31);
+            headerPane.getChildren().addAll(closeWinWindowButton, windowTitle);
+        } else {
+            headerPane.setMinHeight(21);
+            headerPane.setMaxHeight(21);
+            headerPane.setPrefHeight(21);
+            headerPane.getChildren().addAll(closeMacWindowButton, windowTitle);
+        }
 
 
         executor = Executors.newSingleThreadScheduledExecutor();
@@ -214,7 +244,7 @@ public class Main extends Application {
         distros.setAll(finder.getDistributions(searchPath));
 
         titleLabel = new Label("Distributions found in");
-        titleLabel.setFont(Font.font(titleLabel.getFont().getFamily(), FontWeight.BOLD, 12));
+        titleLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfProTextBold(12));
 
         searchPathLabel = new Label(searchPath);
         searchPathLabel.getStyleClass().add("small-label");
@@ -246,15 +276,31 @@ public class Main extends Application {
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
-            headerPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-            pane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
-            mainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
-            mainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#333333"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+            } else {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
         } else {
-            headerPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-            pane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
-            mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
-            mainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+            } else {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
         }
 
         registerListeners();
@@ -288,25 +334,47 @@ public class Main extends Application {
             stage.setY(drag.getScreenY() - press.getSceneY());
         }));
 
-        closeWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
-            if (stage.isShowing()) {
-                if (trayIconSupported) {
-                    stage.hide();
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            closeWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (stage.isShowing()) {
+                    if (trayIconSupported) {
+                        stage.hide();
+                    } else {
+                        stage.setMaximized(false);
+                    }
                 } else {
-                    stage.setMaximized(false);
+                    if (trayIconSupported) {
+                        stage.show();
+                    } else {
+                        stage.setWidth(330);
+                        stage.setHeight(242);
+                        stage.centerOnScreen();
+                    }
                 }
-            } else {
-                if (trayIconSupported) {
-                    stage.show();
+            });
+            closeWinWindowButton.setOnMouseEntered(e -> closeWinWindowButton.setHovered(true));
+            closeWinWindowButton.setOnMouseExited(e -> closeWinWindowButton.setHovered(false));
+        } else {
+            closeMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (stage.isShowing()) {
+                    if (trayIconSupported) {
+                        stage.hide();
+                    } else {
+                        stage.setMaximized(false);
+                    }
                 } else {
-                    stage.setWidth(330);
-                    stage.setHeight(242);
-                    stage.centerOnScreen();
+                    if (trayIconSupported) {
+                        stage.show();
+                    } else {
+                        stage.setWidth(330);
+                        stage.setHeight(242);
+                        stage.centerOnScreen();
+                    }
                 }
-            }
-        });
-        closeWindowButton.setOnMouseEntered(e -> closeWindowButton.setHovered(true));
-        closeWindowButton.setOnMouseExited(e -> closeWindowButton.setHovered(false));
+            });
+            closeMacWindowButton.setOnMouseEntered(e -> closeMacWindowButton.setHovered(true));
+            closeMacWindowButton.setOnMouseExited(e -> closeMacWindowButton.setHovered(false));
+        }
 
         progressBar.prefWidthProperty().bind(mainPane.widthProperty());
     }
@@ -366,7 +434,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(mainPane);
         scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().add(Main.class.getResource("jdk-mon.css").toExternalForm());
+        scene.getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
         stage.setTitle("JDK Mon");
         stage.setScene(scene);
@@ -376,23 +444,44 @@ public class Main extends Application {
         stage.focusedProperty().addListener((o, ov, nv) -> {
             if (nv) {
                 if (darkMode.get()) {
-                    headerPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                    windowTitle.setTextFill(Color.web("#dddddd"));
+                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#dddddd"));
+                    }
                 } else {
-                    headerPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                    windowTitle.setTextFill(Color.web("#000000"));
+                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#000000"));
+                    } else {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#000000"));
+                    }
                 }
-                closeWindowButton.setDisable(false);
+                closeMacWindowButton.setDisable(false);
+                closeWinWindowButton.setDisable(false);
             } else {
                 if (darkMode.get()) {
-                    headerPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                    windowTitle.setTextFill(Color.web("#696a68"));
+                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#696a68"));
+                    }
                 } else {
-                    headerPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                    windowTitle.setTextFill(Color.web("#a9a6a6"));
-                    closeWindowButton.setStyle("-fx-fill: #ceccca;");
+                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                        closeWinWindowButton.setStyle("-fx-fill: #969696;");
+                    } else {
+                        headerPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        windowTitle.setTextFill(Color.web("#a9a6a6"));
+                        closeMacWindowButton.setStyle("-fx-fill: #ceccca;");
+                    }
                 }
-                closeWindowButton.setDisable(true);
+                closeMacWindowButton.setDisable(true);
+                closeWinWindowButton.setDisable(true);
             }
         });
 
@@ -465,20 +554,31 @@ public class Main extends Application {
         // ******************** Create popup **********************************
         Popup popup = new Popup();
 
-        MacOSWindowButton closePopupButton = new MacOSWindowButton(MacOSWindowButton.Type.CLOSE, Size.SMALL);
-        closePopupButton.setDarkMode(darkMode.get());
-        closePopupButton.setOnMouseReleased((Consumer<MouseEvent>) e -> popup.hide());
-        closePopupButton.setOnMouseEntered(e -> closePopupButton.setHovered(true));
-        closePopupButton.setOnMouseExited(e -> closePopupButton.setHovered(false));
 
+        WinWindowButton   closePopupWinButton   = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        MacOSWindowButton closePopupMacOSButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            closePopupWinButton.setDarkMode(darkMode.get());
+            closePopupWinButton.setOnMouseReleased((Consumer<MouseEvent>) e -> popup.hide());
+            closePopupWinButton.setOnMouseEntered(e -> closePopupWinButton.setHovered(true));
+            closePopupWinButton.setOnMouseExited(e -> closePopupWinButton.setHovered(false));
+        } else {
+            closePopupMacOSButton.setDarkMode(darkMode.get());
+            closePopupMacOSButton.setOnMouseReleased((Consumer<MouseEvent>) e -> popup.hide());
+            closePopupMacOSButton.setOnMouseEntered(e -> closePopupMacOSButton.setHovered(true));
+            closePopupMacOSButton.setOnMouseExited(e -> closePopupMacOSButton.setHovered(false));
+        }
         Label popupTitle = new Label("Alternative distribution");
-        popupTitle.setFont(Fonts.sfProTextMedium(12));
+        popupTitle.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUiSemiBold(12) : Fonts.sfProTextMedium(12));
         popupTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
         popupTitle.setMouseTransparent(true);
         popupTitle.setAlignment(Pos.CENTER);
 
-        AnchorPane.setTopAnchor(closePopupButton, 5d);
-        AnchorPane.setLeftAnchor(closePopupButton, 5d);
+        AnchorPane.setTopAnchor(closePopupMacOSButton, 5d);
+        AnchorPane.setLeftAnchor(closePopupMacOSButton, 5d);
+        AnchorPane.setTopAnchor(closePopupWinButton, 5d);
+        AnchorPane.setLeftAnchor(closePopupWinButton, 5d);
         AnchorPane.setTopAnchor(popupTitle, 0d);
         AnchorPane.setRightAnchor(popupTitle, 0d);
         AnchorPane.setBottomAnchor(popupTitle, 0d);
@@ -490,7 +590,11 @@ public class Main extends Application {
         popupHeader.setMaxHeight(21);
         popupHeader.setPrefHeight(21);
         popupHeader.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
-        popupHeader.getChildren().addAll(closePopupButton, popupTitle);
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            popupHeader.getChildren().addAll(closePopupWinButton, popupTitle);
+        } else {
+            popupHeader.getChildren().addAll(closePopupMacOSButton, popupTitle);
+        }
 
         Label popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
         popupMsg.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#868687"));
@@ -508,15 +612,23 @@ public class Main extends Application {
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
-            popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-            popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
-            popupPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
-            popupPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                // TODO: Set popup windows style
+            } else {
+                popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                popupPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
+                popupPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
         } else {
-            popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-            popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
-            popupPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
-            popupPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                // TODO: Set popup windows style
+            } else {
+                popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                popupPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                popupPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
         }
 
         popup.getContent().add(popupPane);

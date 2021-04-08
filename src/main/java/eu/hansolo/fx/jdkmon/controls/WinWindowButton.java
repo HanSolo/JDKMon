@@ -33,11 +33,11 @@ import java.util.function.Consumer;
 
 
 @DefaultProperty("children")
-public class MacOSWindowButton extends Region implements WindowButton {
+public class WinWindowButton extends Region implements WindowButton {
     private static final double                           MINIMUM_WIDTH          = WindowButtonSize.SMALL.px;
     private static final double                           MINIMUM_HEIGHT         = WindowButtonSize.SMALL.px;
-    private static final double                           MAXIMUM_WIDTH          = WindowButtonSize.NORMAL.px;
-    private static final double                           MAXIMUM_HEIGHT         = WindowButtonSize.NORMAL.px;
+    private static final double                           MAXIMUM_WIDTH          = WindowButtonSize.SMALL.px;
+    private static final double                           MAXIMUM_HEIGHT         = WindowButtonSize.SMALL.px;
     private static final PseudoClass                      CLOSE_PSEUDO_CLASS     = PseudoClass.getPseudoClass("close");
     private static final PseudoClass                      MINIMIZE_PSEUDO_CLASS  = PseudoClass.getPseudoClass("minimize");
     private static final PseudoClass                      ZOOM_PSEUDO_CLASS      = PseudoClass.getPseudoClass("zoom");
@@ -52,20 +52,19 @@ public class MacOSWindowButton extends Region implements WindowButton {
     private              double                           size;
     private              double                           width;
     private              double                           height;
-    private              Circle                           circle;
     private              Region                           symbol;
     private              Consumer<MouseEvent>             mousePressedConsumer;
     private              Consumer<MouseEvent>             mouseReleasedConsumer;
 
 
     // ******************** Constructors **************************************
-    public MacOSWindowButton() {
+    public WinWindowButton() {
         this(WindowButtonType.CLOSE);
     }
-    public MacOSWindowButton(final WindowButtonType type) {
-        this(type, WindowButtonSize.NORMAL);
+    public WinWindowButton(final WindowButtonType type) {
+        this(type, WindowButtonSize.SMALL);
     }
-    public MacOSWindowButton(final WindowButtonType type, final WindowButtonSize size) {
+    public WinWindowButton(final WindowButtonType type, final WindowButtonSize size) {
         this.type     = new ObjectPropertyBase<>(type) {
             @Override protected void invalidated() {
                 switch(get()) {
@@ -86,17 +85,17 @@ public class MacOSWindowButton extends Region implements WindowButton {
                     }
                 }
             }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return WinWindowButton.this; }
             @Override public String getName() { return "type"; }
         };
         this.darkMode = new BooleanPropertyBase(false) {
             @Override protected void invalidated() { pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get()); }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return WinWindowButton.this; }
             @Override public String getName() { return "darkMode"; }
         };
         this.hovered  = new BooleanPropertyBase() {
             @Override protected void invalidated() { pseudoClassStateChanged(HOVERED_PSEUDO_CLASS, get()); }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return WinWindowButton.this; }
             @Override public String getName() { return "hovered"; }
         };
         this.iconSize = size;
@@ -121,16 +120,12 @@ public class MacOSWindowButton extends Region implements WindowButton {
             }
         }
 
-        getStyleClass().add("macos-window-button");
-
-        circle = new Circle();
-        circle.getStyleClass().add("circle");
-        circle.setStrokeType(StrokeType.INSIDE);
+        getStyleClass().add("win-window-button");
 
         symbol = new Region();
-        symbol.getStyleClass().add(WindowButtonSize.NORMAL == iconSize ? "symbol" : "symbol-small");
+        symbol.getStyleClass().add("symbol");
 
-        getChildren().setAll(circle, symbol);
+        getChildren().setAll(symbol);
     }
 
     private void registerListeners() {
@@ -186,17 +181,12 @@ public class MacOSWindowButton extends Region implements WindowButton {
             setMaxSize(size, size);
             setPrefSize(size, size);
 
-            double center = size * 0.5;
-            circle.setRadius(center);
-            circle.setCenterX(center);
-            circle.setCenterY(center);
-
             symbol.setPrefSize(size, size);
         }
     }
 
     @Override public String getUserAgentStylesheet() {
-        if (null == userAgentStyleSheet) { userAgentStyleSheet = MacOSWindowButton.class.getResource("macos-window-button.css").toExternalForm(); }
+        if (null == userAgentStyleSheet) { userAgentStyleSheet = WinWindowButton.class.getResource("win-window-button.css").toExternalForm(); }
         return userAgentStyleSheet;
     }
 }
