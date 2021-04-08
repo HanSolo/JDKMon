@@ -15,12 +15,14 @@
  */
 
 .win-window-button {
-    -RED       : #ff6058;
+    -RED       : #e62c3a;
     -YELLOW    : #ffbc35;
     -GREEN     : #00c844;
     -GRAY      : #515151;
     -DARK_GRAY : #313131;
     -LIGHT_GRAY: #969696;
+    -fx-translate-x: 1px;
+    -fx-translate-y: -1px;
 }
 
 .win-window-button:close .rect,
@@ -67,9 +69,8 @@
 
 
 .win-window-button:close .symbol {
-    -fx-padding         : 10;
     -fx-background-color: black;
-    -fx-scale-shape     : false;
+    -fx-scale-shape     : true;
     -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
 }
 .win-window-button:hovered:close .symbol {
@@ -89,11 +90,13 @@
 }
 
 
-.win-window-button:dark:close .symbol,
-.win-window-button:dark:hovered:close .symbol {
+.win-window-button:dark:close .symbol {
     -fx-background-color: -LIGHT_GRAY;
     -fx-scale-shape     : true;
     -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
+}
+.win-window-button:dark:hovered:close .symbol {
+    -fx-background-color: black;
 }
 .win-window-button:dark:minimize .symbol,
 .win-window-button:dark:hovered:minimize .symbol {

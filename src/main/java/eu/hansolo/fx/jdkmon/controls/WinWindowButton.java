@@ -23,14 +23,19 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 
 import java.util.function.Consumer;
+
+import static eu.hansolo.fx.jdkmon.controls.WindowButtonSize.NORMAL;
 
 
 @DefaultProperty("children")
@@ -190,10 +195,11 @@ public class WinWindowButton extends Region implements WindowButton {
             rectangle.setWidth(46);
             rectangle.setHeight(31);
 
-            symbol.setPrefSize(size, size);
-            symbol.setMaxSize(size, size);
-            symbol.setLayoutX((rectangle.getWidth() - size) * 0.5);
-            symbol.setLayoutY((rectangle.getHeight() - size) * 0.5);
+            symbol.setPrefSize(iconSize.px, iconSize.px);
+            symbol.setMinSize(iconSize.px, iconSize.px);
+            symbol.setMaxSize(iconSize.px, iconSize.px);
+            symbol.setLayoutX((rectangle.getWidth() - iconSize.px) * 0.5);
+            symbol.setLayoutY((rectangle.getHeight() - iconSize.px) * 0.5);
         }
     }
 
