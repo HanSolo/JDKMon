@@ -191,6 +191,7 @@ public class Finder {
                                 case "Oracle Corporation": name = "Oracle OpenJDK"; apiString = "oracle_openjdk"; break;
                                 case "Red Hat, Inc."     : name = "Red Hat";        apiString = "redhat";         break;
                                 case "SAP SE"            : name = "SAP Machine";    apiString = "sap_machine";    break;
+                                case "OpenLogic"         : name = "OpenLogic";      apiString = "openlogic";      break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }
