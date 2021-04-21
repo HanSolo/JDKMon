@@ -48,6 +48,7 @@ import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -217,15 +218,13 @@ public class Main extends Application {
             headerPane.getChildren().addAll(closeMacWindowButton, windowTitle);
         }
 
-
         executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> rescan(), INITIAL_DELAY_IN_HOURS, RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
 
         discoClient        = new DiscoClient();
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
-
-        searchPath = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
+        searchPath         = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
 
         //fileWatcher  = new FileWatcher(new File(searchPath));
         //fileObserver = new FileObserver() {
@@ -256,15 +255,13 @@ public class Main extends Application {
         distroBox = new VBox(10);
         distroBox.getChildren().setAll(distroEntries);
 
-        progressBar = new ProgressBar();
-        progressBar.setProgress(0);
+        progressBar = new ProgressBar(0);
         progressBar.setVisible(false);
 
         Separator separator = new Separator(Orientation.HORIZONTAL);
         VBox.setMargin(separator, new Insets(5, 0, 5, 0));
 
         vBox = new VBox(5, titleBox, separator, distroBox, progressBar);
-
 
         pane.getChildren().add(vBox);
         pane.getStyleClass().add("jdk-mon");
@@ -311,19 +308,25 @@ public class Main extends Application {
             EvtType<? extends Evt> type = e.getEvtType();
             if (type.equals(DownloadEvt.DOWNLOAD_STARTED)) {
                 blocked.set(true);
-                progressBar.setVisible(true);
+                Platform.runLater(() -> progressBar.setVisible(true));
             } else if (type.equals(DownloadEvt.DOWNLOAD_PROGRESS)) {
-                progressBar.setProgress((double) e.getFraction() / (double) e.getFileSize());
+                double p = (double) e.getFraction() / (double) e.getFileSize();
+                Platform.runLater(() -> progressBar.setProgress(p));
             } else if (type.equals(DownloadEvt.DOWNLOAD_FINISHED)) {
                 blocked.set(false);
-                progressBar.setVisible(false);
-                progressBar.setProgress(0);
+                Platform.runLater(() -> {
+                    progressBar.setVisible(false);
+                    progressBar.setProgress(0);
+                });
             } else if (type.equals(DownloadEvt.DOWNLOAD_FAILED)) {
                 blocked.set(false);
-                progressBar.setVisible(false);
-                progressBar.setProgress(0);
+                Platform.runLater(() -> {
+                    progressBar.setVisible(false);
+                    progressBar.setProgress(0);
+                });
             }
         };
+
         discoClient.setOnEvt(DownloadEvt.DOWNLOAD_STARTED, downloadObserver);
         discoClient.setOnEvt(DownloadEvt.DOWNLOAD_PROGRESS, downloadObserver);
         discoClient.setOnEvt(DownloadEvt.DOWNLOAD_FINISHED, downloadObserver);
@@ -378,7 +381,6 @@ public class Main extends Application {
 
         progressBar.prefWidthProperty().bind(mainPane.widthProperty());
     }
-
 
     @Override public void start(final Stage stage) {
         this.stage             = stage;
@@ -484,6 +486,8 @@ public class Main extends Application {
                 closeWinWindowButton.setDisable(true);
             }
         });
+
+        progressBar.prefWidthProperty().bind(stage.widthProperty());
 
         ResizeHelper.addResizeListener(stage);
     }
@@ -689,8 +693,18 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
         final File targetFolder = directoryChooser.showDialog(stage);
         if (null != targetFolder) {
-            discoClient.downloadPkg(pkgId, targetFolder.getAbsolutePath() + File.separator + filename);
-            new Alert(AlertType.INFORMATION, "Download started. Update will be saved to " + targetFolder).show();
+            Alert info = new Alert(AlertType.INFORMATION);
+            info.setTitle("JDKMon");
+            info.setHeaderText("JDKMon Download Info");
+            info.setContentText("Download will be started and update will be saved to " + targetFolder);
+            info.show();
+            Task<Void> task = new Task<>() {
+                @Override protected Void call() throws Exception {
+                    discoClient.downloadPkg(pkgId, targetFolder.getAbsolutePath() + File.separator + filename);
+                    return null;
+                }
+            };
+            info.setOnCloseRequest(e -> new Thread(task).start());
         }
     }
 
