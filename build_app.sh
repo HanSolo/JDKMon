@@ -25,9 +25,9 @@
 # PROJECT_VERSION: version used in pom.xml, e.g. 1.0-SNAPSHOT
 # APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
-JAVA_VERSION=15
-MAIN_JAR="JDKMon-15.0.jar"
-APP_VERSION=15.0.0
+JAVA_VERSION=16
+MAIN_JAR="JDKMon-16.0.jar"
+APP_VERSION=16.0.0
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"

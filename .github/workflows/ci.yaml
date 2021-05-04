@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 15
+      - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: 15
+          java-version: 16
           architecture: x64
       - name: Build with Gradle
         run: .\gradlew.bat assemble
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: '.\build\installer\JDKMon-15.0.0.msi'
+          path: '.\build\installer\JDKMon-16.0.0.msi'
 
 
 
@@ -31,10 +31,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 15
+      - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: 15
+          java-version: 16
           architecture: x64
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -47,4 +47,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Mac
-          path: ./build/installer/JDKMon-15.0.0.pkg
+          path: ./build/installer/JDKMon-16.0.0.pkg

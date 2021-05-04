@@ -9,9 +9,9 @@ rem
 rem PROJECT_VERSION: version used in pom.xml, e.g. 1.0-SNAPSHOT
 rem APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
-set JAVA_VERSION=15
-set MAIN_JAR=JDKMon-15.0.jar
-set APP_VERSION=15.0.0
+set JAVA_VERSION=16
+set MAIN_JAR=JDKMon-16.0.jar
+set APP_VERSION=16.0.0
 
 rem ------ SETUP DIRECTORIES AND FILES ----------------------------------------
 rem Remove previously generated java runtime and installers. Copy all required
