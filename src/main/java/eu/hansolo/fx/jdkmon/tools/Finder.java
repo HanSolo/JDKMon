@@ -251,7 +251,9 @@ public class Finder {
                             switch (graalVersion.getMajorVersion().getAsInt()) {
                                 case 8 : apiString = "graalvm_ce8"; break;
                                 case 11: apiString = "graalvm_ce11"; break;
+                                case 16: apiString = "graalvm_ce16"; break;
                                 case 17: apiString = "graalvm_ce17"; break;
+                                case 18: apiString = "graalvm_ce18"; break;
                                 default: apiString = "";
                             }
                             GRAALVM_VERSION_MATCHER.reset(line3);
