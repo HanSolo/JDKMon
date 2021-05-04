@@ -16,8 +16,8 @@ plugins {
     id 'java-library'
     id 'application'
     id 'com.google.osdetector' version '1.7.0'
-    id 'org.javamodularity.moduleplugin' version '1.7.0'
-    id 'org.beryx.jlink' version '2.23.3'
+    id 'org.javamodularity.moduleplugin' version '1.8.3'
+    id 'org.beryx.jlink' version '2.23.7'
 }
 
 ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
