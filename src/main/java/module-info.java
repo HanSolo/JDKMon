@@ -10,9 +10,7 @@ module eu.hansolo.fx.jdkmon {
     // 3rd Party
     requires com.google.gson;
     requires slf4j.api;
-    requires org.apache.logging.log4j;
     requires io.foojay.api.discoclient;
-    requires java.validation;
     requires FXTrayIcon;
 
     exports eu.hansolo.fx.jdkmon;

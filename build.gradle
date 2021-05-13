@@ -40,11 +40,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.8.6'
     //implementation 'io.foojay.api:discoclient:1.0'
+
     implementation 'org.slf4j:slf4j-api:1.7.25'
-    implementation 'org.apache.logging.log4j:log4j-api:2.13.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.13.3'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.3'
-    implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"

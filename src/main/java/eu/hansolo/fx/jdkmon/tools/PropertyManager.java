@@ -17,8 +17,6 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +33,6 @@ public enum PropertyManager {
     INSTANCE;
 
     public  static final String     SEARCH_PATH          = "searchpath";
-    private static final Logger     LOGGER               = LoggerFactory.getLogger(PropertyManager.class);
     private static final String     PROPERTIES_FILE_NAME = "jdkmon.properties";
     private              Properties properties;
 
@@ -100,7 +97,7 @@ public enum PropertyManager {
             properties.put(SEARCH_PATH, searchPath);
             properties.store(output, null);
         } catch (IOException ex) {
-            LOGGER.debug("Error creating {} file: {}", PROPERTIES_FILE_NAME, ex.getMessage());
+            ex.printStackTrace();
         }
     }
 }
