@@ -17,6 +17,10 @@
 package eu.hansolo.fx.jdkmon;
 
 import com.dustinredmond.fxtrayicon.FXTrayIcon;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -40,7 +44,10 @@ import io.foojay.api.discoclient.event.EvtObserver;
 import io.foojay.api.discoclient.event.EvtType;
 import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Pkg;
+import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.OutputFormat;
+import io.foojay.api.discoclient.util.PkgInfo;
+import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -49,6 +56,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
+import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -91,6 +100,12 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -141,6 +156,7 @@ public class Main extends Application {
     private              BooleanProperty                               blocked;
     private              AtomicBoolean                                 checkingForUpdates;
     private              boolean                                       trayIconSupported;
+    private              Worker<Boolean>                               worker;
 
 
     @Override public void init() {
@@ -221,7 +237,7 @@ public class Main extends Application {
         executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> rescan(), INITIAL_DELAY_IN_HOURS, RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
 
-        discoClient        = new DiscoClient();
+        discoClient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPath         = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
@@ -304,34 +320,6 @@ public class Main extends Application {
     }
 
     private void registerListeners() {
-        EvtObserver<DownloadEvt> downloadObserver = e -> {
-            EvtType<? extends Evt> type = e.getEvtType();
-            if (type.equals(DownloadEvt.DOWNLOAD_STARTED)) {
-                blocked.set(true);
-                Platform.runLater(() -> progressBar.setVisible(true));
-            } else if (type.equals(DownloadEvt.DOWNLOAD_PROGRESS)) {
-                double p = (double) e.getFraction() / (double) e.getFileSize();
-                Platform.runLater(() -> progressBar.setProgress(p));
-            } else if (type.equals(DownloadEvt.DOWNLOAD_FINISHED)) {
-                blocked.set(false);
-                Platform.runLater(() -> {
-                    progressBar.setVisible(false);
-                    progressBar.setProgress(0);
-                });
-            } else if (type.equals(DownloadEvt.DOWNLOAD_FAILED)) {
-                blocked.set(false);
-                Platform.runLater(() -> {
-                    progressBar.setVisible(false);
-                    progressBar.setProgress(0);
-                });
-            }
-        };
-
-        discoClient.setOnEvt(DownloadEvt.DOWNLOAD_STARTED, downloadObserver);
-        discoClient.setOnEvt(DownloadEvt.DOWNLOAD_PROGRESS, downloadObserver);
-        discoClient.setOnEvt(DownloadEvt.DOWNLOAD_FINISHED, downloadObserver);
-        discoClient.setOnEvt(DownloadEvt.DOWNLOAD_FAILED, downloadObserver);
-
         headerPane.setOnMousePressed(press -> headerPane.setOnMouseDragged(drag -> {
             stage.setX(drag.getScreenX() - press.getSceneX());
             stage.setY(drag.getScreenY() - press.getSceneY());
@@ -677,7 +665,7 @@ public class Main extends Application {
                         new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                 }
                 archiveTypeLabel.disableProperty().bind(blocked);
-                archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg.getId(), pkg.getFileName()); }});
+                archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); }});
 
                 if (pkg.getDistribution().getApiString().equals(distribution.getApiString())) {
                     hBox.getChildren().add(archiveTypeLabel);
@@ -689,23 +677,66 @@ public class Main extends Application {
         return hBox;
     }
 
-    private void downloadPkg(final String pkgId, final String filename) {
+    private void downloadPkg(final Pkg pkg) {
+        if (null == pkg) { return; }
         directoryChooser.setTitle("Choose folder for download");
         final File targetFolder = directoryChooser.showDialog(stage);
         if (null != targetFolder) {
+            final String  ephemeralId = discoClient.getPkg(pkg.getId()).getEphemeralId();
+            final PkgInfo pkgInfo     = discoClient.getPkgInfo(ephemeralId, pkg.getJavaVersion());
+            worker = createWorker(pkgInfo.getDirectDownloadUri(), targetFolder.getAbsolutePath() + File.separator + pkg.getFileName());
+            worker.stateProperty().addListener((o, ov, nv) -> {
+                if (nv.equals(State.READY)) {
+                } else if (nv.equals(State.RUNNING)) {
+                    blocked.set(true);
+                    progressBar.setVisible(true);
+                } else if (nv.equals(State.CANCELLED)) {
+                    blocked.set(false);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.FAILED)) {
+                    blocked.set(false);
+                    progressBar.setProgress(0);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.SUCCEEDED)) {
+                    blocked.set(false);
+                    progressBar.setProgress(0);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.SCHEDULED)) {
+                    blocked.set(true);
+                    progressBar.setVisible(true);
+                }
+            });
+            worker.progressProperty().addListener((o, ov, nv) -> progressBar.setProgress(nv.doubleValue() * 100.0));
             Alert info = new Alert(AlertType.INFORMATION);
             info.setTitle("JDKMon");
             info.setHeaderText("JDKMon Download Info");
             info.setContentText("Download will be started and update will be saved to " + targetFolder);
+            info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
             info.show();
-            Task<Void> task = new Task<>() {
-                @Override protected Void call() throws Exception {
-                    discoClient.downloadPkg(pkgId, targetFolder.getAbsolutePath() + File.separator + filename);
-                    return null;
-                }
-            };
-            info.setOnCloseRequest(e -> new Thread(task).start());
         }
+    }
+
+    private Worker<Boolean> createWorker(final String uri, final String filename) {
+        return new Task<>() {
+            @Override protected Boolean call() {
+                updateProgress(0, 100);
+                try {
+                    final URLConnection         connection = new URL(uri).openConnection();
+                    final int                   fileSize   = connection.getContentLength();
+                    ReadableByteChannel         rbc        = Channels.newChannel(connection.getInputStream());
+                    ReadableConsumerByteChannel rcbc       = new ReadableConsumerByteChannel(rbc, (b) -> updateProgress((double) b / (double) fileSize, 100));
+                    FileOutputStream            fos        = new FileOutputStream(filename);
+                    fos.getChannel().transferFrom(rcbc, 0, Long.MAX_VALUE);
+                    fos.close();
+                    rcbc.close();
+                    rbc.close();
+                } catch (IOException ex) {
+                    return Boolean.FALSE;
+                }
+                updateProgress(0, 100);
+                return Boolean.TRUE;
+            }
+        };
     }
 
     private void selectSearchPath() {

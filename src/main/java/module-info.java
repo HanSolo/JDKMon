@@ -1,6 +1,7 @@
 module eu.hansolo.fx.jdkmon {
     // Java
     requires java.base;
+    requires java.net.http;
 
     // Java-FX
     requires javafx.base;
