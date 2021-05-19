@@ -17,10 +17,6 @@
 package eu.hansolo.fx.jdkmon;
 
 import com.dustinredmond.fxtrayicon.FXTrayIcon;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -38,15 +34,9 @@ import eu.hansolo.fx.jdkmon.tools.Helper;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.event.DownloadEvt;
-import io.foojay.api.discoclient.event.Evt;
-import io.foojay.api.discoclient.event.EvtObserver;
-import io.foojay.api.discoclient.event.EvtType;
 import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.util.Constants;
 import io.foojay.api.discoclient.util.OutputFormat;
-import io.foojay.api.discoclient.util.PkgInfo;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -682,18 +672,23 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
         final File targetFolder = directoryChooser.showDialog(stage);
         if (null != targetFolder) {
-            final String  ephemeralId = discoClient.getPkg(pkg.getId()).getEphemeralId();
-            final PkgInfo pkgInfo     = discoClient.getPkgInfo(ephemeralId, pkg.getJavaVersion());
-            worker = createWorker(pkgInfo.getDirectDownloadUri(), targetFolder.getAbsolutePath() + File.separator + pkg.getFileName());
+            final String directDownloadUri = discoClient.getPkgDirectDownloadUri(pkg.getId());
+            final String target            = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
+            worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
                 if (nv.equals(State.READY)) {
                 } else if (nv.equals(State.RUNNING)) {
                     blocked.set(true);
                     progressBar.setVisible(true);
                 } else if (nv.equals(State.CANCELLED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
                     blocked.set(false);
+                    progressBar.setProgress(0);
                     progressBar.setVisible(false);
                 } else if (nv.equals(State.FAILED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
                     blocked.set(false);
                     progressBar.setProgress(0);
                     progressBar.setVisible(false);
