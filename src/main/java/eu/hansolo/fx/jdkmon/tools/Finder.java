@@ -61,8 +61,16 @@ public class Finder {
     private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
     private              ExecutorService service                   = Executors.newSingleThreadExecutor();
     private              Properties      releaseProperties         = new Properties();
-    private              DiscoClient     discoclient               = new DiscoClient();
     private              String          javaFile                  = OperatingSystem.WINDOWS == DiscoClient.getOperatingSystem() ? "java.exe" : "java";
+    private              DiscoClient     discoclient;
+
+
+    public Finder() {
+        this(new DiscoClient("JDKMon"));
+    }
+    public Finder(final DiscoClient discoclient) {
+        this.discoclient = discoclient;
+    }
 
 
     public Set<Distribution> getDistributions(final String SEARCH_PATH) {
@@ -154,6 +162,15 @@ public class Finder {
                 String        architecture    = "";
                 Boolean       fxBundled       = Boolean.FALSE;
 
+                final File   jreLibExtFolder  = new File(new StringBuilder(parentPath).append("jre").append(fileSeparator).append("lib").append(fileSeparator).append("ext").toString());
+                if (jreLibExtFolder.exists()) {
+                    fxBundled = Stream.of(jreLibExtFolder.listFiles()).filter(file -> !file.isDirectory()).map(File::getName).collect(Collectors.toSet()).stream().filter(filename -> filename.equalsIgnoreCase("jfxrt.jar")).count() > 0;
+                }
+                final File   jmodsFolder      = new File(new StringBuilder(parentPath).append("jmods").toString());
+                if (jmodsFolder.exists()) {
+                    fxBundled = Stream.of(jmodsFolder.listFiles()).filter(file -> !file.isDirectory()).map(File::getName).collect(Collectors.toSet()).stream().filter(filename -> filename.startsWith("javafx")).count() > 0;
+                }
+
                 String        line1         = lines[0];
                 String        line2         = lines[1];
                 String        withoutPrefix = line1;
@@ -217,7 +234,7 @@ public class Finder {
                                 case "windows": operatingSystem = "windows"; break;
                             }
                         }
-                        if ((name.equals("Zulu") || name.equals("Unknown build of OpenJDK")) && releaseProperties.containsKey("MODULES")) {
+                        if (releaseProperties.containsKey("MODULES") && !fxBundled) {
                             fxBundled = (releaseProperties.getProperty("MODULES").contains("javafx"));
                         }
                     }
@@ -264,6 +281,8 @@ public class Finder {
                             }
                         } else if (line3.contains("microsoft")) {
                             name = "Microsoft";
+                        } else if (line3.contains("corretto")) {
+                            name = "Corretto";
                         }
                     }
                 }

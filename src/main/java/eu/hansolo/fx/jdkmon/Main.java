@@ -141,9 +141,9 @@ public class Main extends Application {
     private              VBox                                          vBox;
     private              String                                        searchPath;
     private              DirectoryChooser                              directoryChooser;
-    private              ProgressBar                                   progressBar;
-    private              DiscoClient                                   discoClient;
-    private              BooleanProperty                               blocked;
+    private              ProgressBar     progressBar;
+    private              DiscoClient     discoclient;
+    private              BooleanProperty blocked;
     private              AtomicBoolean                                 checkingForUpdates;
     private              boolean                                       trayIconSupported;
     private              Worker<Boolean>                               worker;
@@ -227,7 +227,7 @@ public class Main extends Application {
         executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> rescan(), INITIAL_DELAY_IN_HOURS, RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
 
-        discoClient        = new DiscoClient("JDKMon");
+        discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPath         = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
@@ -245,7 +245,7 @@ public class Main extends Application {
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
 
         distros = FXCollections.observableArrayList();
-        finder  = new Finder();
+        finder  = new Finder(discoclient);
         distros.setAll(finder.getDistributions(searchPath));
 
         titleLabel = new Label("Distributions found in");
@@ -672,7 +672,7 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
         final File targetFolder = directoryChooser.showDialog(stage);
         if (null != targetFolder) {
-            final String directDownloadUri = discoClient.getPkgDirectDownloadUri(pkg.getId());
+            final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             final String target            = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
             worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
