@@ -56,6 +56,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -673,6 +674,10 @@ public class Main extends Application {
         final File targetFolder = directoryChooser.showDialog(stage);
         if (null != targetFolder) {
             final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
+            if (null == directDownloadUri) {
+                new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
+                return;
+            }
             final String target            = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
             worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
