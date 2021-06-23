@@ -6,8 +6,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
-        classpath 'org.javamodularity:moduleplugin:1.7.0'
+        classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
+        classpath 'org.javamodularity:moduleplugin:1.8.7'
         classpath 'org.beryx:badass-jlink-plugin:2.23.2'
     }
 }
@@ -16,7 +16,7 @@ plugins {
     id 'java-library'
     id 'application'
     id 'com.google.osdetector' version '1.7.0'
-    id 'org.javamodularity.moduleplugin' version '1.8.3'
+    id 'org.javamodularity.moduleplugin' version '1.8.7'
     id 'org.beryx.jlink' version '2.23.7'
 }
 
@@ -63,7 +63,7 @@ jar {
     manifest {
         attributes(
                 'Implementation-Title': 'JDKMon',
-                'Class-Path': 'jdkmon-15.0.jar',
+                'Class-Path': 'JDKMon-16.0.jar',
                 'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
         )
     }

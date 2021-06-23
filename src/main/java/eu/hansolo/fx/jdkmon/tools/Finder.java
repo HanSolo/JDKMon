@@ -59,6 +59,8 @@ public class Finder {
     public  static final String          LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
     private static final Pattern         GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
     private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
+    private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
+    private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
     private              ExecutorService service                   = Executors.newSingleThreadExecutor();
     private              Properties      releaseProperties         = new Properties();
     private              String          javaFile                  = OperatingSystem.WINDOWS == DiscoClient.getOperatingSystem() ? "java.exe" : "java";
@@ -171,6 +173,8 @@ public class Finder {
                     fxBundled = Stream.of(jmodsFolder.listFiles()).filter(file -> !file.isDirectory()).map(File::getName).collect(Collectors.toSet()).stream().filter(filename -> filename.startsWith("javafx")).count() > 0;
                 }
 
+                VersionNumber version = null;
+
                 String        line1         = lines[0];
                 String        line2         = lines[1];
                 String        withoutPrefix = line1;
@@ -184,9 +188,15 @@ public class Finder {
                 if (line2.contains("Zulu")) {
                     name      = "Zulu";
                     apiString = "zulu";
+                    ZULU_BUILD_MATCHER.reset(line2);
+                    final List<MatchResult> results = ZULU_BUILD_MATCHER.results().collect(Collectors.toList());
+                    if (!results.isEmpty()) {
+                        MatchResult result = results.get(0);
+                        version = VersionNumber.fromText(result.group(2));
+                    }
                 }
 
-                VersionNumber version      = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\"")));
+                if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
                 VersionNumber graalVersion = version;
 
                 if (releaseFile.exists()) {
