@@ -219,6 +219,7 @@ public class Finder {
                                 case "Red Hat, Inc."     : name = "Red Hat";        apiString = "redhat";         break;
                                 case "SAP SE"            : name = "SAP Machine";    apiString = "sap_machine";    break;
                                 case "OpenLogic"         : name = "OpenLogic";      apiString = "openlogic";      break;
+                                case "JetBrains s.r.o."  : name = "JetBrains";      apiString = "jetbrains";      break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }
