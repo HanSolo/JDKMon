@@ -37,5 +37,7 @@ where the download should be stored.
 How it looks on MacOS and Linux:
 ![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot.png)
 
+
 How it looks on Windows:
+
 ![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot_win.png)
