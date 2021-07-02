@@ -34,4 +34,8 @@ and that you can download it as a tar.gz file.
 To download an update just click on the archive type tag and choose a folder
 where the download should be stored.
 
+How it looks on MacOS and Linux:
 ![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot.png)
+
+How it looks on Windows:
+![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot_win.png)
