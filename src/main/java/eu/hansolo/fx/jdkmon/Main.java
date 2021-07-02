@@ -386,6 +386,8 @@ public class Main extends Application {
 
             trayIcon.show();
         } else {
+            stage.getIcons().add(dukeNotificationIcon);
+
             MenuBar menuBar = new MenuBar();
             menuBar.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             menuBar.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
