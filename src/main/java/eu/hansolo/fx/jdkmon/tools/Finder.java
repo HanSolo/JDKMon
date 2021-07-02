@@ -98,7 +98,7 @@ public class Finder {
     public Map<Distribution, List<Pkg>> getAvailableUpdates(final List<Distribution> distributions) {
         Map<Distribution, List<Pkg>>  distrosToUpdate = new ConcurrentHashMap<>();
         List<CompletableFuture<Void>> updateFutures   = Collections.synchronizedList(new ArrayList<>());
-        distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled()).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
+        distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         // Check if there are newer versions from other distributions

@@ -102,6 +102,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -551,6 +552,8 @@ public class Main extends Application {
 
         if (pkgs.isEmpty()) { return hBox; }
 
+        Optional<Pkg> optionalZulu = pkgs.parallelStream().sorted(Comparator.comparing(Pkg::getDistributionName).reversed()).findFirst();
+
         Pkg     firstPkg         = pkgs.get(0);
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
@@ -610,7 +613,12 @@ public class Main extends Application {
             popupHeader.getChildren().addAll(closePopupMacOSButton, popupTitle);
         }
 
-        Label popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
+        Label popupMsg;
+        if (optionalZulu.isPresent()) {
+            popupMsg = new Label(optionalZulu.get().getDistribution().getUiString() + " " + optionalZulu.get().getJavaVersion().toString(true) + " available");
+        } else {
+            popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
+        }
         popupMsg.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#868687"));
         popupMsg.getStyleClass().add("msg-label");
 
@@ -648,7 +656,6 @@ public class Main extends Application {
         popup.getContent().add(popupPane);
         // ********************************************************************
 
-
         if (distribution.getApiString().equals(nameToCheck)) {
             Label versionLabel = new Label(firstPkg.getJavaVersion().toString(true));
             versionLabel.setMinWidth(56);
@@ -677,23 +684,31 @@ public class Main extends Application {
                 ArchiveType archiveType      = pkg.getArchiveType();
                 Label       archiveTypeLabel = new Label(archiveType.getUiString());
                 archiveTypeLabel.getStyleClass().add("tag-label");
-                archiveTypeLabel.setTooltip(new Tooltip("Download " + pkg.getFileName()));
-                switch (archiveType) {
-                    case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(
-                        new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-                    case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(
-                        new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-                    case PKG, DMG -> archiveTypeLabel.setBackground(new Background(
-                        new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                if (pkg.isDirectlyDownloadable()) {
+                    archiveTypeLabel.setTooltip(new Tooltip("Download " + pkg.getFileName()));
+                    switch (archiveType) {
+                        case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                        case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                        case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                    }
+                } else {
+                    archiveTypeLabel.setTooltip(new Tooltip("No direct download, please check website"));
+                    archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GRAPHITE.getColorDark() : MacOSAccentColor.GRAPHITE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                 }
                 archiveTypeLabel.disableProperty().bind(blocked);
-                archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); }});
+                if (pkg.isDirectlyDownloadable()) {
+                    archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); }});
+                }
 
                 if (pkg.getDistribution().getApiString().equals(distribution.getApiString())) {
                     hBox.getChildren().add(archiveTypeLabel);
                 } else {
                     // Add tags to popup
-                    otherDistroPkgsBox.getChildren().add(archiveTypeLabel);
+                    if (optionalZulu.isPresent() && pkg.equals(optionalZulu.get())) {
+                        otherDistroPkgsBox.getChildren().add(archiveTypeLabel);
+                    } else if (pkg.equals(firstPkg)) {
+                        otherDistroPkgsBox.getChildren().add(archiveTypeLabel);
+                    }
                 }
         });
         return hBox;
@@ -709,7 +724,7 @@ public class Main extends Application {
                 new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
                 return;
             }
-            final String target            = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
+            final String target = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
             worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
                 if (nv.equals(State.READY)) {
