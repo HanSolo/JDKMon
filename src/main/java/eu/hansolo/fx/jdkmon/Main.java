@@ -57,6 +57,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -133,6 +134,7 @@ public class Main extends Application {
     private              ScheduledExecutorService                      executor;
     //private              FileWatcher                  fileWatcher;
     //private              FileObserver                 fileObserver;
+    private              boolean                                       hideMenu;
     private              Stage                                         stage;
     private              ObservableList<Distribution>                  distros;
     private              Finder                                        finder;
@@ -389,8 +391,20 @@ public class Main extends Application {
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
+            menu.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+                hideMenu = false;
+            });
+            menu.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+                hideMenu = true;
+            });
+            menu.setOnHiding(e -> {
+                if (!hideMenu) {
+                    menu.show();
+                }
+            });
 
-            MenuItem mainItem = new MenuItem("JDK Mon");
+            CustomMenuItem mainItem = new CustomMenuItem(new Label("JDK Mon"));
+            mainItem.setHideOnClick(false);
             mainItem.setOnAction(e -> {
                 stage.setWidth(330);
                 stage.setHeight(242);
@@ -398,15 +412,18 @@ public class Main extends Application {
             });
             menu.getItems().add(mainItem);
 
-            MenuItem rescanItem = new MenuItem("Rescan");
+            CustomMenuItem rescanItem = new CustomMenuItem(new Label("Rescan"));
+            rescanItem.setHideOnClick(false);
             rescanItem.setOnAction(e -> rescan());
             menu.getItems().add(rescanItem);
 
-            MenuItem searchPathItem = new MenuItem("Search path");
+            CustomMenuItem searchPathItem = new CustomMenuItem(new Label("Search path"));
+            searchPathItem.setHideOnClick(false);
             searchPathItem.setOnAction( e -> selectSearchPath());
             menu.getItems().add(searchPathItem);
 
-            MenuItem exitItem = new MenuItem("Exit");
+            CustomMenuItem exitItem = new CustomMenuItem(new Label("Exit"));
+            exitItem.setHideOnClick(false);
             exitItem.setOnAction(e -> stop());
             menu.getItems().add(exitItem);
 
