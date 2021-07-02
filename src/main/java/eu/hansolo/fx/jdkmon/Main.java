@@ -120,6 +120,7 @@ public class Main extends Application {
     private static final long                                          RESCAN_INTERVAL_IN_HOURS = 3;
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
     private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private final        Image                                         dukeStageIcon            = new Image(Main.class.getResourceAsStream("icon128x128.png"));
     private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem          = DiscoClient.getOperatingSystem();
     private              String                                        cssFile;
     private              Notification.Notifier                         notifier;
@@ -386,7 +387,7 @@ public class Main extends Application {
 
             trayIcon.show();
         } else {
-            stage.getIcons().add(dukeNotificationIcon);
+            stage.getIcons().add(dukeStageIcon);
 
             MenuBar menuBar = new MenuBar();
             menuBar.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
