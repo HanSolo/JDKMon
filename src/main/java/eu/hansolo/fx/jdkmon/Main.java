@@ -387,16 +387,14 @@ public class Main extends Application {
             trayIcon.show();
         } else {
             MenuBar menuBar = new MenuBar();
+            menuBar.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            menuBar.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             menuBar.useSystemMenuBarProperty().set(true);
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
-            menu.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
-                hideMenu = false;
-            });
-            menu.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
-                hideMenu = true;
-            });
+            menu.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            menu.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             menu.setOnHiding(e -> {
                 if (!hideMenu) {
                     menu.show();
@@ -405,6 +403,8 @@ public class Main extends Application {
 
             CustomMenuItem mainItem = new CustomMenuItem(new Label("JDK Mon"));
             mainItem.setHideOnClick(false);
+            mainItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            mainItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             mainItem.setOnAction(e -> {
                 stage.setWidth(330);
                 stage.setHeight(242);
@@ -414,16 +414,22 @@ public class Main extends Application {
 
             CustomMenuItem rescanItem = new CustomMenuItem(new Label("Rescan"));
             rescanItem.setHideOnClick(false);
+            rescanItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            rescanItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             rescanItem.setOnAction(e -> rescan());
             menu.getItems().add(rescanItem);
 
             CustomMenuItem searchPathItem = new CustomMenuItem(new Label("Search path"));
             searchPathItem.setHideOnClick(false);
+            searchPathItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            searchPathItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             searchPathItem.setOnAction( e -> selectSearchPath());
             menu.getItems().add(searchPathItem);
 
             CustomMenuItem exitItem = new CustomMenuItem(new Label("Exit"));
             exitItem.setHideOnClick(false);
+            exitItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            exitItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             exitItem.setOnAction(e -> stop());
             menu.getItems().add(exitItem);
 
