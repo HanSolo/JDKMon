@@ -392,7 +392,8 @@ public class Main extends Application {
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
-            menu.setOnHiding(e -> {
+            menu.setOnShowing(e -> hideMenu = false);
+            menu.setOnHidden(e -> {
                 if (!hideMenu) {
                     menu.show();
                 }
