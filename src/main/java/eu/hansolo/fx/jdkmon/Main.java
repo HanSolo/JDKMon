@@ -387,27 +387,23 @@ public class Main extends Application {
 
             trayIcon.show();
         } else {
-            stage.getIcons().add(dukeStageIcon);
-
             MenuBar menuBar = new MenuBar();
-            menuBar.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            menuBar.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             menuBar.useSystemMenuBarProperty().set(true);
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
-            menu.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            menu.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             menu.setOnHiding(e -> {
                 if (!hideMenu) {
                     menu.show();
                 }
             });
 
-            CustomMenuItem mainItem = new CustomMenuItem(new Label("JDK Mon"));
+            CustomMenuItem mainItem = new CustomMenuItem();
+            Label mainLabel = new Label("JDK Mon");
+            mainLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            mainLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            mainItem.setContent(mainLabel);
             mainItem.setHideOnClick(false);
-            mainItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            mainItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             mainItem.setOnAction(e -> {
                 stage.setWidth(330);
                 stage.setHeight(242);
@@ -415,24 +411,30 @@ public class Main extends Application {
             });
             menu.getItems().add(mainItem);
 
-            CustomMenuItem rescanItem = new CustomMenuItem(new Label("Rescan"));
+            CustomMenuItem rescanItem = new CustomMenuItem();
+            Label rescanLabel = new Label("Rescan");
+            rescanLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            rescanLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            rescanItem.setContent(rescanLabel);
             rescanItem.setHideOnClick(false);
-            rescanItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            rescanItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             rescanItem.setOnAction(e -> rescan());
             menu.getItems().add(rescanItem);
 
-            CustomMenuItem searchPathItem = new CustomMenuItem(new Label("Search path"));
+            CustomMenuItem searchPathItem = new CustomMenuItem();
+            Label searchPathLabel = new Label("Search path");
+            searchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            searchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            searchPathItem.setContent(searchPathLabel);
             searchPathItem.setHideOnClick(false);
-            searchPathItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            searchPathItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             searchPathItem.setOnAction( e -> selectSearchPath());
             menu.getItems().add(searchPathItem);
 
-            CustomMenuItem exitItem = new CustomMenuItem(new Label("Exit"));
+            CustomMenuItem exitItem = new CustomMenuItem();
+            Label exitLabel = new Label("Exit");
+            exitLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            exitLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            exitItem.setContent(exitLabel);
             exitItem.setHideOnClick(false);
-            exitItem.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
-            exitItem.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             exitItem.setOnAction(e -> stop());
             menu.getItems().add(exitItem);
 
@@ -448,6 +450,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.show();
+        stage.getIcons().add(dukeStageIcon);
         stage.centerOnScreen();
         stage.focusedProperty().addListener((o, ov, nv) -> {
             if (nv) {
