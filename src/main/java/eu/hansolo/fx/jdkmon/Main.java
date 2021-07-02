@@ -210,15 +210,6 @@ public class Main extends Application {
         }
         windowTitle.setMouseTransparent(true);
 
-        // Fix for issue #JDK-8251240
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
-            try {
-                Helper.injectEnvironmentVariable("GDK_DISPLAY", "1");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         headerPane = new AnchorPane();
         headerPane.getStyleClass().add("header");
         headerPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
