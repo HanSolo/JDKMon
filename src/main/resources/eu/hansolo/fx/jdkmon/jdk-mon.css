@@ -395,6 +395,7 @@
     -fx-font-family: 'SF Pro';
     -fx-font-size  : 10;
     -fx-text-fill  : -dark-text-color;
+    -fx-wrap-text  : true;
 }
 .jdk-mon:dark .small-label {
     -fx-text-fill: -text-color;

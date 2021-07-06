@@ -551,11 +551,12 @@ public class Main extends Application {
             }
         });
         Platform.runLater(() -> distroBox.getChildren().setAll(distroEntries));
-        
+
         if (updatesAvailable.get()) {
             Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
             notifier.notify(notification);
         }
+
         checkingForUpdates.set(false);
     }
 
@@ -566,6 +567,7 @@ public class Main extends Application {
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
         HBox hBox = new HBox(5, distroLabel);
+        hBox.setMinWidth(360);
 
         if (pkgs.isEmpty()) { return hBox; }
 
@@ -803,6 +805,7 @@ public class Main extends Application {
     }
 
     private void selectSearchPath() {
+        stage.show();
         boolean searchPathExists;
         if (searchPaths.isEmpty()) {
             searchPathExists = false;
@@ -818,17 +821,19 @@ public class Main extends Application {
             searchPaths.add(searchPath);
             PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
             PropertyManager.INSTANCE.storeProperties();
-            searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(",")));
+            searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
             //setupFileWatcher();
             rescan();
         }
     }
 
     private void resetToDefaultSearchPath() {
+        stage.show();
         PropertyManager.INSTANCE.resetProperties();
         distros.clear();
         searchPaths.clear();
         searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+        searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
         rescan();
     }
 

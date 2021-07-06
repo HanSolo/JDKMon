@@ -545,6 +545,7 @@
     -fx-font-family: 'Segoe UI';
     -fx-font-size  : 10;
     -fx-text-fill  : -dark-text-color;
+    -fx-wrap-text  : true;
 }
 .popup .small-label {
     -fx-text-fill: -text-color;
