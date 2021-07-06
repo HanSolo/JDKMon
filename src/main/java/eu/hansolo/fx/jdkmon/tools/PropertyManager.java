@@ -82,6 +82,33 @@ public enum PropertyManager {
 
     public long getLong(final String key) { return Long.parseLong(properties.getOrDefault(key, "0").toString()); }
 
+    public void storeProperties() {
+        if (null == properties) { return; }
+        final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
+        try (OutputStream output = new FileOutputStream(propFilePath)) {
+            properties.store(output, null);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void resetProperties() {
+        final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
+        try (OutputStream output = new FileOutputStream(propFilePath)) {
+            final String searchPath;
+            switch(DiscoClient.getOperatingSystem()) {
+                case MACOS  : searchPath = Finder.MACOS_JAVA_INSTALL_PATH;   break;
+                case WINDOWS: searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH; break;
+                case LINUX  : searchPath = Finder.LINUX_JAVA_INSTALL_PATH;   break;
+                default     : searchPath = "";
+            }
+            properties.put(SEARCH_PATH, searchPath);
+            properties.store(output, null);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
     // ******************** Properties ****************************************
     private void createProperties(Properties properties) {

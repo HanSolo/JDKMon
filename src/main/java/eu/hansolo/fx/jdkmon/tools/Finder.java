@@ -75,17 +75,19 @@ public class Finder {
     }
 
 
-    public Set<Distribution> getDistributions(final String SEARCH_PATH) {
+    public Set<Distribution> getDistributions(final List<String> searchPaths) {
         Set<Distribution> distros = new HashSet<>();
+        if (null == searchPaths || searchPaths.isEmpty()) { return distros; }
 
         if (service.isShutdown()) {
             service = Executors.newSingleThreadExecutor();
         }
 
-        final Path       path      = Paths.get(SEARCH_PATH);
-        final List<Path> javaFiles = findByFileName(path, javaFile);
-        javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros));
-
+        searchPaths.forEach(searchPath -> {
+            final Path       path      = Paths.get(searchPath);
+            final List<Path> javaFiles = findByFileName(path, javaFile);
+            javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros));
+        });
         service.shutdown();
         try {
             service.awaitTermination(5000, TimeUnit.MILLISECONDS);

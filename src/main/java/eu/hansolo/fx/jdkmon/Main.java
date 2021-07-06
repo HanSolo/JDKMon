@@ -99,6 +99,7 @@ import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -109,6 +110,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 /**
@@ -144,11 +146,11 @@ public class Main extends Application {
     private              Label                                         searchPathLabel;
     private              VBox                                          distroBox;
     private              VBox                                          vBox;
-    private              String                                        searchPath;
+    private              List<String>                                  searchPaths;
     private              DirectoryChooser                              directoryChooser;
-    private              ProgressBar     progressBar;
-    private              DiscoClient     discoclient;
-    private              BooleanProperty blocked;
+    private              ProgressBar                                   progressBar;
+    private              DiscoClient                                   discoclient;
+    private              BooleanProperty                               blocked;
     private              AtomicBoolean                                 checkingForUpdates;
     private              boolean                                       trayIconSupported;
     private              Worker<Boolean>                               worker;
@@ -235,7 +237,7 @@ public class Main extends Application {
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
-        searchPath         = PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH);
+        searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
 
         //fileWatcher  = new FileWatcher(new File(searchPath));
         //fileObserver = new FileObserver() {
@@ -251,12 +253,12 @@ public class Main extends Application {
 
         distros = FXCollections.observableArrayList();
         finder  = new Finder(discoclient);
-        distros.setAll(finder.getDistributions(searchPath));
+        distros.setAll(finder.getDistributions(searchPaths));
 
         titleLabel = new Label("Distributions found in");
         titleLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfProTextBold(12));
 
-        searchPathLabel = new Label(searchPath);
+        searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
         VBox titleBox = new VBox(5, titleLabel, searchPathLabel);
@@ -378,9 +380,13 @@ public class Main extends Application {
             rescanItem.setOnAction(e -> rescan());
             trayIcon.addMenuItem(rescanItem);
 
-            MenuItem searchPathItem = new MenuItem("Search path");
-            searchPathItem.setOnAction( e -> selectSearchPath());
+            MenuItem searchPathItem = new MenuItem("Add search path");
+            searchPathItem.setOnAction(e -> selectSearchPath());
             trayIcon.addMenuItem(searchPathItem);
+
+            MenuItem defaultSearchPathItem = new MenuItem("Default search path");
+            defaultSearchPathItem.setOnAction(e -> resetToDefaultSearchPath());
+            trayIcon.addMenuItem(defaultSearchPathItem);
 
             MenuItem exitItem = new MenuItem("Exit");
             exitItem.setOnAction(e -> stop());
@@ -423,13 +429,24 @@ public class Main extends Application {
             menu.getItems().add(rescanItem);
 
             CustomMenuItem searchPathItem = new CustomMenuItem();
-            Label searchPathLabel = new Label("Search path");
+            Label searchPathLabel = new Label("Add search path");
+            searchPathLabel.setTooltip(new Tooltip("Add another folder that should be scanned for JDK's"));
             searchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             searchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             searchPathItem.setContent(searchPathLabel);
             searchPathItem.setHideOnClick(false);
             searchPathItem.setOnAction( e -> selectSearchPath());
             menu.getItems().add(searchPathItem);
+
+            CustomMenuItem defaultSearchPathItem = new CustomMenuItem();
+            Label defaultSearchPathLabel = new Label("Default search path");
+            defaultSearchPathLabel.setTooltip(new Tooltip("Reset search paths to default"));
+            defaultSearchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            defaultSearchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            defaultSearchPathItem.setContent(defaultSearchPathLabel);
+            defaultSearchPathItem.setHideOnClick(false);
+            defaultSearchPathItem.setOnAction( e -> resetToDefaultSearchPath());
+            menu.getItems().add(defaultSearchPathItem);
 
             CustomMenuItem exitItem = new CustomMenuItem();
             Label exitLabel = new Label("Exit");
@@ -513,7 +530,7 @@ public class Main extends Application {
     private void rescan() {
         Platform.runLater(() -> {
             if (checkingForUpdates.get()) { return; }
-            Set<Distribution> distrosFound = finder.getDistributions(searchPath);
+            Set<Distribution> distrosFound = finder.getDistributions(searchPaths);
             distros.setAll(distrosFound);
             checkForUpdates();
         });
@@ -786,17 +803,33 @@ public class Main extends Application {
     }
 
     private void selectSearchPath() {
-        boolean searchPathExists = new File(searchPath).exists();
-        directoryChooser.setTitle("Choose search path");
-        directoryChooser.setInitialDirectory(searchPathExists ? new File(searchPath) : new File(System.getProperty("user.home")));
+        boolean searchPathExists;
+        if (searchPaths.isEmpty()) {
+            searchPathExists = false;
+        } else {
+            searchPathExists = new File(searchPaths.get(0)).exists();
+        }
+        directoryChooser.setTitle("Add search path");
+        directoryChooser.setInitialDirectory(searchPathExists ? new File(searchPaths.get(0)) : new File(System.getProperty("user.home")));
         final File selectedFolder = directoryChooser.showDialog(stage);
         if (null != selectedFolder) {
-            searchPath = selectedFolder.getAbsolutePath() + File.separator;
-            PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPath);
+            String searchPath = selectedFolder.getAbsolutePath() + File.separator;
+            if (searchPaths.contains(searchPath)) { return; }
+            searchPaths.add(searchPath);
+            PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+            PropertyManager.INSTANCE.storeProperties();
+            searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(",")));
             //setupFileWatcher();
-            searchPathLabel.setText(searchPath);
             rescan();
         }
+    }
+
+    private void resetToDefaultSearchPath() {
+        PropertyManager.INSTANCE.resetProperties();
+        distros.clear();
+        searchPaths.clear();
+        searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+        rescan();
     }
 
     /*
