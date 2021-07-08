@@ -38,6 +38,9 @@ import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -59,6 +62,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -70,7 +74,6 @@ import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -87,7 +90,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -121,6 +126,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
+    private static final String                                        VERSION                  = "16.0.3";
     private static final long                                          INITIAL_DELAY_IN_HOURS   = 3;
     private static final long                                          RESCAN_INTERVAL_IN_HOURS = 3;
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
@@ -157,6 +163,8 @@ public class Main extends Application {
     private              boolean                                       trayIconSupported;
     private              ContextMenu                                   contextMenu;
     private              Worker<Boolean>                               worker;
+    private              Dialog                                        aboutDialog;
+    private              Timeline                                      timeline;
 
 
     @Override public void init() {
@@ -333,7 +341,7 @@ public class Main extends Application {
             }
         }
 
-        registerListeners();
+        timeline = new Timeline();
     }
 
     private void registerListeners() {
@@ -388,17 +396,46 @@ public class Main extends Application {
         mainPane.setOnMousePressed(e -> contextMenu.hide());
 
         progressBar.prefWidthProperty().bind(mainPane.widthProperty());
+
+        aboutDialog.getDialogPane().setOnMousePressed(e -> ((Stage) aboutDialog.getDialogPane().getScene().getWindow()).close());
+        aboutDialog.setOnShowing(e -> {
+            Stage    aboutStage = ((Stage) aboutDialog.getDialogPane().getScene().getWindow());
+            KeyFrame key        = new KeyFrame(Duration.millis(7000), new KeyValue(aboutDialog.getDialogPane().opacityProperty(), 1));
+            timeline.getKeyFrames().setAll(key);
+            timeline.setOnFinished((ae) -> {
+                aboutDialog.hide();
+                aboutDialog.close();
+                aboutStage.close();
+            });
+            timeline.play();
+        });
+    }
+
+    private void initOnFXApplicationThread() {
+        aboutDialog = createAboutDialog();
+
+        registerListeners();
     }
 
 
     @Override public void start(final Stage stage) {
+        initOnFXApplicationThread();
+
         this.stage             = stage;
         this.trayIconSupported = FXTrayIcon.isSupported();
 
         if (trayIconSupported) {
             FXTrayIcon trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"));
-            trayIcon.setTrayIconTooltip("JDK Mon");
+            trayIcon.setTrayIconTooltip("JDKMon " + VERSION);
             trayIcon.addExitItem(false);
+            trayIcon.setApplicationTitle("JDKMon " + VERSION);
+
+            MenuItem aboutItem = new MenuItem("About");
+            aboutItem.setOnAction(e -> {
+                if (aboutDialog.isShowing()) { return; }
+                aboutDialog.show();
+            });
+            trayIcon.addMenuItem(aboutItem);
 
             MenuItem rescanItem = new MenuItem("Rescan");
             rescanItem.setOnAction(e -> rescan());
@@ -431,7 +468,7 @@ public class Main extends Application {
             });
 
             CustomMenuItem mainItem = new CustomMenuItem();
-            Label mainLabel = new Label("JDK Mon");
+            Label mainLabel = new Label("About");
             mainLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             mainLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             mainItem.setContent(mainLabel);
@@ -442,6 +479,14 @@ public class Main extends Application {
                 stage.centerOnScreen();
             });
             menu.getItems().add(mainItem);
+
+            MenuItem aboutItem = new MenuItem("About");
+            aboutItem.setOnAction(e -> {
+                if (aboutDialog.isShowing()) { return; }
+                aboutDialog.show();
+            });
+            menu.getItems().add(aboutItem);
+
 
             CustomMenuItem rescanItem = new CustomMenuItem();
             Label rescanLabel = new Label("Rescan");
@@ -486,7 +531,12 @@ public class Main extends Application {
             mainPane.getChildren().add(menuBar);
         }
 
-        Scene scene = new Scene(mainPane);
+        StackPane glassPane = new StackPane(mainPane);
+        glassPane.setPadding(new Insets(10));
+        glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+        glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), 10.0, 0.0, 0.0, 5));
+
+        Scene scene = new Scene(glassPane);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
@@ -773,6 +823,82 @@ public class Main extends Application {
                 }
         });
         return hBox;
+    }
+
+    private Dialog createAboutDialog() {
+        Dialog aboutDialog = new Dialog();
+        aboutDialog.setTitle("JDKMon");
+        aboutDialog.initStyle(StageStyle.TRANSPARENT);
+        aboutDialog.initModality(Modality.WINDOW_MODAL);
+
+        Stage aboutStage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
+        aboutStage.getIcons().add(dukeStageIcon);
+        aboutStage.getScene().setFill(Color.TRANSPARENT);
+
+        ImageView aboutImage = new ImageView(dukeStageIcon);
+        aboutImage.setFitWidth(128);
+        aboutImage.setFitHeight(128);
+
+        Label nameLabel = new Label("JDKMon");
+        nameLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(36) : Fonts.sfPro(36));
+
+        Label versionLabel = new Label(VERSION);
+        versionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+
+        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of all your installed OpenJDK distributions.");
+        descriptionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+        descriptionLabel.setTextAlignment(TextAlignment.LEFT);
+        descriptionLabel.setWrapText(true);
+        descriptionLabel.setAlignment(Pos.TOP_LEFT);
+
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, descriptionLabel);
+
+        HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
+        aboutBox.setAlignment(Pos.CENTER);
+        aboutBox.setPadding(new Insets(20, 20, 10, 20));
+        aboutBox.setMinSize(420, 180);
+        aboutBox.setMaxSize(420, 180);
+        aboutBox.setPrefSize(420, 180);
+
+        StackPane glassPane = new StackPane(aboutBox);
+        glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+        glassPane.setMinSize(440, 200);
+        glassPane.setMaxSize(440, 200);
+        glassPane.setPrefSize(440, 200);
+        glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+
+        aboutDialog.getDialogPane().setContent(glassPane);
+        aboutDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Adjustments related to dark/light mode
+        if (darkMode.get()) {
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                nameLabel.setTextFill(Color.web("#868687"));
+                versionLabel.setTextFill(Color.web("#868687"));
+                descriptionLabel.setTextFill(Color.web("#868687"));
+            } else {
+                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
+                nameLabel.setTextFill(Color.web("#dddddd"));
+                versionLabel.setTextFill(Color.web("#dddddd"));
+                descriptionLabel.setTextFill(Color.web("#dddddd"));
+            }
+        } else {
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+            } else {
+                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                pane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
+        }
+
+        return aboutDialog;
     }
 
     private void downloadPkg(final Pkg pkg) {
