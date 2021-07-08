@@ -71,4 +71,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Linux
-          path: ./build/installer/jdkmon-16.0.3-1_amd64.deb
+          path: ./build/installer/jdkmon_16.0.3-1_amd64.deb
