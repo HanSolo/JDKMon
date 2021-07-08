@@ -578,7 +578,7 @@
 
 
 .popup {
-    -fx-min-width       : 200px;
+    -fx-min-width       : 250px;
     -fx-background-color: transparent;
 }
 

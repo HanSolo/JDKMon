@@ -156,18 +156,14 @@ public class Finder {
             ProcessBuilder builder  = new ProcessBuilder(commands).redirectErrorStream(true);
             Process        process  = builder.start();
             Streamer       streamer = new Streamer(process.getInputStream(), d -> {
-                //final String parentPath    = java.replaceAll(binFolder, fileSeparator);
-                final String parentPath    = OperatingSystem.WINDOWS == operatingSystem ? java.replaceAll("bin\\\\java.exe", "") : java.replaceAll(binFolder, fileSeparator);
-
-                final File   releaseFile   = new File(parentPath + "release");
-
-                String[]      lines         = d.split("\\|");
-
-                String        name            = "Unknown build of OpenJDK";
-                String        apiString       = "";
-                String        operatingSystem = "";
-                String        architecture    = "";
-                Boolean       fxBundled       = Boolean.FALSE;
+                final String parentPath       = OperatingSystem.WINDOWS == operatingSystem ? java.replaceAll("bin\\\\java.exe", "") : java.replaceAll(binFolder, fileSeparator);
+                final File   releaseFile      = new File(parentPath + "release");
+                String[]     lines            = d.split("\\|");
+                String       name             = "Unknown build of OpenJDK";
+                String       apiString        = "";
+                String       operatingSystem  = "";
+                String       architecture     = "";
+                Boolean      fxBundled        = Boolean.FALSE;
 
                 final File   jreLibExtFolder  = new File(new StringBuilder(parentPath).append("jre").append(fileSeparator).append("lib").append(fileSeparator).append("ext").toString());
                 if (jreLibExtFolder.exists()) {

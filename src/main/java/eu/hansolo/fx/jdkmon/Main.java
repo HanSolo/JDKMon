@@ -621,7 +621,6 @@ public class Main extends Application {
         // ******************** Create popup **********************************
         Popup popup = new Popup();
 
-
         WinWindowButton   closePopupWinButton   = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         MacOSWindowButton closePopupMacOSButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
 
@@ -644,8 +643,8 @@ public class Main extends Application {
 
         AnchorPane.setTopAnchor(closePopupMacOSButton, 5d);
         AnchorPane.setLeftAnchor(closePopupMacOSButton, 5d);
-        AnchorPane.setTopAnchor(closePopupWinButton, 5d);
-        AnchorPane.setRightAnchor(closePopupWinButton, 5d);
+        AnchorPane.setTopAnchor(closePopupWinButton, 0d);
+        AnchorPane.setRightAnchor(closePopupWinButton, 0d);
         AnchorPane.setTopAnchor(popupTitle, 0d);
         AnchorPane.setRightAnchor(popupTitle, 0d);
         AnchorPane.setBottomAnchor(popupTitle, 0d);
@@ -653,9 +652,15 @@ public class Main extends Application {
 
         AnchorPane popupHeader = new AnchorPane();
         popupHeader.getStyleClass().add("header");
-        popupHeader.setMinHeight(21);
-        popupHeader.setMaxHeight(21);
-        popupHeader.setPrefHeight(21);
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            popupHeader.setMinHeight(31);
+            popupHeader.setMaxHeight(31);
+            popupHeader.setPrefHeight(31);
+        } else {
+            popupHeader.setMinHeight(21);
+            popupHeader.setMaxHeight(21);
+            popupHeader.setPrefHeight(21);
+        }
         popupHeader.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
         if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
             popupHeader.getChildren().addAll(closePopupWinButton, popupTitle);
