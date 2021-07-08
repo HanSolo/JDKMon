@@ -57,6 +57,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -69,6 +70,7 @@ import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -136,14 +138,14 @@ public class Main extends Application {
     private              StackPane                                     pane;
     private              BorderPane                                    mainPane;
     private              ScheduledExecutorService                      executor;
-    //private              FileWatcher                  fileWatcher;
-    //private              FileObserver                 fileObserver;
     private              boolean                                       hideMenu;
     private              Stage                                         stage;
     private              ObservableList<Distribution>                  distros;
     private              Finder                                        finder;
     private              Label                                         titleLabel;
     private              Label                                         searchPathLabel;
+    private              VBox                                          titleBox;
+    private              Separator                                     separator;
     private              VBox                                          distroBox;
     private              VBox                                          vBox;
     private              List<String>                                  searchPaths;
@@ -153,6 +155,7 @@ public class Main extends Application {
     private              BooleanProperty                               blocked;
     private              AtomicBoolean                                 checkingForUpdates;
     private              boolean                                       trayIconSupported;
+    private              ContextMenu                                   contextMenu;
     private              Worker<Boolean>                               worker;
 
 
@@ -171,16 +174,6 @@ public class Main extends Application {
             @Override public String getName() { return "darkMode"; }
         };
         darkMode.set(Detector.isDarkMode());
-        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
-            accentColor = Detector.getMacOSAccentColor();
-            if (darkMode.get()) {
-                pane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
-            } else {
-                pane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
-            }
-        } else {
-            accentColor = MacOSAccentColor.MULTI_COLOR;
-        }
 
         closeMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         closeMacWindowButton.setDarkMode(darkMode.get());
@@ -261,7 +254,7 @@ public class Main extends Application {
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
-        VBox titleBox = new VBox(5, titleLabel, searchPathLabel);
+        titleBox = new VBox(5, titleLabel, searchPathLabel);
 
         List<HBox> distroEntries = new ArrayList<>();
         finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
@@ -271,7 +264,7 @@ public class Main extends Application {
         progressBar = new ProgressBar(0);
         progressBar.setVisible(false);
 
-        Separator separator = new Separator(Orientation.HORIZONTAL);
+        separator = new Separator(Orientation.HORIZONTAL);
         VBox.setMargin(separator, new Insets(5, 0, 5, 0));
 
         vBox = new VBox(5, titleBox, separator, distroBox, progressBar);
@@ -283,6 +276,37 @@ public class Main extends Application {
         mainPane = new BorderPane();
         mainPane.setTop(headerPane);
         mainPane.setCenter(pane);
+
+        // Context menu
+        MenuItem contextRescan = new MenuItem("Rescan");
+        contextRescan.getStyleClass().add("context-menu-item");
+        contextRescan.setOnAction(e -> rescan());
+
+        MenuItem contextAddSearchPath = new MenuItem("Add search path");
+        contextAddSearchPath.getStyleClass().add("context-menu-item");
+        contextAddSearchPath.setOnAction(e -> selectSearchPath());
+
+        MenuItem contextDefaultSearchPath = new MenuItem("Default search path");
+        contextDefaultSearchPath.getStyleClass().add("context-menu-item");
+        contextDefaultSearchPath.setOnAction(e -> resetToDefaultSearchPath());
+
+        contextMenu = new ContextMenu(contextRescan, contextAddSearchPath, contextDefaultSearchPath);
+        contextMenu.getStyleClass().add("jdk-mon");
+        contextMenu.setAutoHide(true);
+
+        // Adjustments related to accent color
+        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            accentColor = Detector.getMacOSAccentColor();
+            if (darkMode.get()) {
+                pane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+            } else {
+                pane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+            }
+        } else {
+            accentColor = MacOSAccentColor.MULTI_COLOR;
+        }
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
@@ -364,8 +388,12 @@ public class Main extends Application {
             closeMacWindowButton.setOnMouseExited(e -> closeMacWindowButton.setHovered(false));
         }
 
+        mainPane.setOnContextMenuRequested(e -> contextMenu.show(mainPane, e.getScreenX(), e.getScreenY()));
+        mainPane.setOnMousePressed(e -> contextMenu.hide());
+
         progressBar.prefWidthProperty().bind(mainPane.widthProperty());
     }
+
 
     @Override public void start(final Stage stage) {
         this.stage             = stage;
@@ -458,6 +486,7 @@ public class Main extends Application {
             menu.getItems().add(exitItem);
 
             menuBar.getMenus().add(menu);
+
             mainPane.getChildren().add(menuBar);
         }
 
@@ -550,7 +579,13 @@ public class Main extends Application {
                 updatesAvailable.set(true);
             }
         });
-        Platform.runLater(() -> distroBox.getChildren().setAll(distroEntries));
+        Platform.runLater(() -> {
+            int numberOfDistros = distroBox.getChildren().size();
+            distroBox.getChildren().setAll(distroEntries);
+            double delta = (distroEntries.size() - numberOfDistros) * 28;
+            stage.setHeight(stage.getHeight() + delta);
+            mainPane.layout();
+        });
 
         if (updatesAvailable.get()) {
             Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
@@ -836,15 +871,6 @@ public class Main extends Application {
         searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
         rescan();
     }
-
-    /*
-    private void setupFileWatcher() {
-        if (null != fileWatcher) { fileWatcher.removeObserver(fileObserver); }
-        fileWatcher = new FileWatcher(new File(searchPath));
-        fileWatcher.addObserver(fileObserver);
-        fileWatcher.watch();
-    }
-    */
 
     public static void main(String[] args) {
         launch(args);

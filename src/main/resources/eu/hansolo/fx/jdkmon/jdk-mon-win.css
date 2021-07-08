@@ -534,6 +534,49 @@
 }
 
 
+.context-menu {
+    -fx-background-color : -light-main-background;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10, 10;
+    -fx-padding          : 5;
+    -fx-effect           : none;
+    -fx-border-color     : transparent;
+    -fx-border-radius    : 10;
+}
+.context-menu .separator:horizontal .line {
+    -fx-border-color : transparent transparent transparent transparent;
+    -fx-border-insets: 0 0 0 0;
+}
+.context-menu > .scroll-arrow {
+    -fx-padding         : 0;
+    -fx-background-color: transparent;
+}
+.context-menu > .scroll-arrow:hover {
+    -fx-background      : transparent;
+    -fx-background-color: transparent;
+    -fx-text-fill       : transparent;
+}
+
+.context-menu-item {
+    -fx-text-fill        : -dark-text-color;
+    -fx-background-radius: 5;
+    -fx-padding          : 0.15em 0.41em 0.15em 0.41em;
+    -fx-border-color     : transparent;
+}
+.context-menu-item:focused {
+    -fx-background      : -selection-color;
+    -fx-background-color: -selection-color;
+    -fx-text-fill       : -fx-text-background-color;
+}
+.context-menu-item > .label {
+    -fx-text-fill: -dark-text-color;
+    -fx-padding  : 0;
+}
+.context-menu-item:focused > .label {
+    -fx-text-fill: -fx-focused-text-base-color;
+}
+
+
 .popup {
     -fx-min-width       : 200px;
     -fx-background-color: transparent;
