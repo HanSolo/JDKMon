@@ -10,7 +10,6 @@ module eu.hansolo.fx.jdkmon {
 
     // 3rd Party
     requires com.google.gson;
-    requires slf4j.api;
     requires io.foojay.api.discoclient;
     requires FXTrayIcon;
 

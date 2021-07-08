@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
         classpath 'org.javamodularity:moduleplugin:1.8.7'
-        classpath 'org.beryx:badass-jlink-plugin:2.23.2'
+        classpath 'org.beryx:badass-jlink-plugin:2.4.0'
     }
 }
 
@@ -17,7 +17,7 @@ plugins {
     id 'application'
     id 'com.google.osdetector' version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.7'
-    id 'org.beryx.jlink' version '2.23.7'
+    id 'org.beryx.jlink' version '2.24.0'
 }
 
 ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
@@ -41,15 +41,16 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
     //implementation 'io.foojay.api:discoclient:1.0'
 
-    implementation 'org.slf4j:slf4j-api:1.7.25'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
-    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:2.7.2'
+    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.0.0'
 }
 
-mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
+//mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
+ext.moduleName = 'eu.hansolo.fx.jdkmon'
+mainClassName = 'eu.hansolo.fx.jdkmon.Launcher'
 
 jar {
     from {
@@ -63,7 +64,7 @@ jar {
     manifest {
         attributes(
                 'Implementation-Title': 'JDKMon',
-                'Class-Path': 'JDKMon-16.0.1.jar',
+                'Class-Path': 'JDKMon-16.0.2.jar',
                 'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
         )
     }
@@ -96,5 +97,16 @@ task Main(type: JavaExec) {
 sourceSets {
     main {
         output.setResourcesDir(java.outputDir)
+    }
+}
+
+run {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        jvmArgs = [
+                '--module-path', classpath.asPath,
+                '--module', mainClassName
+        ]
+        classpath = files()
     }
 }
