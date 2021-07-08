@@ -94,7 +94,7 @@ $JAVA_HOME/bin/jlink \
 # A loop iterates over the various packaging types supported by jpackage. In
 # the end we will find all packages inside the build/installer directory.
 
-for type in "app-image" "deb" "rpm"
+for type in "deb" "rpm"
 do
   echo "Creating installer of type ... $type"
 
@@ -108,7 +108,7 @@ do
   --java-options -Xmx2048m \
   --java-options '--enable-preview' \
   --runtime-image build/java-runtime \
-  --icon src/main/resources/eu/hansolo/fx/jdkmon/icon.icns \
+  --icon src/main/resources/eu/hansolo/fx/jdkmon/icon128x128.png \
   --linux-shortcut \
   --linux-menu-group "JDKMon" \
   --app-version ${APP_VERSION} \
