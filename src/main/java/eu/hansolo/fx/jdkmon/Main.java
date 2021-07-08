@@ -645,7 +645,7 @@ public class Main extends Application {
         AnchorPane.setTopAnchor(closePopupMacOSButton, 5d);
         AnchorPane.setLeftAnchor(closePopupMacOSButton, 5d);
         AnchorPane.setTopAnchor(closePopupWinButton, 5d);
-        AnchorPane.setLeftAnchor(closePopupWinButton, 5d);
+        AnchorPane.setRightAnchor(closePopupWinButton, 5d);
         AnchorPane.setTopAnchor(popupTitle, 0d);
         AnchorPane.setRightAnchor(popupTitle, 0d);
         AnchorPane.setBottomAnchor(popupTitle, 0d);
@@ -685,7 +685,6 @@ public class Main extends Application {
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
             if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
-                // TODO: Set popup windows style
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0), Insets.EMPTY)));
@@ -698,7 +697,6 @@ public class Main extends Application {
             }
         } else {
             if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
-                // TODO: Set popup windows style
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0), Insets.EMPTY)));

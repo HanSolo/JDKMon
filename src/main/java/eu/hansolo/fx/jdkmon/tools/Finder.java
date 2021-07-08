@@ -54,17 +54,18 @@ import java.util.stream.Stream;
 
 
 public class Finder {
-    public  static final String          MACOS_JAVA_INSTALL_PATH   = "/System/Volumes/Data/Library/Java/JavaVirtualMachines/";
-    public  static final String          WINDOWS_JAVA_INSTALL_PATH = "C:\\Program Files\\Java\\";
-    public  static final String          LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
-    private static final Pattern         GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
-    private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
-    private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
-    private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
-    private              ExecutorService service                   = Executors.newSingleThreadExecutor();
-    private              Properties      releaseProperties         = new Properties();
-    private              String          javaFile                  = OperatingSystem.WINDOWS == DiscoClient.getOperatingSystem() ? "java.exe" : "java";
-    private              DiscoClient     discoclient;
+    public static final  String                                        MACOS_JAVA_INSTALL_PATH   = "/System/Volumes/Data/Library/Java/JavaVirtualMachines/";
+    public static final  String                                        WINDOWS_JAVA_INSTALL_PATH = "C:\\Program Files\\Java\\";
+    public static final  String                                        LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
+    private static final Pattern                                       GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
+    private static final Matcher                                       GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
+    private static final Pattern                                       ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
+    private static final Matcher                                       ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
+    private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
+    private              Properties                                    releaseProperties         = new Properties();
+    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = DiscoClient.getOperatingSystem();
+    private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
+    private              DiscoClient                                   discoclient;
 
 
     public Finder() {
@@ -155,7 +156,9 @@ public class Finder {
             ProcessBuilder builder  = new ProcessBuilder(commands).redirectErrorStream(true);
             Process        process  = builder.start();
             Streamer       streamer = new Streamer(process.getInputStream(), d -> {
-                final String parentPath    = java.replaceAll(binFolder, fileSeparator);
+                //final String parentPath    = java.replaceAll(binFolder, fileSeparator);
+                final String parentPath    = OperatingSystem.WINDOWS == operatingSystem ? java.replaceAll("bin\\\\java.exe", "") : java.replaceAll(binFolder, fileSeparator);
+
                 final File   releaseFile   = new File(parentPath + "release");
 
                 String[]      lines         = d.split("\\|");
