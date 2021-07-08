@@ -235,7 +235,7 @@ public class Main extends Application {
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
-        
+
         directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Choose search path");
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
@@ -686,6 +686,10 @@ public class Main extends Application {
         if (darkMode.get()) {
             if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
                 // TODO: Set popup windows style
+                popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
+                popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
+                popupPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0), Insets.EMPTY)));
+                popupPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(0, 0, 0, 0, false), new BorderWidths(1))));
             } else {
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
@@ -695,6 +699,10 @@ public class Main extends Application {
         } else {
             if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
                 // TODO: Set popup windows style
+                popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
+                popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
+                popupPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0), Insets.EMPTY)));
+                popupPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(0, 0, 0, 0, false), new BorderWidths(1))));
             } else {
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
