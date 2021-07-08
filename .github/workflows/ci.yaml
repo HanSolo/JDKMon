@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: '.\build\installer\JDKMon-16.0.0.msi'
+          path: '.\build\installer\JDKMon-16.0.3.msi'
 
 
 
@@ -40,11 +40,35 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
-      - name: Grant execute permission for build.sh
+      - name: Grant execute permission for build_app.sh
         run: chmod +x ./build_app.sh
       - name: Create Distribution
         run: ./build_app.sh
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Mac
-          path: ./build/installer/JDKMon-16.0.0.pkg
+          path: ./build/installer/JDKMon-16.0.3.pkg
+
+  build-linux:
+
+    runs-on: [ ubuntu-latest ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v1
+        with:
+          java-version: 16
+          architecture: x64
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Grant execute permission for build_app_linux.sh
+        run: chmod +x ./build_app_linux.sh
+      - name: Create Distribution
+        run: ./build_app_linux.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: JDKMon Linux
+          path: ./build/installer/JDKMon-16.0.3.deb
