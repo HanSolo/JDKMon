@@ -467,26 +467,17 @@ public class Main extends Application {
                 }
             });
 
-            CustomMenuItem mainItem = new CustomMenuItem();
+            CustomMenuItem aboutItem = new CustomMenuItem();
             Label mainLabel = new Label("About");
             mainLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             mainLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
-            mainItem.setContent(mainLabel);
-            mainItem.setHideOnClick(false);
-            mainItem.setOnAction(e -> {
-                stage.setWidth(330);
-                stage.setHeight(242);
-                stage.centerOnScreen();
-            });
-            menu.getItems().add(mainItem);
-
-            MenuItem aboutItem = new MenuItem("About");
+            aboutItem.setContent(mainLabel);
+            aboutItem.setHideOnClick(false);
             aboutItem.setOnAction(e -> {
                 if (aboutDialog.isShowing()) { return; }
                 aboutDialog.show();
             });
             menu.getItems().add(aboutItem);
-
 
             CustomMenuItem rescanItem = new CustomMenuItem();
             Label rescanLabel = new Label("Rescan");
@@ -885,16 +876,15 @@ public class Main extends Application {
             }
         } else {
             if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
-                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
-                pane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                nameLabel.setTextFill(Color.web("#2a2a2a"));
+                versionLabel.setTextFill(Color.web("#2a2a2a"));
+                descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             } else {
-                headerPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                pane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
-                mainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
-                mainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
+                nameLabel.setTextFill(Color.web("#2a2a2a"));
+                versionLabel.setTextFill(Color.web("#2a2a2a"));
+                descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             }
         }
 
