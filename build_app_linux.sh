@@ -94,7 +94,7 @@ $JAVA_HOME/bin/jlink \
 # A loop iterates over the various packaging types supported by jpackage. In
 # the end we will find all packages inside the build/installer directory.
 
-for type in "app-image" "dmg" "pkg"
+for type in "app-image" "deb" "rpm"
 do
   echo "Creating installer of type ... $type"
 
@@ -109,10 +109,9 @@ do
   --java-options '--enable-preview' \
   --runtime-image build/java-runtime \
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon.icns \
+  --linux-shortcut \
+  --linux-menu-group "JDKMon" \
   --app-version ${APP_VERSION} \
-  --mac-package-name JDKMon \
   #--vendor "Alliance" \
   #--copyright "Copyright © 2021 Alliance Inc." \
-  #--mac-package-identifier eu.hansolo.fx.jdkmon \
-
 done

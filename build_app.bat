@@ -83,5 +83,8 @@ for %%s in ("app-image" "msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
   --java-options '--enable-preview' ^
   --runtime-image build\java-runtime ^
   --icon src\main\resources\eu\hansolo\fx\jdkmon\icon.ico ^
+  --win-shortcut ^
+  --win-menu ^
+  --win-menu-group "JDKMon" ^
   --app-version %APP_VERSION% ^
 

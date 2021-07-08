@@ -478,7 +478,7 @@ public class Main extends Application {
                 aboutDialog.show();
             });
             menu.getItems().add(aboutItem);
-
+            
             CustomMenuItem rescanItem = new CustomMenuItem();
             Label rescanLabel = new Label("Rescan");
             rescanLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
@@ -621,7 +621,6 @@ public class Main extends Application {
             distroBox.getChildren().setAll(distroEntries);
             double delta = (distroEntries.size() - numberOfDistros) * 28;
             stage.setHeight(stage.getHeight() + delta);
-            mainPane.layout();
         });
 
         if (updatesAvailable.get()) {
