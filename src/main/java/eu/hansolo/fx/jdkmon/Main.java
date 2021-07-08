@@ -160,7 +160,13 @@ public class Main extends Application {
 
 
     @Override public void init() {
-        cssFile = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? "jdk-mon-win.css" : "jdk-mon.css";
+        switch (operatingSystem) {
+            case WINDOWS -> cssFile = "jdk-mon-winn.css";
+            case LINUX   -> cssFile = "jdk-mon-linux.css";
+            default      -> cssFile = "jdk-mon.css";
+        }
+
+        //cssFile = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? "jdk-mon-win.css" : "jdk-mon.css";
 
         notifier = NotifierBuilder.create()
                                   .popupLocation(OperatingSystem.MACOS == Detector.getOperatingSystem() ? Pos.TOP_RIGHT : Pos.BOTTOM_RIGHT)
