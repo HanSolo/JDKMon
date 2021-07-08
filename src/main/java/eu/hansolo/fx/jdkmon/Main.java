@@ -161,12 +161,10 @@ public class Main extends Application {
 
     @Override public void init() {
         switch (operatingSystem) {
-            case WINDOWS -> cssFile = "jdk-mon-winn.css";
+            case WINDOWS -> cssFile = "jdk-mon-win.css";
             case LINUX   -> cssFile = "jdk-mon-linux.css";
             default      -> cssFile = "jdk-mon.css";
         }
-
-        //cssFile = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? "jdk-mon-win.css" : "jdk-mon.css";
 
         notifier = NotifierBuilder.create()
                                   .popupLocation(OperatingSystem.MACOS == Detector.getOperatingSystem() ? Pos.TOP_RIGHT : Pos.BOTTOM_RIGHT)
@@ -237,15 +235,7 @@ public class Main extends Application {
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
-
-        //fileWatcher  = new FileWatcher(new File(searchPath));
-        //fileObserver = new FileObserver() {
-        //    @Override public void onCreated(final FileEvent evt) { rescan(); }
-        //    @Override public void onModified(final FileEvent evt) { }
-        //    @Override public void onDeleted(final FileEvent evt) { rescan(); }
-        //};
-        //setupFileWatcher();
-
+        
         directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Choose search path");
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
