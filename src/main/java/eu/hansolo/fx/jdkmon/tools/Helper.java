@@ -16,21 +16,23 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import eu.hansolo.fx.jdkmon.Main;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
 public class Helper {
-    public static final Pattern POSITIVE_INTEGER_PATTERN = Pattern.compile("\\d+");
-
     public static TermOfSupport getTermOfSupport(final VersionNumber versionNumber) {
         if (!versionNumber.getFeature().isPresent() || versionNumber.getFeature().isEmpty()) {
             throw new IllegalArgumentException("VersionNumber need to have a feature version");
@@ -73,7 +75,7 @@ public class Helper {
 
     public static boolean isPositiveInteger(final String text) {
         if (null == text || text.isEmpty()) { return false; }
-        return POSITIVE_INTEGER_PATTERN.matcher(text).matches();
+        return Constants.POSITIVE_INTEGER_PATTERN.matcher(text).matches();
     }
 
     public static List<String> readTextFileToList(final String filename) throws IOException {
@@ -83,4 +85,23 @@ public class Helper {
     }
 
     public static final String colorToCss(final Color color) { return color.toString().replace("0x", "#"); }
+
+    public static CompletableFuture<HttpResponse<String>> checkForJDKMonUpdateAsync() {
+        return io.foojay.api.discoclient.util.Helper.getAsync(Constants.RELEASES_URI, "JDKMon");
+    }
+
+    public static boolean isUpdateAvailable() {
+        final HttpResponse<String> response = io.foojay.api.discoclient.util.Helper.get(Constants.RELEASES_URI, "JDKMon");
+        if (null == response || null == response.body() || response.body().isEmpty()) {
+            return false;
+        } else {
+            final Gson       gson       = new Gson();
+            final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
+            if (jsonObject.has("tag_name")) {
+                VersionNumber latestVersion = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
+                return latestVersion.compareTo(Main.VERSION) > 0;
+            }
+        }
+        return false;
+    }
 }

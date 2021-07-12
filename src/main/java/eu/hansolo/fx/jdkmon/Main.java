@@ -17,6 +17,8 @@
 package eu.hansolo.fx.jdkmon;
 
 import com.dustinredmond.fxtrayicon.FXTrayIcon;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -24,6 +26,7 @@ import eu.hansolo.fx.jdkmon.controls.WindowButtonType;
 import eu.hansolo.fx.jdkmon.notification.Notification;
 import eu.hansolo.fx.jdkmon.notification.NotificationBuilder;
 import eu.hansolo.fx.jdkmon.notification.NotifierBuilder;
+import eu.hansolo.fx.jdkmon.tools.Constants;
 import eu.hansolo.fx.jdkmon.tools.Detector;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacOSAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Detector.OperatingSystem;
@@ -33,6 +36,7 @@ import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
+import eu.hansolo.fx.jdkmon.tools.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Pkg;
@@ -42,6 +46,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
@@ -63,6 +68,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -98,9 +104,12 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
@@ -126,9 +135,8 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    private static final String                                        VERSION                  = "16.0.3";
-    private static final long                                          INITIAL_DELAY_IN_HOURS   = 3;
-    private static final long                                          RESCAN_INTERVAL_IN_HOURS = 3;
+    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 4);
+
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
     private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                                         dukeStageIcon            = new Image(Main.class.getResourceAsStream("icon128x128.png"));
@@ -165,9 +173,25 @@ public class Main extends Application {
     private              Worker<Boolean>                               worker;
     private              Dialog                                        aboutDialog;
     private              Timeline                                      timeline;
+    private              boolean                                       isUpdateAvailable;
+    private              VersionNumber                                 latestVersion;
 
 
     @Override public void init() {
+        isUpdateAvailable = false;
+        latestVersion     = VERSION;
+        Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
+            if (null == response || null == response.body() || response.body().isEmpty()) {
+                isUpdateAvailable = false;
+            } else {
+                final Gson       gson       = new Gson();
+                final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
+                if (jsonObject.has("tag_name")) {
+                    latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
+                    isUpdateAvailable = latestVersion.compareTo(Main.VERSION) > 0;
+                }
+            }
+        });
         switch (operatingSystem) {
             case WINDOWS -> cssFile = "jdk-mon-win.css";
             case LINUX   -> cssFile = "jdk-mon-linux.css";
@@ -237,7 +261,7 @@ public class Main extends Application {
         }
 
         executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> rescan(), INITIAL_DELAY_IN_HOURS, RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
+        executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_HOURS, Constants.RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -824,6 +848,7 @@ public class Main extends Application {
         Stage aboutStage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
         aboutStage.getIcons().add(dukeStageIcon);
         aboutStage.getScene().setFill(Color.TRANSPARENT);
+        aboutStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
         ImageView aboutImage = new ImageView(dukeStageIcon);
         aboutImage.setFitWidth(128);
@@ -832,16 +857,55 @@ public class Main extends Application {
         Label nameLabel = new Label("JDKMon");
         nameLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(36) : Fonts.sfPro(36));
 
-        Label versionLabel = new Label(VERSION);
+        Label versionLabel = new Label(VERSION.toString(eu.hansolo.fx.jdkmon.tools.OutputFormat.REDUCED_COMPRESSED, true, false));
         versionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
+        Node updateNode;
+        if (isUpdateAvailable) {
+            Hyperlink updateLink = new Hyperlink();
+            updateLink.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+            updateLink.setText("New Version (" + latestVersion.toString(eu.hansolo.fx.jdkmon.tools.OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
+            updateLink.setOnAction(e -> {
+                if (Desktop.isDesktopSupported()) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(Constants.RELEASES_URI));
+                    } catch (IOException | URISyntaxException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+            if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+                if (darkMode.get()) {
+                    updateLink.setTextFill(accentColor.getColorDark());
+                } else {
+                    updateLink.setTextFill(accentColor.getColorAqua());
+                }
+            } else {
+                updateLink.setTextFill(accentColor.getColorAqua());
+            }
+
+            updateNode = updateLink;
+        } else {
+            Label updateLabel = new Label("Latest version installed");
+            updateLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+
+            if (darkMode.get()) {
+                updateLabel.setTextFill(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Color.web("#868687") : Color.web("#dddddd"));
+            } else {
+                updateLabel.setTextFill(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Color.web("#2a2a2a") : Color.web("#2a2a2a"));
+            }
+
+            updateNode = updateLabel;
+        }
+
+
         Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of all your installed OpenJDK distributions.");
-        descriptionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+        descriptionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         descriptionLabel.setTextAlignment(TextAlignment.LEFT);
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);
 
-        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, descriptionLabel);
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, updateNode, descriptionLabel);
 
         HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
         aboutBox.setAlignment(Pos.CENTER);

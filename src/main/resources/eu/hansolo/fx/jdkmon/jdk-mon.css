@@ -623,3 +623,22 @@
     -fx-text-fill: black;
 }
 
+
+.hyperlink {
+    -fx-padding        : 0.166667em 0.25em 0.166667em 0.25em;
+    -fx-cursor         : hand;
+    -fx-content-display: LEFT;
+    -fx-border-color   : transparent;
+    -fx-border-width   : 0;
+}
+.hyperlink:hover,
+.hyperlink:visited,
+.hyperlink:hover:visited,
+.hyperlink:visited:armed{
+    -fx-underline: true;
+}
+.hyperlink:focused {
+    -fx-border-color: transparent;
+    -fx-border-style: none;
+    -fx-border-width: 0;
+}
