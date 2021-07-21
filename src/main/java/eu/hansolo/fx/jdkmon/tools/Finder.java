@@ -221,6 +221,7 @@ public class Finder {
                                 case "SAP SE"            : name = "SAP Machine";    apiString = "sap_machine";    break;
                                 case "OpenLogic"         : name = "OpenLogic";      apiString = "openlogic";      break;
                                 case "JetBrains s.r.o."  : name = "JetBrains";      apiString = "jetbrains";      break;
+                                case "Eclipse Foundation": name = "Temurin";        apiString = "temurin";        break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }

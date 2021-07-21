@@ -12,7 +12,7 @@ jobs:
       - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: 16
+          java-version: 16.0.1
           architecture: x64
       - name: Build with Gradle
         run: .\gradlew.bat assemble
@@ -34,7 +34,7 @@ jobs:
       - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: 16
+          java-version: 16.0.1
           architecture: x64
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -58,7 +58,7 @@ jobs:
       - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: 16
+          java-version: 16.0.1
           architecture: x64
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
