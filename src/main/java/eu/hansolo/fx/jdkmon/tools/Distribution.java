@@ -23,18 +23,16 @@ public class Distribution {
     private final String  operatingSystem;
     private final String  architecture;
     private final Boolean fxBundled;
+    private final String location;
 
-
-    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture) {
-        this(name, apiString, version, operatingSystem, architecture, null);
-    }
-    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled) {
+    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
         this.operatingSystem = operatingSystem;
         this.architecture    = architecture;
         this.fxBundled       = fxBundled;
+        this.location        = location;
     }
 
 
@@ -50,6 +48,7 @@ public class Distribution {
 
     public Boolean getFxBundled() { return fxBundled; }
 
+    public String getLocation() { return location; }
 
     @Override public String toString() {
         return new StringBuilder().append("{")
@@ -59,6 +58,7 @@ public class Distribution {
                                   .append("\"operating_system\":\"").append(getOperatingSystem()).append("\",")
                                   .append("\"architecture\":\"").append(getArchitecture()).append("\",")
                                   .append("\"fx\":\"").append(getFxBundled()).append("\"")
+                                  .append("\"location\":\"").append(getLocation()).append("\"")
                                   .append("}")
                                   .toString();
     }

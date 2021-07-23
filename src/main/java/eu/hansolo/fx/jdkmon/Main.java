@@ -661,6 +661,9 @@ public class Main extends Application {
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
+        distroLabel.setTooltip(new Tooltip(distribution.getLocation()));
+        distroLabel.setOnMouseReleased(e -> openDistribution(distribution));
+
         HBox hBox = new HBox(5, distroLabel);
         hBox.setMinWidth(360);
 
@@ -837,6 +840,14 @@ public class Main extends Application {
                 }
         });
         return hBox;
+    }
+
+    private void openDistribution(Distribution distribution) {
+        try {
+            Desktop.getDesktop().open(new File(distribution.getLocation()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Dialog createAboutDialog() {

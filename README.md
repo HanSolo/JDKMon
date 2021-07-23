@@ -1,7 +1,7 @@
 # JDKMon
 
 JDKMon is a little tool written in JavaFX that tries to detect all JDK's installed
-on your machine. Dependending on the operating system it will try to find the JDK's
+on your machine. Depending on the operating system it will try to find the JDK's
 in the following folders:
 
 MacOS: `/System/Volumes/Data/Library/Java/JavaVirtualMachines/`
