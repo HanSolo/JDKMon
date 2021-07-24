@@ -662,7 +662,10 @@ public class Main extends Application {
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
         distroLabel.setTooltip(new Tooltip(distribution.getLocation()));
-        distroLabel.setOnMouseReleased(e -> openDistribution(distribution));
+        distroLabel.setOnMousePressed(e -> {
+            if (e.isPrimaryButtonDown())
+                openDistribution(distribution);
+        });
 
         HBox hBox = new HBox(5, distroLabel);
         hBox.setMinWidth(360);
