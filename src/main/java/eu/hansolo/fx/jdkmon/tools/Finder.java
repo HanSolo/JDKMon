@@ -300,7 +300,7 @@ public class Finder {
                     }
                 }
 
-                distros.add(new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled));
+                distros.add(new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath));
             });
             service.submit(streamer);
         } catch (IOException e) {
