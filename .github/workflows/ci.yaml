@@ -23,7 +23,7 @@ jobs:
           name: JDKMon Windows
           path: |
             '.\build\installer\JDKMon-16.0.7.msi'
-            '.\build\libs\JDKMon-16.07.jar'
+            '.\build\libs\JDKMon-16.0.7.jar'
 
 
 
@@ -51,7 +51,7 @@ jobs:
           name: JDKMon Mac
           path: |
             ./build/installer/JDKMon-16.0.7.pkg
-            ./build/libs/JDKMon-16.07.jar
+            ./build/libs/JDKMon-16.0.7.jar
 
   build-linux:
 
@@ -77,4 +77,4 @@ jobs:
           name: JDKMon Linux
           path: |
             ./build/installer/jdkmon_16.0.7-1_amd64.deb
-            ./build/libs/JDKMon-16.07.jar
+            ./build/libs/JDKMon-16.0.7.jar
