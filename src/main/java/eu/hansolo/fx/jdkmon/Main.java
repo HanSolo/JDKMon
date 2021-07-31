@@ -135,7 +135,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 6);
+    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 7);
 
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
     private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
@@ -672,7 +672,15 @@ public class Main extends Application {
 
         if (pkgs.isEmpty()) { return hBox; }
 
-        Optional<Pkg> optionalZulu = pkgs.parallelStream().sorted(Comparator.comparing(Pkg::getDistributionName).reversed()).findFirst();
+        Optional<Pkg> optionalZulu = pkgs.parallelStream()
+                                         .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
+                                         .filter(pkg -> pkg.getDistribution().getApiString().equals("zulu"))
+                                         .findFirst();
+
+        Optional<Pkg> optionalOpenJDK = pkgs.parallelStream()
+                                            .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
+                                            .filter(pkg -> pkg.getDistribution().getApiString().equals("oracle_open_jdk"))
+                                            .findFirst();
 
         Pkg     firstPkg         = pkgs.get(0);
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
@@ -741,6 +749,8 @@ public class Main extends Application {
         Label popupMsg;
         if (optionalZulu.isPresent()) {
             popupMsg = new Label(optionalZulu.get().getDistribution().getUiString() + " " + optionalZulu.get().getJavaVersion().toString(true) + " available");
+        } else if (optionalOpenJDK.isPresent()) {
+            popupMsg = new Label(optionalOpenJDK.get().getDistribution().getUiString() + " " + optionalOpenJDK.get().getJavaVersion().toString(true) + " available");
         } else {
             popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
         }
