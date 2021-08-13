@@ -21,9 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: |
-            '.\build\installer\JDKMon-16.0.7.msi'
-            '.\build\libs\JDKMon-16.0.7.jar'
+          path: '.\build\installer\JDKMon-16.0.7.msi'
 
 
 
