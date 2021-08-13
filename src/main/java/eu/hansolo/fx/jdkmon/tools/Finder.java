@@ -195,6 +195,9 @@ public class Finder {
                         MatchResult result = results.get(0);
                         version = VersionNumber.fromText(result.group(2));
                     }
+                } else if (line2.contains("Semeru")) {
+                    name      = "Semeru";
+                    apiString = "semeru";
                 }
 
                 if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
