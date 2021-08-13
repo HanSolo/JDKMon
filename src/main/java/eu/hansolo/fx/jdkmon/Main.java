@@ -135,7 +135,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 7);
+    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 8);
 
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
     private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
@@ -922,9 +922,14 @@ public class Main extends Application {
             updateNode = updateLabel;
         }
 
-
         Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of all your installed OpenJDK distributions.");
-        descriptionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            descriptionLabel.setFont(Fonts.segoeUi(12));
+        } else if (io.foojay.api.discoclient.pkg.OperatingSystem.MACOS == operatingSystem) {
+            descriptionLabel.setFont(Fonts.sfPro(12));
+        } else if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
+            descriptionLabel.setFont(Fonts.sfPro(11));
+        }
         descriptionLabel.setTextAlignment(TextAlignment.LEFT);
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);

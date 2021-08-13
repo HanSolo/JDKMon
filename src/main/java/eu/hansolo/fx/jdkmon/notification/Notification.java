@@ -126,8 +126,8 @@ public class Notification {
             stage.initModality(Modality.NONE);
 
             stage.setResizable(false);
-            //stage.initStyle(StageStyle.TRANSPARENT);
-            stage.initStyle(StageStyle.UTILITY);
+            stage.initStyle(StageStyle.TRANSPARENT);
+            //stage.initStyle(StageStyle.UTILITY);
             stage.setScene(scene);
             stage.setAlwaysOnTop(true);
         }
