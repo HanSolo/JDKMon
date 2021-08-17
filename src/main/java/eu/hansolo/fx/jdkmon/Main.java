@@ -285,6 +285,7 @@ public class Main extends Application {
         titleBox = new VBox(5, titleLabel, searchPathLabel);
 
         List<HBox> distroEntries = new ArrayList<>();
+
         finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
         distroBox = new VBox(10);
         distroBox.getChildren().setAll(distroEntries);
