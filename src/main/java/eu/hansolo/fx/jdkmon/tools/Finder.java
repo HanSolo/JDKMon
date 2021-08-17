@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -62,10 +63,13 @@ public class Finder {
     private static final Matcher                                       GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
     private static final Pattern                                       ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
     private static final Matcher                                       ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
+    private static final String[]                                      IX_JAVA_HOME_CMDS         = { "/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]                                      WIN_JAVA_HOME_CMDS        = { "cmd.exe", "-c", "echo %JAVA_HOME%" };
     private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
     private              Properties                                    releaseProperties         = new Properties();
     private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = DiscoClient.getOperatingSystem();
     private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
+    private              String                                        javaHome                  = "";
     private              DiscoClient                                   discoclient;
 
 
@@ -74,6 +78,7 @@ public class Finder {
     }
     public Finder(final DiscoClient discoclient) {
         this.discoclient = discoclient;
+        this.javaHome    = getJavaHome();
     }
 
 
@@ -146,8 +151,7 @@ public class Finder {
     }
 
     private void checkForDistribution(final String java, final Set<Distribution> distros) {
-        final String javaHome = System.getenv("JAVA_HOME");
-        AtomicBoolean inUse   = new AtomicBoolean(false);
+        AtomicBoolean inUse = new AtomicBoolean(false);
 
         try {
             List<String> commands = new ArrayList<>();
@@ -159,7 +163,7 @@ public class Finder {
 
             ProcessBuilder builder  = new ProcessBuilder(commands).redirectErrorStream(true);
             Process        process  = builder.start();
-            Streamer       streamer = new Streamer(process.getInputStream(), d -> {
+            StreamerR streamer = new StreamerR(process.getInputStream(), d -> {
                 final String parentPath       = OperatingSystem.WINDOWS == operatingSystem ? java.replaceAll("bin\\\\java.exe", "") : java.replaceAll(binFolder, fileSeparator);
                 final File   releaseFile      = new File(parentPath + "release");
                 String[]     lines            = d.split("\\|");
@@ -322,11 +326,37 @@ public class Finder {
         }
     }
 
-    private class Streamer implements Runnable {
+    private String getJavaHome() {
+        try {
+            ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_JAVA_HOME_CMDS) : new ProcessBuilder(IX_JAVA_HOME_CMDS);
+            Process        process        = processBuilder.start();
+            return new StreamerC(process.getInputStream()).call();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private class StreamerC implements Callable<String> {
+        private InputStream      inputStream;
+
+        public StreamerC(final InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override public String call() {
+            final StringBuilder builder = new StringBuilder();
+            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(line -> builder.append(line).append("|"));
+            builder.setLength(builder.length() - 1);
+            return builder.toString();
+        }
+    }
+
+    private class StreamerR implements Runnable {
         private InputStream      inputStream;
         private Consumer<String> consumer;
 
-        public Streamer(final InputStream inputStream, final Consumer<String> consumer) {
+        public StreamerR(final InputStream inputStream, final Consumer<String> consumer) {
             this.inputStream = inputStream;
             this.consumer    = consumer;
         }
