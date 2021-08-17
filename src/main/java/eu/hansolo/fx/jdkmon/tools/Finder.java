@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -145,6 +146,9 @@ public class Finder {
     }
 
     private void checkForDistribution(final String java, final Set<Distribution> distros) {
+        final String javaHome = System.getenv("JAVA_HOME");
+        AtomicBoolean inUse   = new AtomicBoolean(false);
+
         try {
             List<String> commands = new ArrayList<>();
             commands.add(java);
@@ -164,6 +168,10 @@ public class Finder {
                 String       operatingSystem  = "";
                 String       architecture     = "";
                 Boolean      fxBundled        = Boolean.FALSE;
+
+                if (!inUse.get() && parentPath.contains(javaHome)) {
+                    inUse.set(true);
+                }
 
                 final File   jreLibExtFolder  = new File(new StringBuilder(parentPath).append("jre").append(fileSeparator).append("lib").append(fileSeparator).append("ext").toString());
                 if (jreLibExtFolder.exists()) {
@@ -303,7 +311,10 @@ public class Finder {
                     }
                 }
 
-                distros.add(new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath));
+                Distribution distributionFound = new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath);
+                if (inUse.get()) { distributionFound.setInUse(true); }
+
+                distros.add(distributionFound);
             });
             service.submit(streamer);
         } catch (IOException e) {

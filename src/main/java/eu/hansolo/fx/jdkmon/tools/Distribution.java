@@ -24,6 +24,7 @@ public class Distribution {
     private final String  architecture;
     private final Boolean fxBundled;
     private final String  location;
+    private       boolean inUse;
 
     public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location) {
         this.name            = name;
@@ -33,6 +34,7 @@ public class Distribution {
         this.architecture    = architecture;
         this.fxBundled       = fxBundled;
         this.location        = location;
+        this.inUse           = false;
     }
 
 
@@ -50,6 +52,9 @@ public class Distribution {
 
     public String getLocation() { return location; }
 
+    public boolean isInUse() { return inUse; }
+    public void setInUse(final boolean inUse) { this.inUse = inUse; }
+
     @Override public String toString() {
         return new StringBuilder().append("{")
                                   .append("\"name\":\"").append(getName()).append("\",")
@@ -57,8 +62,9 @@ public class Distribution {
                                   .append("\"version\":\"").append(getVersion()).append("\",")
                                   .append("\"operating_system\":\"").append(getOperatingSystem()).append("\",")
                                   .append("\"architecture\":\"").append(getArchitecture()).append("\",")
-                                  .append("\"fx\":\"").append(getFxBundled()).append("\"")
-                                  .append("\"location\":\"").append(getLocation()).append("\"")
+                                  .append("\"fx\":\"").append(getFxBundled()).append("\",")
+                                  .append("\"location\":\"").append(getLocation()).append("\",")
+                                  .append("\"in_use\":").append(isInUse())
                                   .append("}")
                                   .toString();
     }
