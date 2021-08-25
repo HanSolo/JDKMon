@@ -7,8 +7,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
-        classpath 'org.javamodularity:moduleplugin:1.8.7'
-        classpath 'org.beryx:badass-jlink-plugin:2.4.0'
+        classpath 'org.javamodularity:moduleplugin:1.8.8'
+        classpath 'org.beryx:badass-jlink-plugin:2.4.1'
     }
 }
 
@@ -16,8 +16,8 @@ plugins {
     id 'java-library'
     id 'application'
     id 'com.google.osdetector' version '1.7.0'
-    id 'org.javamodularity.moduleplugin' version '1.8.7'
-    id 'org.beryx.jlink' version '2.24.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.8'
+    id 'org.beryx.jlink' version '2.24.1'
 }
 
 ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
@@ -29,7 +29,7 @@ normalization {
 }
 
 repositories {
-    jcenter()
+    //jcenter()
     mavenCentral()
     flatDir {
         dirs 'libs'
@@ -38,7 +38,7 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.8.8'
     //implementation 'io.foojay.api:discoclient:1.0'
 
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
@@ -64,7 +64,7 @@ jar {
     manifest {
         attributes(
                 'Implementation-Title': 'JDKMon',
-                'Class-Path': 'JDKMon-16.0.15.jar',
+                'Class-Path': 'JDKMon-16.0.16.jar',
                 'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
         )
     }
