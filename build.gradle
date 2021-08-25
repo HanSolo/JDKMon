@@ -64,7 +64,7 @@ jar {
     manifest {
         attributes(
                 'Implementation-Title': 'JDKMon',
-                'Class-Path': 'JDKMon-16.0.14.jar',
+                'Class-Path': 'JDKMon-16.0.15.jar',
                 'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
         )
     }
