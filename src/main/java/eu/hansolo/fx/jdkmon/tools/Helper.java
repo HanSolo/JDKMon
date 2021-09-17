@@ -19,6 +19,7 @@ package eu.hansolo.fx.jdkmon.tools;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.Main;
+import io.foojay.api.discoclient.pkg.VersionNumber;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;

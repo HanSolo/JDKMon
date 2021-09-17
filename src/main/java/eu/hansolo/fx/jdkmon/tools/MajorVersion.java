@@ -17,6 +17,9 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 
+import io.foojay.api.discoclient.pkg.VersionNumber;
+
+
 public class MajorVersion {
     public  static final String        FIELD_MAJOR_VERSION   = "major_version";
     public  static final String        FIELD_TERM_OF_SUPPORT = "term_of_support";

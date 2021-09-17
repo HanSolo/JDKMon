@@ -36,10 +36,10 @@ import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
-import eu.hansolo.fx.jdkmon.tools.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Pkg;
+import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import javafx.animation.KeyFrame;
@@ -179,18 +179,9 @@ public class Main extends Application {
     @Override public void init() {
         isUpdateAvailable = false;
         latestVersion     = VERSION;
-        Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
-            if (null == response || null == response.body() || response.body().isEmpty()) {
-                isUpdateAvailable = false;
-            } else {
-                final Gson       gson       = new Gson();
-                final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
-                if (jsonObject.has("tag_name")) {
-                    latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
-                    isUpdateAvailable = latestVersion.compareTo(Main.VERSION) > 0;
-                }
-            }
-        });
+
+        checkForLatestVersion();
+
         switch (operatingSystem) {
             case WINDOWS -> cssFile = "jdk-mon-win.css";
             case LINUX   -> cssFile = "jdk-mon-linux.css";
@@ -881,14 +872,14 @@ public class Main extends Application {
         Label nameLabel = new Label("JDKMon");
         nameLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(36) : Fonts.sfPro(36));
 
-        Label versionLabel = new Label(VERSION.toString(eu.hansolo.fx.jdkmon.tools.OutputFormat.REDUCED_COMPRESSED, true, false));
+        Label versionLabel = new Label(VERSION.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
         versionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
         Node updateNode;
         if (isUpdateAvailable) {
             Hyperlink updateLink = new Hyperlink();
             updateLink.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-            updateLink.setText("New Version (" + latestVersion.toString(eu.hansolo.fx.jdkmon.tools.OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
+            updateLink.setText("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
             updateLink.setOnAction(e -> {
                 if (Desktop.isDesktopSupported()) {
                     try {
@@ -1085,6 +1076,21 @@ public class Main extends Application {
         searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
         searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
         rescan();
+    }
+
+    private void checkForLatestVersion() {
+        Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
+            if (null == response || null == response.body() || response.body().isEmpty()) {
+                isUpdateAvailable = false;
+            } else {
+                final Gson       gson       = new Gson();
+                final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
+                if (jsonObject.has("tag_name")) {
+                    latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
+                    isUpdateAvailable = latestVersion.compareTo(Main.VERSION) > 0;
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {

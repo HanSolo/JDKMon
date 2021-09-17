@@ -39,7 +39,6 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.8.8'
-    //implementation 'io.foojay.api:discoclient:1.0'
 
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"

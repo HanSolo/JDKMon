@@ -21,6 +21,8 @@ import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
+import io.foojay.api.discoclient.pkg.VersionNumber;
+import io.foojay.api.discoclient.util.OutputFormat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -295,14 +296,8 @@ public class Finder {
                     } else {
                         if (line3.contains("graalvm")) {
                             name      = "GraalVM";
-                            switch (graalVersion.getMajorVersion().getAsInt()) {
-                                case 8 : apiString = "graalvm_ce8"; break;
-                                case 11: apiString = "graalvm_ce11"; break;
-                                case 16: apiString = "graalvm_ce16"; break;
-                                case 17: apiString = "graalvm_ce17"; break;
-                                case 18: apiString = "graalvm_ce18"; break;
-                                default: apiString = "";
-                            }
+                            apiString = graalVersion.getMajorVersion().getAsInt() >= 8 ? "graalvm_ce" + graalVersion.getMajorVersion().getAsInt() : "";
+
                             GRAALVM_VERSION_MATCHER.reset(line3);
                             final List<MatchResult> results = GRAALVM_VERSION_MATCHER.results().collect(Collectors.toList());
                             if (!results.isEmpty()) {
@@ -310,9 +305,14 @@ public class Finder {
                                 version = VersionNumber.fromText(result.group(2));
                             }
                         } else if (line3.contains("microsoft")) {
-                            name = "Microsoft";
+                            name      = "Microsoft";
+                            apiString = "microsoft";
                         } else if (line3.contains("corretto")) {
-                            name = "Corretto";
+                            name      = "Corretto";
+                            apiString = "corretto";
+                        } else if (line3.contains("temurin")) {
+                            name      = "Temurin";
+                            apiString = "temurin";
                         }
                     }
                 }
