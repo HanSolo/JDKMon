@@ -109,9 +109,15 @@ public class Finder {
 
     public Map<Distribution, List<Pkg>> getAvailableUpdates(final List<Distribution> distributions) {
         Map<Distribution, List<Pkg>>  distrosToUpdate = new ConcurrentHashMap<>();
-        List<CompletableFuture<Void>> updateFutures   = Collections.synchronizedList(new ArrayList<>());
+        //List<CompletableFuture<Void>> updateFutures   = Collections.synchronizedList(new ArrayList<>());
+        //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
+
+        distributions.forEach(distribution -> distrosToUpdate.put(distribution, discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null)));
+
+        /*
         distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
+        */
 
         // Check if there are newer versions from other distributions
         List<CompletableFuture<Void>> pkgFutures = Collections.synchronizedList(new ArrayList<>());
@@ -123,8 +129,9 @@ public class Finder {
                        .forEach(entry -> {
             if (entry.getValue().isEmpty()) {
                 Distribution distro = entry.getKey();
-                //pkgFutures.add(discoClient.updateAvailableForAsync(io.foojay.api.discoclient.pkg.Distribution.NONE, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).thenAccept(l -> entry.setValue(l)));
-                entry.setValue(discoclient.updateAvailableForAsync(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).join());
+                //entry.setValue(discoclient.updateAvailableForAsync(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).join());
+
+                entry.setValue(discoclient.updateAvailableFor(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
             }
         });
         CompletableFuture.allOf(pkgFutures.toArray(new CompletableFuture[pkgFutures.size()])).join();

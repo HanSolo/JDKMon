@@ -134,7 +134,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 16);
+    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 17);
 
     private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
     private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
@@ -493,7 +493,7 @@ public class Main extends Application {
                 aboutDialog.show();
             });
             menu.getItems().add(aboutItem);
-            
+
             CustomMenuItem rescanItem = new CustomMenuItem();
             Label rescanLabel = new Label("Rescan");
             rescanLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
