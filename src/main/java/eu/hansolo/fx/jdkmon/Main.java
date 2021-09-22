@@ -750,12 +750,10 @@ public class Main extends Application {
             CheckMenuItem rememberDownloadFolderItem = new CheckMenuItem();
             rememberDownloadFolderItem.setVisible(true);
             rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER));
-            rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
-            rememberDownloadFolderItem.setOnAction(e -> rememberDownloadFolderItem.setSelected(!rememberDownloadFolderItem.isSelected()));
+            rememberDownloadFolderItem.setText("Remember download folder");
             rememberDownloadFolderItem.selectedProperty().addListener(o -> {
                 PropertyManager.INSTANCE.set(PropertyManager.REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
                 PropertyManager.INSTANCE.storeProperties();
-                Platform.runLater(() -> rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder"));
             });
             menu.getItems().add(rememberDownloadFolderItem);
 
