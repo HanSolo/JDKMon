@@ -40,7 +40,7 @@
     -light-border-color       : #d2d4d4;
     -text-color               : white;
     -light-text-color         : black;
-    -dark-text-color          : #868687;
+    -dark-text-color          : #111111;
     -dark-control-background  : #5e5e5f;
     -light-control-background : #ffffff;
     -disabled-color           : #5e5c58;
@@ -48,7 +48,7 @@
     -light-disabled-color     : #f5f5f5;
     -light-disabled-text-color: #b7b7b7;
     -fx-background-color      : -light-main-background;
-    -selection-color          : -BLUE-AQUA; /*#277aff; /*#fbc600*/
+    -selection-color          : #2796c4; /*#277aff; /*#fbc600*/
     -focused-color            : #286e99;
     -fx-font-family           : 'Segoe UI';
 
@@ -199,10 +199,10 @@
 
 
 .jdk-mon:dark .button {
-    -fx-pref-height      : 15;
-    -fx-background-color : -dark-control-background;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-    -fx-background-radius: 5px;
+    -fx-pref-height      : 22;
+    -fx-background-color : #333333;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0px;
     -fx-padding          : 2 5 2 5;
     -fx-text-fill        : -text-color;
     -fx-alignment        : CENTER;
@@ -210,10 +210,15 @@
     -fx-font-family      : 'Segoe UI';
     -fx-font-size        : 12px;
 }
+.jdk-mon:dark:hover {
+    -fx-border-color: #858585;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+}
 .jdk-mon:dark .button:armed {
-    -fx-pref-height      : 16;
-    -fx-background-color : -selection-color;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-pref-height      : 22;
+    -fx-background-color : #858585;
+    -fx-background-insets: 0;
     -fx-background-radius: 0px;
     -fx-padding          : 2 5 2 5;
     -fx-text-fill        : -text-color;
@@ -221,35 +226,40 @@
     -fx-content-display  : LEFT;
 }
 .jdk-mon:dark .button:disabled {
-    -fx-background-color: -disabled-color;
-    -fx-text-fill       : -disabled-text-color;
+    -fx-background-color: #262626;
+    -fx-text-fill       : #767676;
 }
 
 .jdk-mon .button {
-    -fx-pref-height      : 15;
-    -fx-background-color : -light-control-background;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-pref-height      : 22;
+    -fx-background-color : #cbcbcc;
+    -fx-background-insets: 0;
     -fx-background-radius: 0px;
     -fx-padding          : 2 5 2 5;
-    -fx-text-fill        : -light-text-color;
+    -fx-text-fill        : -dark-text-color;
     -fx-alignment        : CENTER;
     -fx-content-display  : LEFT;
     -fx-font-family      : 'Segoe UI';
     -fx-font-size        : 12px;
 }
+.jdk-mon:hover {
+    -fx-border-color: #7a7a7a;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+}
 .jdk-mon .button:armed {
-    -fx-pref-height      : 16;
-    -fx-background-color : -selection-color;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-pref-height      : 22;
+    -fx-background-color : #7a7a7a;
+    -fx-background-insets: 0;
     -fx-background-radius: 0px;
     -fx-padding          : 2 5 2 5;
-    -fx-text-fill        : -text-color;
+    -fx-text-fill        : -dark-text-color;
     -fx-alignment        : CENTER;
     -fx-content-display  : LEFT;
 }
 .jdk-mon .button:disabled {
-    -fx-background-color: -light-disabled-color;
-    -fx-text-fill       : -light-disabled-text-color;
+    -fx-background-color: #ebebeb;
+    -fx-text-fill       : #a3a3a3;
 }
 
 
