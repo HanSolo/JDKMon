@@ -26,19 +26,34 @@ import eu.hansolo.fx.jdkmon.controls.WindowButtonType;
 import eu.hansolo.fx.jdkmon.notification.Notification;
 import eu.hansolo.fx.jdkmon.notification.NotificationBuilder;
 import eu.hansolo.fx.jdkmon.notification.NotifierBuilder;
+import eu.hansolo.fx.jdkmon.tools.ArchitectureCell;
+import eu.hansolo.fx.jdkmon.tools.ArchiveTypeCell;
 import eu.hansolo.fx.jdkmon.tools.Constants;
 import eu.hansolo.fx.jdkmon.tools.Detector;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacOSAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Detector.OperatingSystem;
 import eu.hansolo.fx.jdkmon.tools.Distribution;
+import eu.hansolo.fx.jdkmon.tools.DistributionCell;
 import eu.hansolo.fx.jdkmon.tools.Finder;
 import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
+import eu.hansolo.fx.jdkmon.tools.LibcTypeCell;
+import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
+import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
+import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
 import io.foojay.api.discoclient.DiscoClient;
+import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.ArchiveType;
+import io.foojay.api.discoclient.pkg.LibCType;
+import io.foojay.api.discoclient.pkg.MajorVersion;
+import io.foojay.api.discoclient.pkg.Match;
+import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
+import io.foojay.api.discoclient.pkg.ReleaseStatus;
+import io.foojay.api.discoclient.pkg.Scope;
+import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
@@ -63,10 +78,15 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -74,6 +94,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
@@ -102,6 +123,7 @@ import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 import java.awt.*;
 import java.io.File;
@@ -117,9 +139,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -134,49 +158,82 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber                                 VERSION                  = new VersionNumber(16, 0, 17);
-
-    private static final PseudoClass                                   DARK_MODE_PSEUDO_CLASS   = PseudoClass.getPseudoClass("dark");
-    private final        Image                                         dukeNotificationIcon     = new Image(Main.class.getResourceAsStream("duke_notification.png"));
-    private final        Image                                         dukeStageIcon            = new Image(Main.class.getResourceAsStream("icon128x128.png"));
-    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem          = DiscoClient.getOperatingSystem();
-    private              String                                        cssFile;
-    private              Notification.Notifier                         notifier;
-    private              BooleanProperty                               darkMode;
-    private              MacOSAccentColor                              accentColor;
-    private              AnchorPane                                    headerPane;
-    private              MacOSWindowButton                             closeMacWindowButton;
-    private              WinWindowButton                               closeWinWindowButton;
-    private              Label                                         windowTitle;
-    private              StackPane                                     pane;
-    private              BorderPane                                    mainPane;
-    private              ScheduledExecutorService                      executor;
-    private              boolean                                       hideMenu;
-    private              Stage                                         stage;
-    private              ObservableList<Distribution>                  distros;
-    private              Finder                                        finder;
-    private              Label                                         titleLabel;
-    private              Label                                         searchPathLabel;
-    private              VBox                                          titleBox;
-    private              Separator                                     separator;
-    private              VBox                                          distroBox;
-    private              VBox                                          vBox;
-    private              List<String>                                  searchPaths;
-    private              DirectoryChooser                              directoryChooser;
-    private              ProgressBar                                   progressBar;
-    private              DiscoClient                                   discoclient;
-    private              BooleanProperty                               blocked;
-    private              AtomicBoolean                                 checkingForUpdates;
-    private              boolean                                       trayIconSupported;
-    private              ContextMenu                                   contextMenu;
-    private              Worker<Boolean>                               worker;
-    private              Dialog                                        aboutDialog;
-    private              Timeline                                      timeline;
-    private              boolean                                       isUpdateAvailable;
-    private              VersionNumber                                 latestVersion;
+    public static final  VersionNumber                                           VERSION                = new VersionNumber(16, 0, 17);
+    private static final PseudoClass                                             DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
+    private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
+    private              io.foojay.api.discoclient.pkg.OperatingSystem           operatingSystem        = DiscoClient.getOperatingSystem();
+    private              String                                                  cssFile;
+    private              Notification.Notifier                                   notifier;
+    private              BooleanProperty                                         darkMode;
+    private              MacOSAccentColor                                        accentColor;
+    private              AnchorPane                                              headerPane;
+    private              MacOSWindowButton                                       closeMacWindowButton;
+    private              WinWindowButton                                         closeWinWindowButton;
+    private              Label                                                   windowTitle;
+    private              StackPane                                               pane;
+    private              BorderPane                                              mainPane;
+    private              ScheduledExecutorService                                executor;
+    private              boolean                                                 hideMenu;
+    private              Stage                                                   stage;
+    private              ObservableList<Distribution>                            distros;
+    private              Finder                                                  finder;
+    private              Label                                                   titleLabel;
+    private              Label                                                   searchPathLabel;
+    private              VBox                                                    titleBox;
+    private              Separator                                               separator;
+    private              VBox                                                    distroBox;
+    private              VBox                                                    vBox;
+    private              List<String>                                            searchPaths;
+    private              DirectoryChooser                                        directoryChooser;
+    private              ProgressBar                                             progressBar;
+    private              DiscoClient                                             discoclient;
+    private              BooleanProperty                                         blocked;
+    private              AtomicBoolean                                           checkingForUpdates;
+    private              boolean                                                 trayIconSupported;
+    private              ContextMenu                                             contextMenu;
+    private              Worker<Boolean>                                         worker;
+    private              Dialog                                                  aboutDialog;
+    private              Dialog                                                  downloadJDKDialog;
+    private              Timeline                                                timeline;
+    private              boolean                                                 isUpdateAvailable;
+    private              VersionNumber                                           latestVersion;
+    private              MacOSWindowButton                                       downloadJDKCloseMacWindowButton;
+    private              WinWindowButton                                         downloadJDKCloseWinWindowButton;
+    private              StackPane                                               downloadJDKPane;
+    private              CheckBox                                                downloadJDKBundledWithFXCheckBox;
+    private              ComboBox<MajorVersion>                                  downloadJDKMajorVersionComboBox;
+    private              ComboBox<SemVer>                                        downloadJDKUpdateLevelComboBox;
+    private              ComboBox<io.foojay.api.discoclient.pkg.Distribution>    downloadJDKDistributionComboBox;
+    private              ComboBox<io.foojay.api.discoclient.pkg.OperatingSystem> downloadJDKOperatingSystemComboBox;
+    private              ComboBox<LibCType>                                      downloadJDKLibcTypeComboBox;
+    private              ComboBox<Architecture>                                  downloadJDKArchitectureComboBox;
+    private              ComboBox<ArchiveType>                                   downloadJDKArchiveTypeComboBox;
+    private              Label                                                   downloadJDKFilenameLabel;
+    private              List<MajorVersion>                                      downloadJDKMaintainedVersions;
+    private              List<Pkg>                                               downloadJDKSelectedPkgs;
+    private              Pkg                                                     downloadJDKSelectedPkg;
+    private              List<Pkg>                                               downloadJDKSelectedPkgsForMajorVersion;
+    private              List<io.foojay.api.discoclient.pkg.Distribution>        downloadJDKDistributionsThatSupportFx;
+    private              boolean                                                 downloadJDKJavafxBundled;
+    private              MajorVersion                                            downloadJDKSelectedMajorVersion;
+    private              SemVer                                                  downloadJDKSelectedVersionNumber;
+    private              io.foojay.api.discoclient.pkg.Distribution              downloadJDKSelectedDistribution;
+    private              io.foojay.api.discoclient.pkg.OperatingSystem           downloadJDKSelectedOperatingSystem;
+    private              LibCType                                                downloadJDKSelectedLibcType;
+    private              Architecture                                            downloadJDKSelectedArchitecture;
+    private              ArchiveType                                             downloadJDKSelectedArchiveType;
+    private              Set<io.foojay.api.discoclient.pkg.OperatingSystem>      downloadJDKOperatingSystems;
+    private              Set<Architecture>                                       downloadJDKArchitectures;
+    private              Set<LibCType>                                           downloadJDKLibcTypes;
+    private              Set<ArchiveType>                                        downloadJDKArchiveTypes;
+    private              ProgressBar                                             downloadJDKProgressBar;
+    private              Button                                                  downloadJDKCancelButton;
+    private              Button                                                  downloadJDKDownloadButton;
 
 
     @Override public void init() {
+        boolean isWindows = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
         isUpdateAvailable = false;
         latestVersion     = VERSION;
 
@@ -193,9 +250,14 @@ public class Main extends Application {
                                   .popupLifeTime(Duration.millis(5000))
                                   .build();
 
-        pane     = new StackPane();
+        pane        = new StackPane();
+        downloadJDKPane = new StackPane();
+
         darkMode = new BooleanPropertyBase(false) {
-            @Override protected void invalidated() { pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get()); }
+            @Override protected void invalidated() {
+                pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+            }
             @Override public Object getBean() { return Main.this; }
             @Override public String getName() { return "darkMode"; }
         };
@@ -208,7 +270,7 @@ public class Main extends Application {
         closeWinWindowButton.setDarkMode(darkMode.get());
 
         windowTitle = new Label("JDK Mon");
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             windowTitle.setFont(Fonts.segoeUi(9));
             windowTitle.setTextFill(darkMode.get() ? Color.web("#969696") : Color.web("#000000"));
             windowTitle.setAlignment(Pos.CENTER_LEFT);
@@ -238,7 +300,7 @@ public class Main extends Application {
         headerPane = new AnchorPane();
         headerPane.getStyleClass().add("header");
         headerPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             headerPane.setMinHeight(31);
             headerPane.setMaxHeight(31);
             headerPane.setPrefHeight(31);
@@ -267,7 +329,7 @@ public class Main extends Application {
         distros.setAll(finder.getDistributions(searchPaths));
 
         titleLabel = new Label("Distributions found in");
-        titleLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfProTextBold(12));
+        titleLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfProTextBold(12));
 
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
@@ -329,7 +391,7 @@ public class Main extends Application {
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            if (isWindows) {
                 headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
                 headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
                 pane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -342,7 +404,7 @@ public class Main extends Application {
                 mainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
             }
         } else {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            if (isWindows) {
                 headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
                 headerPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
                 pane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -357,15 +419,29 @@ public class Main extends Application {
         }
 
         timeline = new Timeline();
+
+
+        downloadJDKMaintainedVersions          = new LinkedList<>();
+        downloadJDKSelectedPkgs                = new LinkedList<>();
+        downloadJDKSelectedPkg                 = null;
+        downloadJDKSelectedPkgsForMajorVersion = new LinkedList<>();
+        downloadJDKJavafxBundled               = false;
+        downloadJDKOperatingSystems            = new TreeSet<>();
+        downloadJDKLibcTypes                   = new TreeSet<>();
+        downloadJDKArchitectures               = new TreeSet<>();
+        downloadJDKArchiveTypes                = new TreeSet<>();
+        downloadJDKDistributionsThatSupportFx  = List.of(DiscoClient.getDistributionFromText("zulu"), DiscoClient.getDistributionFromText("liberica"), DiscoClient.getDistributionFromText("corretto"));
     }
 
     private void registerListeners() {
+        final boolean isWindows = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
+
         headerPane.setOnMousePressed(press -> headerPane.setOnMouseDragged(drag -> {
             stage.setX(drag.getScreenX() - press.getSceneX());
             stage.setY(drag.getScreenY() - press.getSceneY());
         }));
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             closeWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
                 if (stage.isShowing()) {
                     if (trayIconSupported) {
@@ -410,8 +486,6 @@ public class Main extends Application {
         mainPane.setOnContextMenuRequested(e -> contextMenu.show(mainPane, e.getScreenX(), e.getScreenY()));
         mainPane.setOnMousePressed(e -> contextMenu.hide());
 
-        progressBar.prefWidthProperty().bind(mainPane.widthProperty());
-
         aboutDialog.getDialogPane().setOnMousePressed(e -> ((Stage) aboutDialog.getDialogPane().getScene().getWindow()).close());
         aboutDialog.setOnShowing(e -> {
             Stage    aboutStage = ((Stage) aboutDialog.getDialogPane().getScene().getWindow());
@@ -424,12 +498,129 @@ public class Main extends Application {
             });
             timeline.play();
         });
+
+
+        if (isWindows) {
+            downloadJDKCloseWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (downloadJDKDialog.isShowing()) {
+                    downloadJDKDialog.setResult(Boolean.TRUE);
+                    downloadJDKDialog.close();
+                }
+            });
+            downloadJDKCloseWinWindowButton.setOnMouseEntered(e -> downloadJDKCloseWinWindowButton.setHovered(true));
+            downloadJDKCloseWinWindowButton.setOnMouseExited(e -> downloadJDKCloseWinWindowButton.setHovered(false));
+        } else {
+            downloadJDKCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (downloadJDKDialog.isShowing()) {
+                    downloadJDKDialog.setResult(Boolean.TRUE);
+                    downloadJDKDialog.close();
+                }
+            });
+            downloadJDKCloseMacWindowButton.setOnMouseEntered(e -> downloadJDKCloseMacWindowButton.setHovered(true));
+            downloadJDKCloseMacWindowButton.setOnMouseExited(e -> downloadJDKCloseMacWindowButton.setHovered(false));
+        }
+
+        downloadJDKBundledWithFXCheckBox.selectedProperty().addListener((o, ov, nv) -> {
+            downloadJDKJavafxBundled = nv;
+
+            boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
+            List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection = downloadJDKSelectedPkgsForMajorVersion.stream()
+                                                                                                                     .filter(pkg -> downloadJDKJavafxBundled == pkg.isJavaFXBundled())
+                                                                                                                     .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED,true, include_build).equals(
+                                                                                                                         downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                                                                     .map(pkg -> pkg.getDistribution())
+                                                                                                                     .distinct()
+                                                                                                                     .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                                                                     .collect(Collectors.toList());
+            Platform.runLater(() -> {
+                downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
+                if (downloadJDKDistributionComboBox.getItems().size() > 0) {
+                    downloadJDKDistributionComboBox.getSelectionModel().select(0);
+                } else {
+                    downloadJDKOperatingSystemComboBox.getItems().clear();
+                    downloadJDKLibcTypeComboBox.getItems().clear();
+                    downloadJDKArchitectureComboBox.getItems().clear();
+                    downloadJDKArchiveTypeComboBox.getItems().clear();
+                    downloadJDKFilenameLabel.setText("-");
+                }
+            });
+        });
+
+        downloadJDKMajorVersionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == nv) { return; }
+            selectMajorVersion();
+        });
+
+        downloadJDKUpdateLevelComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == nv) { return; }
+            selectVersionNumber();
+        });
+
+        downloadJDKDistributionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())  { return; }
+            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            selectDistribution();
+        });
+
+        downloadJDKOperatingSystemComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (downloadJDKSelectedPkgs.isEmpty()) { return; }
+            selectOperatingSystem();
+        });
+
+        downloadJDKLibcTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem())        { return; }
+            if (downloadJDKSelectedPkgs.isEmpty()) { return; }
+            selectLibcType();
+        });
+
+        downloadJDKArchitectureComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem())        { return; }
+            if (null == downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (downloadJDKSelectedPkgs.isEmpty()) { return; }
+            selectArchitecture();
+        });
+
+        downloadJDKArchiveTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == nv) { return; }
+            selectArchiveType();
+        });
+
+        downloadJDKCancelButton.setOnAction(e -> {
+            downloadJDKDialog.setResult(Boolean.TRUE);
+            downloadJDKDialog.close();
+        });
+
+        downloadJDKDownloadButton.setOnAction(e -> {
+            if (null == downloadJDKSelectedPkg) { return; }
+            downloadPkgDownloadJDK(downloadJDKSelectedPkg);
+        });
     }
 
     private void initOnFXApplicationThread() {
-        aboutDialog = createAboutDialog();
+        aboutDialog       = createAboutDialog();
+        downloadJDKDialog = createDownloadJDKDialog();
 
         registerListeners();
+
+        discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
+            downloadJDKMaintainedVersions.addAll(uv);
+            downloadJDKMaintainedVersions.forEach(majorVersion -> downloadJDKMajorVersionComboBox.getItems().add(majorVersion));
+            downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+        });
     }
 
 
@@ -456,6 +647,8 @@ public class Main extends Application {
             rescanItem.setOnAction(e -> rescan());
             trayIcon.addMenuItem(rescanItem);
 
+            trayIcon.addSeparator();
+
             MenuItem searchPathItem = new MenuItem("Add search path");
             searchPathItem.setOnAction(e -> selectSearchPath());
             trayIcon.addMenuItem(searchPathItem);
@@ -463,6 +656,33 @@ public class Main extends Application {
             MenuItem defaultSearchPathItem = new MenuItem("Default search path");
             defaultSearchPathItem.setOnAction(e -> resetToDefaultSearchPath());
             trayIcon.addMenuItem(defaultSearchPathItem);
+
+            trayIcon.addSeparator();
+
+            CheckMenuItem rememberDownloadFolderItem = new CheckMenuItem();
+            rememberDownloadFolderItem.setVisible(true);
+            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER));
+            rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
+            rememberDownloadFolderItem.setOnAction(e -> rememberDownloadFolderItem.setSelected(!rememberDownloadFolderItem.isSelected()));
+            rememberDownloadFolderItem.selectedProperty().addListener(o -> {
+                PropertyManager.INSTANCE.set(PropertyManager.REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
+                PropertyManager.INSTANCE.storeProperties();
+                trayIcon.removeMenuItem(6);
+                rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
+                trayIcon.insertMenuItem(rememberDownloadFolderItem, 6);
+            });
+            trayIcon.addMenuItem(rememberDownloadFolderItem);
+
+            trayIcon.addSeparator();
+
+            MenuItem downloadJDKItem = new MenuItem("Download a JDK");
+            downloadJDKItem.setOnAction(e -> {
+               if (downloadJDKDialog.isShowing()) { return; }
+               downloadJDKDialog.show();
+            });
+            trayIcon.addMenuItem(downloadJDKItem);
+
+            trayIcon.addSeparator();
 
             MenuItem exitItem = new MenuItem("Exit");
             exitItem.setOnAction(e -> stop());
@@ -503,6 +723,8 @@ public class Main extends Application {
             rescanItem.setOnAction(e -> rescan());
             menu.getItems().add(rescanItem);
 
+            menu.getItems().add(new SeparatorMenuItem());
+
             CustomMenuItem searchPathItem = new CustomMenuItem();
             Label searchPathLabel = new Label("Add search path");
             searchPathLabel.setTooltip(new Tooltip("Add another folder that should be scanned for JDK's"));
@@ -522,6 +744,37 @@ public class Main extends Application {
             defaultSearchPathItem.setHideOnClick(false);
             defaultSearchPathItem.setOnAction( e -> resetToDefaultSearchPath());
             menu.getItems().add(defaultSearchPathItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
+
+            CheckMenuItem rememberDownloadFolderItem = new CheckMenuItem();
+            rememberDownloadFolderItem.setVisible(true);
+            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER));
+            rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
+            rememberDownloadFolderItem.setOnAction(e -> rememberDownloadFolderItem.setSelected(!rememberDownloadFolderItem.isSelected()));
+            rememberDownloadFolderItem.selectedProperty().addListener(o -> {
+                PropertyManager.INSTANCE.set(PropertyManager.REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
+                PropertyManager.INSTANCE.storeProperties();
+                Platform.runLater(() -> rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder"));
+            });
+            menu.getItems().add(rememberDownloadFolderItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
+
+            CustomMenuItem downloadJDKItem = new CustomMenuItem();
+            Label downloadJDKItemLabel = new Label("Download a JDK");
+            downloadJDKItemLabel.setTooltip(new Tooltip("Download a JDK"));
+            downloadJDKItemLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            downloadJDKItemLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            downloadJDKItem.setContent(downloadJDKItemLabel);
+            downloadJDKItem.setHideOnClick(false);
+            downloadJDKItem.setOnAction( e -> {
+                if (downloadJDKDialog.isShowing()) { return; }
+                downloadJDKDialog.show();
+            });
+            menu.getItems().add(downloadJDKItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
 
             CustomMenuItem exitItem = new CustomMenuItem();
             Label exitLabel = new Label("Exit");
@@ -745,7 +998,7 @@ public class Main extends Application {
         } else {
             popupMsg = new Label(firstPkg.getDistribution().getUiString() + " " + firstPkg.getJavaVersion().toString(true) + " available");
         }
-        popupMsg.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#868687"));
+        popupMsg.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#292929"));
         popupMsg.getStyleClass().add("msg-label");
 
         HBox otherDistroPkgsBox = new HBox(5);
@@ -855,6 +1108,9 @@ public class Main extends Application {
     }
 
     private Dialog createAboutDialog() {
+        final boolean isWindows  = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
+        final boolean isDarkMode = darkMode.get();
+
         Dialog aboutDialog = new Dialog();
         aboutDialog.setTitle("JDKMon");
         aboutDialog.initStyle(StageStyle.TRANSPARENT);
@@ -870,15 +1126,15 @@ public class Main extends Application {
         aboutImage.setFitHeight(128);
 
         Label nameLabel = new Label("JDKMon");
-        nameLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(36) : Fonts.sfPro(36));
+        nameLabel.setFont(isWindows ? Fonts.segoeUi(36) : Fonts.sfPro(36));
 
         Label versionLabel = new Label(VERSION.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
-        versionLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+        versionLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
         Node updateNode;
         if (isUpdateAvailable) {
             Hyperlink updateLink = new Hyperlink();
-            updateLink.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+            updateLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
             updateLink.setText("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
             updateLink.setOnAction(e -> {
                 if (Desktop.isDesktopSupported()) {
@@ -890,7 +1146,7 @@ public class Main extends Application {
                 }
             });
             if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
-                if (darkMode.get()) {
+                if (isDarkMode) {
                     updateLink.setTextFill(accentColor.getColorDark());
                 } else {
                     updateLink.setTextFill(accentColor.getColorAqua());
@@ -902,22 +1158,22 @@ public class Main extends Application {
             updateNode = updateLink;
         } else {
             Label updateLabel = new Label("Latest version installed");
-            updateLabel.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+            updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
 
-            if (darkMode.get()) {
-                updateLabel.setTextFill(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Color.web("#868687") : Color.web("#dddddd"));
+            if (isDarkMode) {
+                updateLabel.setTextFill(isWindows ? Color.web("#292929") : Color.web("#dddddd"));
             } else {
-                updateLabel.setTextFill(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Color.web("#2a2a2a") : Color.web("#2a2a2a"));
+                updateLabel.setTextFill(isWindows ? Color.web("#2a2a2a") : Color.web("#2a2a2a"));
             }
 
             updateNode = updateLabel;
         }
 
-        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of all your installed OpenJDK distributions.");
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
-            descriptionLabel.setFont(Fonts.segoeUi(12));
+        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of your installed OpenJDK distributions.");
+        if (isWindows) {
+            descriptionLabel.setFont(Fonts.segoeUi(11));
         } else if (io.foojay.api.discoclient.pkg.OperatingSystem.MACOS == operatingSystem) {
-            descriptionLabel.setFont(Fonts.sfPro(12));
+            descriptionLabel.setFont(Fonts.sfPro(11));
         } else if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
             descriptionLabel.setFont(Fonts.sfPro(11));
         }
@@ -934,6 +1190,7 @@ public class Main extends Application {
         aboutBox.setMaxSize(420, 180);
         aboutBox.setPrefSize(420, 180);
 
+
         StackPane glassPane = new StackPane(aboutBox);
         glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
         glassPane.setMinSize(440, 200);
@@ -945,12 +1202,12 @@ public class Main extends Application {
         aboutDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Adjustments related to dark/light mode
-        if (darkMode.get()) {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isDarkMode) {
+            if (isWindows) {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-                nameLabel.setTextFill(Color.web("#868687"));
-                versionLabel.setTextFill(Color.web("#868687"));
-                descriptionLabel.setTextFill(Color.web("#868687"));
+                nameLabel.setTextFill(Color.web("#292929"));
+                versionLabel.setTextFill(Color.web("#292929"));
+                descriptionLabel.setTextFill(Color.web("#292929"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#dddddd"));
@@ -958,7 +1215,7 @@ public class Main extends Application {
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
             }
         } else {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            if (isWindows) {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#2a2a2a"));
                 versionLabel.setTextFill(Color.web("#2a2a2a"));
@@ -977,14 +1234,33 @@ public class Main extends Application {
     private void downloadPkg(final Pkg pkg) {
         if (null == pkg) { return; }
         directoryChooser.setTitle("Choose folder for download");
-        final File targetFolder = directoryChooser.showDialog(stage);
-        if (null != targetFolder) {
+
+        final File downloadFolder;
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                directoryChooser.setTitle("Choose folder for download");
+                downloadFolder = directoryChooser.showDialog(stage);
+            } else {
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                if (folder.isDirectory()) {
+                    downloadFolder = folder;
+                } else {
+                    downloadFolder = directoryChooser.showDialog(stage);
+                }
+            }
+        } else {
+            downloadFolder = directoryChooser.showDialog(stage);
+        }
+        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.storeProperties();
+
+        if (null != downloadFolder) {
             final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             if (null == directDownloadUri) {
                 new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
                 return;
             }
-            final String target = targetFolder.getAbsolutePath() + File.separator + pkg.getFileName();
+            final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFileName();
             worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
                 if (nv.equals(State.READY)) {
@@ -1013,12 +1289,17 @@ public class Main extends Application {
                 }
             });
             worker.progressProperty().addListener((o, ov, nv) -> progressBar.setProgress(nv.doubleValue() * 100.0));
-            Alert info = new Alert(AlertType.INFORMATION);
-            info.setTitle("JDKMon");
-            info.setHeaderText("JDKMon Download Info");
-            info.setContentText("Download will be started and update will be saved to " + targetFolder);
-            info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
-            info.show();
+
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                new Thread((Runnable) worker).start();
+            } else {
+                Alert info = new Alert(AlertType.INFORMATION);
+                info.setTitle("JDKMon");
+                info.setHeaderText("JDKMon Download Info");
+                info.setContentText("Download will be started and update will be saved to " + downloadFolder);
+                info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
+                info.show();
+            }
         }
     }
 
@@ -1092,6 +1373,600 @@ public class Main extends Application {
             }
         });
     }
+
+    // Download a JDK related
+    private Dialog createDownloadJDKDialog() {
+        final boolean isWindows  = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
+        final boolean isDarkMode = darkMode.get();
+
+        Dialog downloadJDKDialog = new Dialog();
+        downloadJDKDialog.initStyle(StageStyle.TRANSPARENT);
+        downloadJDKDialog.initModality(Modality.WINDOW_MODAL);
+
+        Stage downloadJDKStage = (Stage) downloadJDKDialog.getDialogPane().getScene().getWindow();
+        downloadJDKStage.getIcons().add(dukeStageIcon);
+        downloadJDKStage.getScene().setFill(Color.TRANSPARENT);
+        downloadJDKStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
+
+        downloadJDKBundledWithFXCheckBox = new CheckBox("Bundled with FX");
+        downloadJDKBundledWithFXCheckBox.setFont(isWindows ? Fonts.segoeUi(13) : Fonts.sfPro(13));
+        HBox findlJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox);
+
+
+        Label downloadJDKMajorVersionLabel = new Label("Major version");
+        //downloadJDKMajorVersionLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region findlJDKMajorVersionSpacer = new Region();
+        HBox.setHgrow(findlJDKMajorVersionSpacer, Priority.ALWAYS);
+        downloadJDKMajorVersionComboBox = new ComboBox<>();
+        downloadJDKMajorVersionComboBox.setCellFactory(majorVersionListView -> new MajorVersionCell());
+        downloadJDKMajorVersionComboBox.setMinWidth(150);
+        downloadJDKMajorVersionComboBox.setMaxWidth(150);
+        downloadJDKMajorVersionComboBox.setPrefWidth(150);
+        HBox downloadJDKMajorVersionBox = new HBox(5, downloadJDKMajorVersionLabel, findlJDKMajorVersionSpacer, downloadJDKMajorVersionComboBox);
+        downloadJDKMajorVersionBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKUpdateLevelLabel = new Label("Update level");
+        //downloadJDKUpdateLevelLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region downloadJDKUpdateLevelSpacer = new Region();
+        HBox.setHgrow(downloadJDKUpdateLevelSpacer, Priority.ALWAYS);
+        downloadJDKUpdateLevelComboBox = new ComboBox<>();
+        downloadJDKUpdateLevelComboBox.setCellFactory(updateLevelListView -> new UpdateLevelCell());
+        downloadJDKUpdateLevelComboBox.setMinWidth(150);
+        downloadJDKUpdateLevelComboBox.setMaxWidth(150);
+        downloadJDKUpdateLevelComboBox.setPrefWidth(150);
+        HBox downloadJDKUpdateLevelBox = new HBox(5, downloadJDKUpdateLevelLabel, downloadJDKUpdateLevelSpacer, downloadJDKUpdateLevelComboBox);
+        downloadJDKUpdateLevelBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKDistributionLabel = new Label("Distribution");
+        //downloadJDKDistributionLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region downloadJDKDistributionSpacer = new Region();
+        HBox.setHgrow(downloadJDKDistributionSpacer, Priority.ALWAYS);
+        downloadJDKDistributionComboBox = new ComboBox<>();
+        downloadJDKDistributionComboBox.setCellFactory(distributionListView -> new DistributionCell());
+        downloadJDKDistributionComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final io.foojay.api.discoclient.pkg.Distribution distribution) {
+                return null == distribution ? null : distribution.getUiString();
+            }
+            @Override public io.foojay.api.discoclient.pkg.Distribution fromString(final String text) {
+                return DiscoClient.getDistributionFromText(text);
+            }
+        });
+        downloadJDKDistributionComboBox.setMinWidth(150);
+        downloadJDKDistributionComboBox.setMaxWidth(150);
+        downloadJDKDistributionComboBox.setPrefWidth(150);
+        HBox downloadJDKDistributionBox = new HBox(5, downloadJDKDistributionLabel, downloadJDKDistributionSpacer, downloadJDKDistributionComboBox);
+        downloadJDKDistributionBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKOperatingSystemLabel = new Label("Operatingsystem");
+        //downloadJDKOperatingSystemLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region findlJDKOperatingSystemSpacer = new Region();
+        HBox.setHgrow(findlJDKOperatingSystemSpacer, Priority.ALWAYS);
+        downloadJDKOperatingSystemComboBox = new ComboBox<>();
+        downloadJDKOperatingSystemComboBox.setCellFactory(operatingSystemListView -> new OperatingSystemCell());
+        downloadJDKOperatingSystemComboBox.setMinWidth(150);
+        downloadJDKOperatingSystemComboBox.setMaxWidth(150);
+        downloadJDKOperatingSystemComboBox.setPrefWidth(150);
+        HBox downloadJDKOperatingSystemBox = new HBox(5, downloadJDKOperatingSystemLabel, findlJDKOperatingSystemSpacer, downloadJDKOperatingSystemComboBox);
+        downloadJDKOperatingSystemBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKLibcTypeLabel = new Label("Libc type");
+        //downloadJDKLibcTypeLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region downloadJDKLibcTypeSpacer = new Region();
+        HBox.setHgrow(downloadJDKLibcTypeSpacer, Priority.ALWAYS);
+        downloadJDKLibcTypeComboBox = new ComboBox<>();
+        downloadJDKLibcTypeComboBox.setCellFactory(libcTypeListView -> new LibcTypeCell());
+        downloadJDKLibcTypeComboBox.setMinWidth(150);
+        downloadJDKLibcTypeComboBox.setMaxWidth(150);
+        downloadJDKLibcTypeComboBox.setPrefWidth(150);
+        HBox downloadJDKLibcTypeBox = new HBox(5, downloadJDKLibcTypeLabel, downloadJDKLibcTypeSpacer, downloadJDKLibcTypeComboBox);
+        downloadJDKLibcTypeBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKArchitectureLabel = new Label("Architecture");
+        //downloadJDKArchitectureLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region downloadJDKArchitectureSpacer = new Region();
+        HBox.setHgrow(downloadJDKArchitectureSpacer, Priority.ALWAYS);
+        downloadJDKArchitectureComboBox = new ComboBox<>();
+        downloadJDKArchitectureComboBox.setCellFactory(architectureListView -> new ArchitectureCell());
+        downloadJDKArchitectureComboBox.setMinWidth(150);
+        downloadJDKArchitectureComboBox.setMaxWidth(150);
+        downloadJDKArchitectureComboBox.setPrefWidth(150);
+        HBox downloadJDKArchitectureBox = new HBox(5, downloadJDKArchitectureLabel, downloadJDKArchitectureSpacer, downloadJDKArchitectureComboBox);
+        downloadJDKArchitectureBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKArchiveTypeLabel = new Label("Archive type");
+        //downloadJDKArchiveTypeLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        Region downloadJDKArchiveTypeSpacer = new Region();
+        HBox.setHgrow(downloadJDKArchiveTypeSpacer, Priority.ALWAYS);
+        downloadJDKArchiveTypeComboBox = new ComboBox<>();
+        downloadJDKArchiveTypeComboBox.setCellFactory(archiveTypeListView -> new ArchiveTypeCell());
+        downloadJDKArchiveTypeComboBox.setMinWidth(150);
+        downloadJDKArchiveTypeComboBox.setMaxWidth(150);
+        downloadJDKArchiveTypeComboBox.setPrefWidth(150);
+        HBox downloadJDKArchiveTypeBox = new HBox(5, downloadJDKArchiveTypeLabel, downloadJDKArchiveTypeSpacer, downloadJDKArchiveTypeComboBox);
+        downloadJDKArchiveTypeBox.setAlignment(Pos.CENTER);
+
+        downloadJDKFilenameLabel = new Label("-");
+        downloadJDKFilenameLabel.getStyleClass().add("small-label");
+        //downloadJDKFilenameLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        HBox.setMargin(downloadJDKFilenameLabel, new Insets(10, 0, 10, 0));
+        HBox.setHgrow(downloadJDKFilenameLabel, Priority.ALWAYS);
+        HBox downloadJDKFilenameBox = new HBox(downloadJDKFilenameLabel);
+        downloadJDKFilenameBox.setAlignment(Pos.CENTER);
+
+        downloadJDKCancelButton = new Button("Cancel");
+
+        Region downloadJDKButtonSpacer   = new Region();
+        HBox.setMargin(downloadJDKButtonSpacer, new Insets(10, 0, 10, 0));
+        HBox.setHgrow(downloadJDKButtonSpacer, Priority.ALWAYS);
+
+        downloadJDKDownloadButton = new Button("Download");
+        downloadJDKDownloadButton.setDisable(true);
+
+        HBox downloadJDKButtonBox = new HBox(5, downloadJDKCancelButton, downloadJDKButtonSpacer, downloadJDKDownloadButton);
+
+
+        downloadJDKCloseMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        downloadJDKCloseMacWindowButton.setDarkMode(isDarkMode);
+
+        downloadJDKCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        downloadJDKCloseWinWindowButton.setDarkMode(isDarkMode);
+
+        Label downloadJDKTitle = new Label("Download a JDK");
+        if (isWindows) {
+            downloadJDKTitle.setFont(Fonts.segoeUi(9));
+            downloadJDKTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
+            downloadJDKTitle.setAlignment(Pos.CENTER_LEFT);
+            downloadJDKTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
+            downloadJDKTitle.setGraphicTextGap(10);
+
+            AnchorPane.setTopAnchor(downloadJDKCloseWinWindowButton, 0d);
+            AnchorPane.setRightAnchor(downloadJDKCloseWinWindowButton, 0d);
+            AnchorPane.setTopAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setRightAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadJDKTitle, 10d);
+        } else {
+            downloadJDKTitle.setFont(Fonts.sfProTextMedium(12));
+            downloadJDKTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
+            downloadJDKTitle.setAlignment(Pos.CENTER);
+
+            AnchorPane.setTopAnchor(downloadJDKCloseMacWindowButton, 5d);
+            AnchorPane.setLeftAnchor(downloadJDKCloseMacWindowButton, 5d);
+            AnchorPane.setTopAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setRightAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadJDKTitle, 0d);
+        }
+        downloadJDKTitle.setMouseTransparent(true);
+
+        AnchorPane downloadJDKHeaderPane = new AnchorPane();
+        downloadJDKHeaderPane.getStyleClass().add("header");
+        downloadJDKHeaderPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
+        if (isWindows) {
+            downloadJDKHeaderPane.setMinHeight(31);
+            downloadJDKHeaderPane.setMaxHeight(31);
+            downloadJDKHeaderPane.setPrefHeight(31);
+            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseWinWindowButton, downloadJDKTitle);
+        } else {
+            downloadJDKHeaderPane.setMinHeight(21);
+            downloadJDKHeaderPane.setMaxHeight(21);
+            downloadJDKHeaderPane.setPrefHeight(21);
+            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseMacWindowButton, downloadJDKTitle);
+        }
+
+        downloadJDKProgressBar = new ProgressBar(0);
+        downloadJDKProgressBar.setVisible(false);
+        VBox.setMargin(downloadJDKProgressBar, new Insets(0, 0, 5, 0));
+
+        VBox downloadJDKVBox = new VBox(10, findlJDKFxBox, downloadJDKMajorVersionBox, downloadJDKUpdateLevelBox, downloadJDKDistributionBox, downloadJDKOperatingSystemBox,
+                                        downloadJDKLibcTypeBox, downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, downloadJDKProgressBar, downloadJDKButtonBox);
+        downloadJDKVBox.setAlignment(Pos.CENTER);
+
+        downloadJDKPane.getChildren().add(downloadJDKVBox);
+        downloadJDKPane.getStyleClass().add("jdk-mon");
+        downloadJDKPane.setPadding(new Insets(10));
+
+        BorderPane downloadJDKMainPane = new BorderPane();
+        downloadJDKMainPane.setTop(downloadJDKHeaderPane);
+        downloadJDKMainPane.setCenter(downloadJDKPane);
+
+        downloadJDKProgressBar.prefWidthProperty().bind(downloadJDKMainPane.widthProperty());
+
+        StackPane downloadJDKGlassPane = new StackPane(downloadJDKMainPane);
+        downloadJDKGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+        downloadJDKGlassPane.setMinSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
+        downloadJDKGlassPane.setMaxSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
+        downloadJDKGlassPane.setPrefSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
+        downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+        downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
+            downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
+            downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
+        }));
+
+        downloadJDKDialog.getDialogPane().setContent(downloadJDKGlassPane);
+        downloadJDKDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Adjustments related to dark/light mode
+        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            if (isDarkMode) {
+                downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+            } else {
+                downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+            }
+        }
+        if (isDarkMode) {
+            if (isWindows) {
+                downloadJDKTitle.setTextFill(Color.web("#969696"));
+                downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadJDKHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadJDKMainPane.setBorder(new Border(new BorderStroke(Color.web("#333333"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                downloadJDKBundledWithFXCheckBox.setTextFill(Color.web("#292929"));
+                downloadJDKMajorVersionLabel.setTextFill(Color.web("#292929"));
+                downloadJDKUpdateLevelLabel.setTextFill(Color.web("#292929"));
+                downloadJDKDistributionLabel.setTextFill(Color.web("#292929"));
+                downloadJDKOperatingSystemLabel.setTextFill(Color.web("#292929"));
+                downloadJDKLibcTypeLabel.setTextFill(Color.web("#292929"));
+                downloadJDKArchitectureLabel.setTextFill(Color.web("#292929"));
+                downloadJDKArchiveTypeLabel.setTextFill(Color.web("#292929"));
+                downloadJDKFilenameLabel.setTextFill(Color.web("#292929"));
+            } else {
+                downloadJDKTitle.setTextFill(Color.web("#dddddd"));
+                downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
+                downloadJDKMainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+                downloadJDKBundledWithFXCheckBox.setTextFill(Color.web("#dddddd"));
+                downloadJDKMajorVersionLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKUpdateLevelLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKDistributionLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKOperatingSystemLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKLibcTypeLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKArchitectureLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKArchiveTypeLabel.setTextFill(Color.web("#dddddd"));
+                downloadJDKFilenameLabel.setTextFill(Color.web("#dddddd"));
+            }
+        } else {
+            if (isWindows) {
+                downloadJDKTitle.setTextFill(Color.web("#000000"));
+                downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadJDKHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadJDKMainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                downloadJDKBundledWithFXCheckBox.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKMajorVersionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKDistributionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKLibcTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKFilenameLabel.setTextFill(Color.web("#2a2a2a"));
+            } else {
+                downloadJDKTitle.setTextFill(Color.web("#000000"));
+                downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                downloadJDKMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+                downloadJDKBundledWithFXCheckBox.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKMajorVersionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKDistributionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKLibcTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadJDKFilenameLabel.setTextFill(Color.web("#2a2a2a"));
+            }
+        }
+
+        return downloadJDKDialog;
+    }
+
+    private void selectMajorVersion() {
+        downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
+        final boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
+        downloadJDKBundledWithFXCheckBox.setDisable(true);
+        if (downloadJDKBundledWithFXCheckBox.isSelected()) {
+            downloadJDKUpdateLevelComboBox.getItems().clear();
+            downloadJDKDistributionComboBox.getItems().clear();
+            downloadJDKOperatingSystemComboBox.getItems().clear();
+            downloadJDKLibcTypeComboBox.getItems().clear();
+            downloadJDKArchitectureComboBox.getItems().clear();
+            downloadJDKArchiveTypeComboBox.getItems().clear();
+        }
+        discoclient.getPkgsForFeatureVersionAsync(downloadJDKDistributionsThatSupportFx, downloadJDKSelectedMajorVersion.getAsInt(), include_build ? List.of(ReleaseStatus.EA) : List.of(ReleaseStatus.GA),
+                                                  true, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE, Scope.BUILD_OF_OPEN_JDK), Match.ANY)
+                   .thenAccept(pkgs -> {
+                       downloadJDKSelectedPkgsForMajorVersion.clear();
+                       downloadJDKSelectedPkgsForMajorVersion.addAll(pkgs);
+                       Platform.runLater(() -> downloadJDKBundledWithFXCheckBox.setDisable(false));
+                       if (downloadJDKBundledWithFXCheckBox.isSelected()) {
+                           List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
+                                                                                 .stream()
+                                                                                 .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (
+                                                                              semVer.getReleaseStatus() == ReleaseStatus.GA))
+                                                                                 .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
+                                                                                 .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
+                                                                                 .distinct()
+                                                                                 .map(versionString -> SemVer.fromText(versionString).getSemVer1())
+                                                                                 .collect(Collectors.toList());
+                           Platform.runLater(() -> {
+                               downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
+                               if (versionList.size() > 0) {
+                                   downloadJDKUpdateLevelComboBox.getSelectionModel().clearSelection();
+                                   downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
+                               }
+                           });
+
+                       }
+                   });
+
+        if (!downloadJDKBundledWithFXCheckBox.isSelected()) {
+            List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
+                                                                  .stream()
+                                                                  .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (semVer.getReleaseStatus() == ReleaseStatus.GA))
+                                                                  .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
+                                                                  .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
+                                                                  .distinct().map(versionString -> SemVer.fromText(versionString).getSemVer1())
+                                                                  .collect(Collectors.toList());
+            Platform.runLater(() -> {
+                downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
+                if (versionList.size() > 0) {
+                    downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
+                }
+            });
+        }
+    }
+
+    private void selectVersionNumber() {
+        downloadJDKSelectedVersionNumber = downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem();
+
+        List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection;
+        if (downloadJDKJavafxBundled) {
+            boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
+            distrosForSelection = downloadJDKSelectedPkgsForMajorVersion.stream()
+                                                                    .filter(pkg -> downloadJDKJavafxBundled == pkg.isJavaFXBundled())
+                                                                    .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED,true,include_build).equals(
+                                                                        downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                    .map(pkg -> pkg.getDistribution())
+                                                                    .distinct()
+                                                                    .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                    .collect(Collectors.toList());
+        } else {
+            distrosForSelection = discoclient.getDistributionsForSemVerAsync(downloadJDKSelectedVersionNumber)
+                                             .thenApply(distros -> distros.stream()
+                                                                          .filter(distro -> distro.getScopes().contains(Scope.DIRECTLY_DOWNLOADABLE))
+                                                                          .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed()))
+                                             .join()
+                                             .collect(Collectors.toList());
+        }
+        Platform.runLater(() -> {
+            downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
+            if (downloadJDKDistributionComboBox.getItems().size() > 0) {
+                if (downloadJDKDistributionComboBox.getItems().get(0).getApiString().equals("zulu_prime") && downloadJDKDistributionComboBox.getItems().size() > 1) {
+                    downloadJDKDistributionComboBox.getSelectionModel().select(1);
+                } else {
+                    downloadJDKDistributionComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadJDKOperatingSystemComboBox.getItems().clear();
+                downloadJDKLibcTypeComboBox.getItems().clear();
+                downloadJDKArchitectureComboBox.getItems().clear();
+                downloadJDKArchiveTypeComboBox.getItems().clear();
+            }
+        });
+    }
+
+    private void selectDistribution() {
+        downloadJDKSelectedDistribution = downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem();
+        if (null == downloadJDKSelectedDistribution) { return; }
+
+        downloadJDKSelectedPkgs.clear();
+        downloadJDKOperatingSystems.clear();
+        downloadJDKArchitectures.clear();
+        downloadJDKLibcTypes.clear();
+        downloadJDKArchiveTypes.clear();
+
+        downloadJDKSelectedPkgs.addAll(discoclient.getPkgs(List.of(downloadJDKSelectedDistribution), VersionNumber.fromText((downloadJDKSelectedVersionNumber).toString(true)), null, null, null, null, null, null, PackageType.JDK,
+                                                       null, true, null, null, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE, Scope.BUILD_OF_OPEN_JDK), Match.ANY));
+
+        downloadJDKSelectedPkgs.forEach(pkg -> {
+            downloadJDKOperatingSystems.add(pkg.getOperatingSystem());
+            downloadJDKArchitectures.add(pkg.getArchitecture());
+            downloadJDKLibcTypes.add(pkg.getLibCType());
+            downloadJDKArchiveTypes.add(pkg.getArchiveType());
+        });
+        Platform.runLater(() -> {
+            downloadJDKOperatingSystemComboBox.getItems().setAll(downloadJDKOperatingSystems);
+            int selectIndex = -1;
+            for (int i = 0; i < downloadJDKOperatingSystemComboBox.getItems().size() ; i++) {
+                if (downloadJDKOperatingSystemComboBox.getItems().get(i) == operatingSystem) {
+                    selectIndex = i;
+                    break;
+                }
+            }
+            if (-1 == selectIndex) {
+                if (downloadJDKOperatingSystems.size() > 0) {
+                    downloadJDKOperatingSystemComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadJDKOperatingSystemComboBox.getSelectionModel().select(selectIndex);
+            }
+        });
+    }
+
+    private void selectOperatingSystem() {
+        downloadJDKSelectedOperatingSystem = downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem();
+        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
+                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .collect(Collectors.toList());
+        downloadJDKLibcTypes = selection.stream().map(pkg -> pkg.getLibCType()).collect(Collectors.toSet());
+        Platform.runLater(() -> {
+            downloadJDKLibcTypeComboBox.getItems().setAll(downloadJDKLibcTypes);
+            if (downloadJDKLibcTypes.size() > 0) {
+                downloadJDKLibcTypeComboBox.getSelectionModel().select(0);
+            }
+        });
+    }
+
+    private void selectLibcType() {
+        downloadJDKSelectedLibcType = downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem();
+        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
+                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
+                                                 .collect(Collectors.toList());
+        downloadJDKArchitectures = selection.stream().map(pkg -> pkg.getArchitecture()).collect(Collectors.toSet());
+        Platform.runLater(() -> {
+            downloadJDKArchitectureComboBox.getItems().clear();
+            downloadJDKArchitectures.forEach(architecture -> downloadJDKArchitectureComboBox.getItems().add(architecture));
+            downloadJDKArchitectureComboBox.getItems().setAll(downloadJDKArchitectures);
+            if (downloadJDKArchitectures.size() > 0) {
+                downloadJDKArchitectureComboBox.getSelectionModel().select(0);
+            }
+        });
+    }
+
+    private void selectArchitecture() {
+        downloadJDKSelectedArchitecture = downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem();
+        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
+                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
+                                                 .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                 .collect(Collectors.toList());
+        downloadJDKArchiveTypes = selection.stream().map(pkg -> pkg.getArchiveType()).collect(Collectors.toSet());
+        Platform.runLater(() -> {
+            downloadJDKArchiveTypeComboBox.getItems().setAll(downloadJDKArchiveTypes);
+            if (downloadJDKArchiveTypes.size() > 0) {
+                downloadJDKArchiveTypeComboBox.getSelectionModel().select(0);
+            }
+            selectArchiveType();
+        });
+    }
+
+    private void selectArchiveType() {
+        downloadJDKSelectedArchiveType = downloadJDKArchiveTypeComboBox.getSelectionModel().getSelectedItem();
+        update();
+    }
+
+    private void update() {
+        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
+                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
+                                                 .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                 .filter(pkg -> downloadJDKSelectedArchiveType == pkg.getArchiveType())
+                                                 .collect(Collectors.toList());
+        if (selection.size() > 0) {
+            downloadJDKSelectedPkg = selection.get(0);
+            Platform.runLater(() -> {
+                downloadJDKFilenameLabel.setText(null == downloadJDKSelectedPkg ? "-" : downloadJDKSelectedPkg.getFileName());
+                downloadJDKDownloadButton.setDisable(false);
+            });
+        } else {
+            downloadJDKSelectedPkg = null;
+            Platform.runLater(() -> {
+                downloadJDKFilenameLabel.setText("-");
+                downloadJDKDownloadButton.setDisable(true);
+            });
+        }
+    }
+
+    private void downloadPkgDownloadJDK(final Pkg pkg) {
+        if (null == pkg) { return; }
+        directoryChooser.setTitle("Choose folder for download");
+
+        final File downloadFolder;
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                directoryChooser.setTitle("Choose folder for download");
+                downloadFolder = directoryChooser.showDialog(stage);
+            } else {
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                if (folder.isDirectory()) {
+                    downloadFolder = folder;
+                } else {
+                    downloadFolder = directoryChooser.showDialog(stage);
+                }
+            }
+        } else {
+            downloadFolder = directoryChooser.showDialog(stage);
+        }
+        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.storeProperties();
+
+        if (null != downloadFolder) {
+            final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
+            if (null == directDownloadUri) {
+                new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
+                return;
+            }
+            final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFileName();
+            Worker<Boolean> worker = createWorker(directDownloadUri, target);
+            worker.stateProperty().addListener((o, ov, nv) -> {
+                if (nv.equals(State.READY)) {
+                } else if (nv.equals(State.RUNNING)) {
+                    blocked.set(true);
+                    downloadJDKProgressBar.setVisible(true);
+                    downloadJDKDownloadButton.setDisable(true);
+                    downloadJDKCancelButton.setDisable(true);
+                } else if (nv.equals(State.CANCELLED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    downloadJDKProgressBar.setProgress(0);
+                    downloadJDKProgressBar.setVisible(false);
+                    downloadJDKDownloadButton.setDisable(false);
+                    downloadJDKCancelButton.setDisable(false);
+                } else if (nv.equals(State.FAILED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    downloadJDKProgressBar.setProgress(0);
+                    downloadJDKProgressBar.setVisible(false);
+                    downloadJDKDownloadButton.setDisable(false);
+                    downloadJDKCancelButton.setDisable(false);
+                } else if (nv.equals(State.SUCCEEDED)) {
+                    blocked.set(false);
+                    downloadJDKProgressBar.setProgress(0);
+                    downloadJDKProgressBar.setVisible(false);
+                    downloadJDKDownloadButton.setDisable(false);
+                    downloadJDKCancelButton.setDisable(false);
+                    downloadJDKDialog.setResult(Boolean.TRUE);
+                    downloadJDKDialog.close();
+                } else if (nv.equals(State.SCHEDULED)) {
+                    blocked.set(true);
+                    downloadJDKProgressBar.setVisible(true);
+                    downloadJDKDownloadButton.setDisable(true);
+                    downloadJDKCancelButton.setDisable(false);
+                }
+            });
+            worker.progressProperty().addListener((o, ov, nv) -> downloadJDKProgressBar.setProgress(nv.doubleValue() * 100.0));
+
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                new Thread((Runnable) worker).start();
+            } else {
+                Alert info = new Alert(AlertType.INFORMATION);
+                info.setTitle("JDKMon");
+                info.setHeaderText("JDKMon Download Info");
+                info.setContentText("Download will be started and update will be saved to " + downloadFolder);
+                info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
+                info.show();
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         launch(args);

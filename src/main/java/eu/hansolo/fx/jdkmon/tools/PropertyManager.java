@@ -32,8 +32,10 @@ import java.util.Properties;
 public enum PropertyManager {
     INSTANCE;
 
-    public  static final String     SEARCH_PATH          = "searchpath";
-    private static final String     PROPERTIES_FILE_NAME = "jdkmon.properties";
+    public  static final String     PROPERTIES_FILE_NAME = "jdkmon.properties";
+    public  static final String SEARCH_PATH              = "searchpath";
+    public  static final String REMEMBER_DOWNLOAD_FOLDER = "remember_download_folder";
+    public  static final String DOWNLOAD_FOLDER          = "download_folder";
     private              Properties properties;
 
 
@@ -82,6 +84,8 @@ public enum PropertyManager {
 
     public long getLong(final String key) { return Long.parseLong(properties.getOrDefault(key, "0").toString()); }
 
+    public boolean getBoolean(final String key) { return Boolean.parseBoolean(properties.getOrDefault(key, Boolean.FALSE).toString()); }
+
     public void storeProperties() {
         if (null == properties) { return; }
         final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(PROPERTIES_FILE_NAME).toString();
@@ -122,6 +126,8 @@ public enum PropertyManager {
                 default     : searchPath = "";
             }
             properties.put(SEARCH_PATH, searchPath);
+            properties.put(REMEMBER_DOWNLOAD_FOLDER, "FALSE");
+            properties.put(DOWNLOAD_FOLDER, "");
             properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();

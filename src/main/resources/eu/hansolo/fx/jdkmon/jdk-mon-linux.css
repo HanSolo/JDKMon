@@ -624,6 +624,7 @@
     -fx-text-fill: black;
 }
 
+
 .hyperlink {
     -fx-padding        : 0.166667em 0.25em 0.166667em 0.25em;
     -fx-cursor         : hand;
