@@ -158,7 +158,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public static final  VersionNumber                                           VERSION                = new VersionNumber(16, 0, 17);
+    public static final  VersionNumber                                           VERSION                = new VersionNumber(17, 0, 0);
     private static final PseudoClass                                             DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
     private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
