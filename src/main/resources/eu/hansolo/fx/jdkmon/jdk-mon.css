@@ -683,7 +683,7 @@
 }
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover > .label {
-    -fx-graphic    : url("./macos-checkmark-blk.png");
+    -fx-graphic    : -check-mark-black;
     -fx-translate-x: -15px;
 }
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell > .label {
