@@ -96,7 +96,7 @@
     -fx-shape           : "M6.368,4.946L11.314,0L12.736,1.422L7.79,6.368L12.736,11.314L11.314,12.736L6.368,7.79L1.422,12.736L0,11.314L4.946,6.368L-0,1.422L1.422,0L6.368,4.946Z";
 }
 .win-window-button:dark:hovered:close .symbol {
-    -fx-background-color: black;
+    -fx-background-color: white;
 }
 .win-window-button:dark:minimize .symbol,
 .win-window-button:dark:hovered:minimize .symbol {

@@ -86,7 +86,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -163,6 +162,7 @@ public class Main extends Application {
     private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
     private              io.foojay.api.discoclient.pkg.OperatingSystem           operatingSystem        = DiscoClient.getOperatingSystem();
+    private              boolean                                                 isWindows              = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
     private              String                                                  cssFile;
     private              Notification.Notifier                                   notifier;
     private              BooleanProperty                                         darkMode;
@@ -198,6 +198,9 @@ public class Main extends Application {
     private              Timeline                                                timeline;
     private              boolean                                                 isUpdateAvailable;
     private              VersionNumber                                           latestVersion;
+    private              Stage                                                   downloadJDKStage;
+    private              AnchorPane                                              downloadJDKHeaderPane;
+    private              Label                                                   downloadJDKWindowTitle;
     private              MacOSWindowButton                                       downloadJDKCloseMacWindowButton;
     private              WinWindowButton                                         downloadJDKCloseWinWindowButton;
     private              StackPane                                               downloadJDKPane;
@@ -233,7 +236,6 @@ public class Main extends Application {
 
 
     @Override public void init() {
-        boolean isWindows = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
         isUpdateAvailable = false;
         latestVersion     = VERSION;
 
@@ -434,8 +436,6 @@ public class Main extends Application {
     }
 
     private void registerListeners() {
-        final boolean isWindows = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
-
         headerPane.setOnMousePressed(press -> headerPane.setOnMouseDragged(drag -> {
             stage.setX(drag.getScreenX() - press.getSceneX());
             stage.setY(drag.getScreenY() - press.getSceneY());
@@ -608,6 +608,50 @@ public class Main extends Application {
             if (null == downloadJDKSelectedPkg) { return; }
             downloadPkgDownloadJDK(downloadJDKSelectedPkg);
         });
+
+        downloadJDKStage.focusedProperty().addListener((o, ov, nv) -> {
+            if (nv) {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#dddddd"));
+                    }
+                } else {
+                    if (isWindows) {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
+                    } else {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
+                    }
+                }
+                downloadJDKCloseMacWindowButton.setDisable(false);
+                downloadJDKCloseWinWindowButton.setDisable(false);
+            } else {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#696a68"));
+                    }
+                } else {
+                    if (isWindows) {
+                        downloadJDKCloseWinWindowButton.setStyle("-fx-fill: #969696;");
+                    } else {
+                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadJDKWindowTitle.setTextFill(Color.web("#a9a6a6"));
+                        downloadJDKCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
+                    }
+                }
+                downloadJDKCloseMacWindowButton.setDisable(true);
+                downloadJDKCloseWinWindowButton.setDisable(true);
+            }
+        });
     }
 
     private void initOnFXApplicationThread() {
@@ -618,8 +662,10 @@ public class Main extends Application {
 
         discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
             downloadJDKMaintainedVersions.addAll(uv);
-            downloadJDKMaintainedVersions.forEach(majorVersion -> downloadJDKMajorVersionComboBox.getItems().add(majorVersion));
-            downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+            downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+            if (downloadJDKMaintainedVersions.size() > 0) {
+                downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+            }
         });
     }
 
@@ -806,7 +852,7 @@ public class Main extends Application {
         stage.focusedProperty().addListener((o, ov, nv) -> {
             if (nv) {
                 if (darkMode.get()) {
-                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                    if (isWindows) {
                         headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                         windowTitle.setTextFill(Color.web("#969696"));
                     } else {
@@ -814,7 +860,7 @@ public class Main extends Application {
                         windowTitle.setTextFill(Color.web("#dddddd"));
                     }
                 } else {
-                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                    if (isWindows) {
                         headerPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                         windowTitle.setTextFill(Color.web("#000000"));
                     } else {
@@ -826,7 +872,7 @@ public class Main extends Application {
                 closeWinWindowButton.setDisable(false);
             } else {
                 if (darkMode.get()) {
-                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                    if (isWindows) {
                         headerPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                         windowTitle.setTextFill(Color.web("#969696"));
                     } else {
@@ -834,7 +880,7 @@ public class Main extends Application {
                         windowTitle.setTextFill(Color.web("#696a68"));
                     }
                 } else {
-                    if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+                    if (isWindows) {
                         closeWinWindowButton.setStyle("-fx-fill: #969696;");
                     } else {
                         headerPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
@@ -944,7 +990,7 @@ public class Main extends Application {
         WinWindowButton   closePopupWinButton   = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         MacOSWindowButton closePopupMacOSButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             closePopupWinButton.setDarkMode(darkMode.get());
             closePopupWinButton.setOnMouseReleased((Consumer<MouseEvent>) e -> popup.hide());
             closePopupWinButton.setOnMouseEntered(e -> closePopupWinButton.setHovered(true));
@@ -956,7 +1002,7 @@ public class Main extends Application {
             closePopupMacOSButton.setOnMouseExited(e -> closePopupMacOSButton.setHovered(false));
         }
         Label popupTitle = new Label("Alternative distribution");
-        popupTitle.setFont(io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? Fonts.segoeUiSemiBold(12) : Fonts.sfProTextMedium(12));
+        popupTitle.setFont(isWindows ? Fonts.segoeUiSemiBold(12) : Fonts.sfProTextMedium(12));
         popupTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
         popupTitle.setMouseTransparent(true);
         popupTitle.setAlignment(Pos.CENTER);
@@ -972,7 +1018,7 @@ public class Main extends Application {
 
         AnchorPane popupHeader = new AnchorPane();
         popupHeader.getStyleClass().add("header");
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             popupHeader.setMinHeight(31);
             popupHeader.setMaxHeight(31);
             popupHeader.setPrefHeight(31);
@@ -982,7 +1028,7 @@ public class Main extends Application {
             popupHeader.setPrefHeight(21);
         }
         popupHeader.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+        if (isWindows) {
             popupHeader.getChildren().addAll(closePopupWinButton, popupTitle);
         } else {
             popupHeader.getChildren().addAll(closePopupMacOSButton, popupTitle);
@@ -1011,7 +1057,7 @@ public class Main extends Application {
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            if (isWindows) {
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0), Insets.EMPTY)));
@@ -1023,7 +1069,7 @@ public class Main extends Application {
                 popupPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
             }
         } else {
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem) {
+            if (isWindows) {
                 popupHeader.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupContent.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 0, 0, false), Insets.EMPTY)));
                 popupPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0), Insets.EMPTY)));
@@ -1106,7 +1152,6 @@ public class Main extends Application {
     }
 
     private Dialog createAboutDialog() {
-        final boolean isWindows  = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
         final boolean isDarkMode = darkMode.get();
 
         Dialog aboutDialog = new Dialog();
@@ -1374,14 +1419,13 @@ public class Main extends Application {
 
     // Download a JDK related
     private Dialog createDownloadJDKDialog() {
-        final boolean isWindows  = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
         final boolean isDarkMode = darkMode.get();
 
         Dialog downloadJDKDialog = new Dialog();
         downloadJDKDialog.initStyle(StageStyle.TRANSPARENT);
         downloadJDKDialog.initModality(Modality.WINDOW_MODAL);
 
-        Stage downloadJDKStage = (Stage) downloadJDKDialog.getDialogPane().getScene().getWindow();
+        downloadJDKStage = (Stage) downloadJDKDialog.getDialogPane().getScene().getWindow();
         downloadJDKStage.getIcons().add(dukeStageIcon);
         downloadJDKStage.getScene().setFill(Color.TRANSPARENT);
         downloadJDKStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
@@ -1392,7 +1436,6 @@ public class Main extends Application {
 
 
         Label downloadJDKMajorVersionLabel = new Label("Major version");
-        //downloadJDKMajorVersionLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region findlJDKMajorVersionSpacer = new Region();
         HBox.setHgrow(findlJDKMajorVersionSpacer, Priority.ALWAYS);
         downloadJDKMajorVersionComboBox = new ComboBox<>();
@@ -1404,7 +1447,6 @@ public class Main extends Application {
         downloadJDKMajorVersionBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKUpdateLevelLabel = new Label("Update level");
-        //downloadJDKUpdateLevelLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region downloadJDKUpdateLevelSpacer = new Region();
         HBox.setHgrow(downloadJDKUpdateLevelSpacer, Priority.ALWAYS);
         downloadJDKUpdateLevelComboBox = new ComboBox<>();
@@ -1416,7 +1458,6 @@ public class Main extends Application {
         downloadJDKUpdateLevelBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKDistributionLabel = new Label("Distribution");
-        //downloadJDKDistributionLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region downloadJDKDistributionSpacer = new Region();
         HBox.setHgrow(downloadJDKDistributionSpacer, Priority.ALWAYS);
         downloadJDKDistributionComboBox = new ComboBox<>();
@@ -1436,7 +1477,6 @@ public class Main extends Application {
         downloadJDKDistributionBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKOperatingSystemLabel = new Label("Operatingsystem");
-        //downloadJDKOperatingSystemLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region findlJDKOperatingSystemSpacer = new Region();
         HBox.setHgrow(findlJDKOperatingSystemSpacer, Priority.ALWAYS);
         downloadJDKOperatingSystemComboBox = new ComboBox<>();
@@ -1448,7 +1488,6 @@ public class Main extends Application {
         downloadJDKOperatingSystemBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKLibcTypeLabel = new Label("Libc type");
-        //downloadJDKLibcTypeLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region downloadJDKLibcTypeSpacer = new Region();
         HBox.setHgrow(downloadJDKLibcTypeSpacer, Priority.ALWAYS);
         downloadJDKLibcTypeComboBox = new ComboBox<>();
@@ -1460,7 +1499,6 @@ public class Main extends Application {
         downloadJDKLibcTypeBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKArchitectureLabel = new Label("Architecture");
-        //downloadJDKArchitectureLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region downloadJDKArchitectureSpacer = new Region();
         HBox.setHgrow(downloadJDKArchitectureSpacer, Priority.ALWAYS);
         downloadJDKArchitectureComboBox = new ComboBox<>();
@@ -1472,7 +1510,6 @@ public class Main extends Application {
         downloadJDKArchitectureBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKArchiveTypeLabel = new Label("Archive type");
-        //downloadJDKArchiveTypeLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         Region downloadJDKArchiveTypeSpacer = new Region();
         HBox.setHgrow(downloadJDKArchiveTypeSpacer, Priority.ALWAYS);
         downloadJDKArchiveTypeComboBox = new ComboBox<>();
@@ -1485,7 +1522,6 @@ public class Main extends Application {
 
         downloadJDKFilenameLabel = new Label("-");
         downloadJDKFilenameLabel.getStyleClass().add("small-label");
-        //downloadJDKFilenameLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
         HBox.setMargin(downloadJDKFilenameLabel, new Insets(10, 0, 10, 0));
         HBox.setHgrow(downloadJDKFilenameLabel, Priority.ALWAYS);
         HBox downloadJDKFilenameBox = new HBox(downloadJDKFilenameLabel);
@@ -1509,47 +1545,47 @@ public class Main extends Application {
         downloadJDKCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         downloadJDKCloseWinWindowButton.setDarkMode(isDarkMode);
 
-        Label downloadJDKTitle = new Label("Download a JDK");
+        downloadJDKWindowTitle = new Label("Download a JDK");
         if (isWindows) {
-            downloadJDKTitle.setFont(Fonts.segoeUi(9));
-            downloadJDKTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
-            downloadJDKTitle.setAlignment(Pos.CENTER_LEFT);
-            downloadJDKTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
-            downloadJDKTitle.setGraphicTextGap(10);
+            downloadJDKWindowTitle.setFont(Fonts.segoeUi(9));
+            downloadJDKWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
+            downloadJDKWindowTitle.setAlignment(Pos.CENTER_LEFT);
+            downloadJDKWindowTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
+            downloadJDKWindowTitle.setGraphicTextGap(10);
 
             AnchorPane.setTopAnchor(downloadJDKCloseWinWindowButton, 0d);
             AnchorPane.setRightAnchor(downloadJDKCloseWinWindowButton, 0d);
-            AnchorPane.setTopAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setRightAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setBottomAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setLeftAnchor(downloadJDKTitle, 10d);
+            AnchorPane.setTopAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setRightAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadJDKWindowTitle, 10d);
         } else {
-            downloadJDKTitle.setFont(Fonts.sfProTextMedium(12));
-            downloadJDKTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
-            downloadJDKTitle.setAlignment(Pos.CENTER);
+            downloadJDKWindowTitle.setFont(Fonts.sfProTextMedium(12));
+            downloadJDKWindowTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
+            downloadJDKWindowTitle.setAlignment(Pos.CENTER);
 
             AnchorPane.setTopAnchor(downloadJDKCloseMacWindowButton, 5d);
             AnchorPane.setLeftAnchor(downloadJDKCloseMacWindowButton, 5d);
-            AnchorPane.setTopAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setRightAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setBottomAnchor(downloadJDKTitle, 0d);
-            AnchorPane.setLeftAnchor(downloadJDKTitle, 0d);
+            AnchorPane.setTopAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setRightAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadJDKWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadJDKWindowTitle, 0d);
         }
-        downloadJDKTitle.setMouseTransparent(true);
+        downloadJDKWindowTitle.setMouseTransparent(true);
 
-        AnchorPane downloadJDKHeaderPane = new AnchorPane();
+        downloadJDKHeaderPane = new AnchorPane();
         downloadJDKHeaderPane.getStyleClass().add("header");
         downloadJDKHeaderPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
         if (isWindows) {
             downloadJDKHeaderPane.setMinHeight(31);
             downloadJDKHeaderPane.setMaxHeight(31);
             downloadJDKHeaderPane.setPrefHeight(31);
-            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseWinWindowButton, downloadJDKTitle);
+            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseWinWindowButton, downloadJDKWindowTitle);
         } else {
             downloadJDKHeaderPane.setMinHeight(21);
             downloadJDKHeaderPane.setMaxHeight(21);
             downloadJDKHeaderPane.setPrefHeight(21);
-            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseMacWindowButton, downloadJDKTitle);
+            downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseMacWindowButton, downloadJDKWindowTitle);
         }
 
         downloadJDKProgressBar = new ProgressBar(0);
@@ -1572,9 +1608,9 @@ public class Main extends Application {
 
         StackPane downloadJDKGlassPane = new StackPane(downloadJDKMainPane);
         downloadJDKGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        downloadJDKGlassPane.setMinSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
-        downloadJDKGlassPane.setMaxSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
-        downloadJDKGlassPane.setPrefSize(310, io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem ? 400 : 390);
+        downloadJDKGlassPane.setMinSize(310, isWindows ? 400 : 390);
+        downloadJDKGlassPane.setMaxSize(310, isWindows ? 400 : 390);
+        downloadJDKGlassPane.setPrefSize(310, isWindows ? 400 : 390);
         downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
         downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
             downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
@@ -1596,7 +1632,7 @@ public class Main extends Application {
         }
         if (isDarkMode) {
             if (isWindows) {
-                downloadJDKTitle.setTextFill(Color.web("#969696"));
+                downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
                 downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 downloadJDKHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
                 downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -1612,7 +1648,7 @@ public class Main extends Application {
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#292929"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#292929"));
             } else {
-                downloadJDKTitle.setTextFill(Color.web("#dddddd"));
+                downloadJDKWindowTitle.setTextFill(Color.web("#dddddd"));
                 downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
                 downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
@@ -1629,7 +1665,7 @@ public class Main extends Application {
             }
         } else {
             if (isWindows) {
-                downloadJDKTitle.setTextFill(Color.web("#000000"));
+                downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
                 downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 downloadJDKHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
                 downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -1645,7 +1681,7 @@ public class Main extends Application {
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#2a2a2a"));
             } else {
-                downloadJDKTitle.setTextFill(Color.web("#000000"));
+                downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
                 downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 downloadJDKPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
                 downloadJDKMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
