@@ -41,6 +41,10 @@ a menu will appear where you can select
 `Exit: Exit the application`
 `
 
+<b>ATTENTION:</b><br>
+When running the application via `java -jar` on Linux you might have to
+add `-Djdk.gtk.version=2` to make it work correctly e.g. `java -Djdk.gtk.version=2 -jar JDKMon-linux-17.0.0.jar`
+
 On Mac and Windows the dark mode will be detected automatically and the user interface will
 adjust it's design to either dark or light mode. On Linux you can change the variable "dark_mode" in the
 jdkmon.properties file (in your user folder) to "TRUE" to see the application in dark mode.
