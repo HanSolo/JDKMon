@@ -265,6 +265,15 @@ public class Main extends Application {
         };
         darkMode.set(Detector.isDarkMode());
 
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
+            if (PropertyManager.INSTANCE.hasKey(PropertyManager.DARK_MODE)) {
+                darkMode.set(PropertyManager.INSTANCE.getBoolean(PropertyManager.DARK_MODE));
+            } else {
+                PropertyManager.INSTANCE.set(PropertyManager.DARK_MODE, "FALSE");
+                PropertyManager.INSTANCE.storeProperties();
+            }
+        }
+
         closeMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         closeMacWindowButton.setDarkMode(darkMode.get());
 
