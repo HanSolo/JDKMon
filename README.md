@@ -19,6 +19,9 @@ JDKMon will scan all given folders for installed JDK's.
 If you would like to reset the folders that should be scanned to the default, simply
 select `"Default search path"` in the menu.
 
+You can search and download for a JDK from different distributions in the dialog that opens when
+you select `"Download a JDK"` from the menu.
+
 The application will stay in the system tray with an icon. If you click the icon
 a menu will appear where you can select
 
@@ -27,10 +30,21 @@ a menu will appear where you can select
 
 `Rescan: Will rescan for installed JDK's and check for updates`
 
-`Search path: Will open the directory chooser to select the search path`
+`Add search path: Will open the directory chooser to add a path to the search paths`
+
+`Default search path: Will reset the search path to the platform dependent default`
+
+`Remember download folder: When remember download folder is active you don't have to select a download folder everytime`
+
+`Download a JDK: Opens a dialog where you can search/download a JDK from different distributions`
 
 `Exit: Exit the application`
 `
+
+On Mac and Windows the dark mode will be detected automatically and the user interface will
+adjust it's design to either dark or light mode. On Linux you can change the variable "dark_mode" in the
+jdkmon.properties file (in your user folder) to "TRUE" to see the application in dark mode.
+The application will only check for dark/light mode during startup and won't change when it is running.
 
 The main window will show you all JDK's found by JDKMon and if there is an
 update available it will show you the archive types of the available updates.
@@ -39,10 +53,14 @@ and that you can download it as a tar.gz file.
 To download an update just click on the archive type tag and choose a folder
 where the download should be stored.
 
-How it looks on MacOS and Linux:
-![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot.png)
+How it looks on MacOS and Linux (light/dark mode):
+![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
+
+![Download](https://i.ibb.co/DbYK1F3/download-mac-linux.png)
 
 
-How it looks on Windows:
+How it looks on Windows (light/dark mode):
 
-![Screenshot](https://github.com/HanSolo/JDKMon/raw/main/screenshot_win.png)
+![Updates](https://i.ibb.co/w6d9bV4/update-win.png)
+
+![Download](https://i.ibb.co/HF5F8ff/download-win.png)
