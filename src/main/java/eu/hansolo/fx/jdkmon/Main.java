@@ -1617,9 +1617,9 @@ public class Main extends Application {
 
         StackPane downloadJDKGlassPane = new StackPane(downloadJDKMainPane);
         downloadJDKGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        downloadJDKGlassPane.setMinSize(310, isWindows ? 400 : 390);
-        downloadJDKGlassPane.setMaxSize(310, isWindows ? 400 : 390);
-        downloadJDKGlassPane.setPrefSize(310, isWindows ? 400 : 390);
+        downloadJDKGlassPane.setMinSize(310, isWindows ? 470 : 390);
+        downloadJDKGlassPane.setMaxSize(310, isWindows ? 470 : 390);
+        downloadJDKGlassPane.setPrefSize(310, isWindows ? 470 : 390);
         downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
         downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
             downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
