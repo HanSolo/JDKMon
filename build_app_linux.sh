@@ -111,7 +111,7 @@ do
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon128x128.png \
   --linux-shortcut \
   --linux-menu-group "JDKMon" \
-  --app-version ${APP_VERSION} \
+  --app-version ${APP_VERSION}
   #--vendor "Alliance" \
   #--copyright "Copyright © 2021 Alliance Inc." \
 done
