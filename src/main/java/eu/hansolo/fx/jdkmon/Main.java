@@ -1130,12 +1130,24 @@ public class Main extends Application {
                         case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                     }
                 } else {
-                    archiveTypeLabel.setTooltip(new Tooltip("No direct download, please check website"));
+                    archiveTypeLabel.setTooltip(new Tooltip("Go to download page"));
+                    archiveTypeLabel.setTextFill(Color.WHITE);
                     archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GRAPHITE.getColorDark() : MacOSAccentColor.GRAPHITE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                 }
                 archiveTypeLabel.disableProperty().bind(blocked);
                 if (pkg.isDirectlyDownloadable()) {
                     archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); }});
+                } else {
+                    archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) {
+                        if (Desktop.isDesktopSupported()) {
+                            final String downloadSiteUri = discoclient.getPkgDownloadSiteUri(pkg.getId());
+                            try {
+                                Desktop.getDesktop().browse(new URI(downloadSiteUri));
+                            } catch (IOException | URISyntaxException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    } });
                 }
 
                 if (pkg.getDistribution().getApiString().equals(distribution.getApiString())) {
