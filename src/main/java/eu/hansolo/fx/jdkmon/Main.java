@@ -1485,7 +1485,7 @@ public class Main extends Application {
         HBox downloadJDKDistributionBox = new HBox(5, downloadJDKDistributionLabel, downloadJDKDistributionSpacer, downloadJDKDistributionComboBox);
         downloadJDKDistributionBox.setAlignment(Pos.CENTER);
 
-        Label downloadJDKOperatingSystemLabel = new Label("Operatingsystem");
+        Label downloadJDKOperatingSystemLabel = new Label("Operating system");
         Region findlJDKOperatingSystemSpacer = new Region();
         HBox.setHgrow(findlJDKOperatingSystemSpacer, Priority.ALWAYS);
         downloadJDKOperatingSystemComboBox = new ComboBox<>();
