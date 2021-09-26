@@ -1455,6 +1455,7 @@ public class Main extends Application {
 
         downloadJDKBundledWithFXCheckBox = new CheckBox("Bundled with FX");
         downloadJDKBundledWithFXCheckBox.setFont(isWindows ? Fonts.segoeUi(13) : Fonts.sfPro(13));
+        downloadJDKBundledWithFXCheckBox.setTextFill(isWindows ? Color.web("#dddddd") : Color.web("#2a2a2a"));
         HBox findlJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox);
 
 
