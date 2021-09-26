@@ -855,6 +855,7 @@ public class Main extends Application {
         stage.setTitle("JDK Mon");
         stage.setScene(scene);
         stage.initStyle(StageStyle.TRANSPARENT);
+        stage.setAlwaysOnTop(true);
         stage.show();
         stage.getIcons().add(dukeStageIcon);
         stage.centerOnScreen();
@@ -1180,10 +1181,10 @@ public class Main extends Application {
         aboutDialog.initStyle(StageStyle.TRANSPARENT);
         aboutDialog.initModality(Modality.WINDOW_MODAL);
 
-        Stage aboutStage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
-        aboutStage.getIcons().add(dukeStageIcon);
-        aboutStage.getScene().setFill(Color.TRANSPARENT);
-        aboutStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
+        Stage aboutDialogStage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
+        aboutDialogStage.getIcons().add(dukeStageIcon);
+        aboutDialogStage.getScene().setFill(Color.TRANSPARENT);
+        aboutDialogStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
         ImageView aboutImage = new ImageView(dukeStageIcon);
         aboutImage.setFitWidth(128);
@@ -1447,6 +1448,7 @@ public class Main extends Application {
         downloadJDKDialog.initModality(Modality.WINDOW_MODAL);
 
         downloadJDKStage = (Stage) downloadJDKDialog.getDialogPane().getScene().getWindow();
+        downloadJDKStage.setAlwaysOnTop(true);
         downloadJDKStage.getIcons().add(dukeStageIcon);
         downloadJDKStage.getScene().setFill(Color.TRANSPARENT);
         downloadJDKStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
