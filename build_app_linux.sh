@@ -26,8 +26,8 @@
 # APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
 JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.0.jar"
-APP_VERSION=17.0.0
+MAIN_JAR="JDKMon-17.0.2.jar"
+APP_VERSION=17.0.2
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
