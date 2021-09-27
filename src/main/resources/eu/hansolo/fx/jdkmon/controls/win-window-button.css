@@ -64,7 +64,12 @@
 .win-window-button:disabled:close .rect,
 .win-window-button:disabled:minimize .rect,
 .win-window-button:disabled:zoom .rect {
-    -fx-fill: -GRAY;
+    -fx-fill: white;
+}
+.win-window-button:dark:disabled:close .rect,
+.win-window-button:dark:disabled:minimize .rect,
+.win-window-button:dark:disabled:zoom .rect {
+    -fx-fill: black;
 }
 
 
