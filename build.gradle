@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
         classpath 'org.javamodularity:moduleplugin:1.8.8'
-        classpath 'org.beryx:badass-jlink-plugin:2.4.1'
+        classpath 'org.beryx:badass-jlink-plugin:2.24.2'
     }
 }
 
@@ -17,7 +17,7 @@ plugins {
     id 'application'
     id 'com.google.osdetector' version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.8'
-    id 'org.beryx.jlink' version '2.24.1'
+    id 'org.beryx.jlink' version '2.24.2'
 }
 
 ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
