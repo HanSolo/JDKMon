@@ -34,6 +34,12 @@ import java.util.stream.Collectors;
 
 
 public class Helper {
+    public static double clamp(final double min, final double max, final double value) {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
+
     public static TermOfSupport getTermOfSupport(final VersionNumber versionNumber) {
         if (!versionNumber.getFeature().isPresent() || versionNumber.getFeature().isEmpty()) {
             throw new IllegalArgumentException("VersionNumber need to have a feature version");

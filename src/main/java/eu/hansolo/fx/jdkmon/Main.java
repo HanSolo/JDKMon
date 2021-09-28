@@ -20,6 +20,8 @@ import com.dustinredmond.fxtrayicon.FXTrayIcon;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
+import eu.hansolo.fx.jdkmon.controls.MacProgress;
+import eu.hansolo.fx.jdkmon.controls.WinProgress;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonType;
@@ -124,6 +126,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -157,7 +160,7 @@ import java.util.stream.Collectors;
  * Time: 15:35
  */
 public class Main extends Application {
-    public static final  VersionNumber                                           VERSION                = new VersionNumber(17, 0, 4);
+    public static final  VersionNumber                                           VERSION                = PropertyManager.INSTANCE.getVersionNumber();
     private static final PseudoClass                                             DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
     private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
@@ -180,6 +183,8 @@ public class Main extends Application {
     private              Finder                                                  finder;
     private              Label                                                   titleLabel;
     private              Label                                                   searchPathLabel;
+    private              MacProgress                                             macProgressIndicator;
+    private              WinProgress                                             winProgressIndicator;
     private              VBox                                                    titleBox;
     private              Separator                                               separator;
     private              VBox                                                    distroBox;
@@ -342,10 +347,26 @@ public class Main extends Application {
         titleLabel = new Label("Distributions found in");
         titleLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfProTextBold(12));
 
+        Region titleSpacer = new Region();
+        HBox.setHgrow(titleSpacer, Priority.ALWAYS);
+
+        HBox titleProgressBox;
+        if (isWindows) {
+            winProgressIndicator = new WinProgress();
+            winProgressIndicator.setDarkMode(darkMode.get());
+            winProgressIndicator.setVisible(false);
+            titleProgressBox = new HBox(titleLabel, titleSpacer, winProgressIndicator);
+        } else {
+            macProgressIndicator = new MacProgress();
+            macProgressIndicator.setDarkMode(darkMode.get());
+            macProgressIndicator.setVisible(false);
+            titleProgressBox = new HBox(titleLabel, titleSpacer, macProgressIndicator);
+        }
+
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
-        titleBox = new VBox(5, titleLabel, searchPathLabel);
+        titleBox = new VBox(5, titleProgressBox, searchPathLabel);
 
         List<HBox> distroEntries = new ArrayList<>();
 
@@ -918,9 +939,16 @@ public class Main extends Application {
     private void rescan() {
         Platform.runLater(() -> {
             if (checkingForUpdates.get()) { return; }
+            if (isWindows) {
+                winProgressIndicator.setVisible(true);
+                winProgressIndicator.setIndeterminate(true);
+            } else {
+                macProgressIndicator.setVisible(true);
+                macProgressIndicator.setIndeterminate(true);
+            }
             Set<Distribution> distrosFound = finder.getDistributions(searchPaths);
             distros.setAll(distrosFound);
-            checkForUpdates();
+            SwingUtilities.invokeLater(() -> checkForUpdates());
         });
     }
 
@@ -943,23 +971,31 @@ public class Main extends Application {
             distroBox.getChildren().setAll(distroEntries);
             double delta = (distroEntries.size() - numberOfDistros) * 28;
             stage.setHeight(stage.getHeight() + delta);
+            if (isWindows) {
+                winProgressIndicator.setVisible(false);
+                winProgressIndicator.setIndeterminate(false);
+            } else {
+                macProgressIndicator.setVisible(false);
+                macProgressIndicator.setIndeterminate(false);
+            }
+            if (updatesAvailable.get()) {
+                Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
+                notifier.notify(notification);
+            }
         });
-
-        if (updatesAvailable.get()) {
-            Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
-            notifier.notify(notification);
-        }
 
         checkingForUpdates.set(false);
     }
 
     private HBox getDistroEntry(final Distribution distribution, final List<Pkg> pkgs) {
-        Label distroLabel = new Label(new StringBuilder(distribution.getName()).append(distribution.getFxBundled() ? " (FX)" : "").append("  ").append(distribution.getVersion()).append(distribution.isInUse() ? "*" : "").toString());
+        final boolean isDistributionInUse = distribution.isInUse();
+
+        Label distroLabel = new Label(new StringBuilder(distribution.getName()).append(distribution.getFxBundled() ? " (FX)" : "").append("  ").append(distribution.getVersion()).append(isDistributionInUse ? "*" : "").toString());
         distroLabel.setMinWidth(180);
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
-        distroLabel.setTooltip(new Tooltip(distribution.getLocation()));
+        distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
         distroLabel.setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown())
                 openDistribution(distribution);

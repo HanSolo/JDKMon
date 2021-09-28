@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -111,16 +109,12 @@ public class Finder {
         Map<Distribution, List<Pkg>>  distrosToUpdate = new ConcurrentHashMap<>();
         //List<CompletableFuture<Void>> updateFutures   = Collections.synchronizedList(new ArrayList<>());
         //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
+        //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         distributions.forEach(distribution -> distrosToUpdate.put(distribution, discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null)));
 
-        /*
-        distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
-        CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
-        */
-
         // Check if there are newer versions from other distributions
-        List<CompletableFuture<Void>> pkgFutures = Collections.synchronizedList(new ArrayList<>());
+
         distrosToUpdate.entrySet()
                        .stream()
                        .filter(entry -> !entry.getKey().getApiString().startsWith("graal"))
@@ -129,12 +123,9 @@ public class Finder {
                        .forEach(entry -> {
             if (entry.getValue().isEmpty()) {
                 Distribution distro = entry.getKey();
-                //entry.setValue(discoclient.updateAvailableForAsync(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()).join());
-
                 entry.setValue(discoclient.updateAvailableFor(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
             }
         });
-        CompletableFuture.allOf(pkgFutures.toArray(new CompletableFuture[pkgFutures.size()])).join();
 
         LinkedHashMap<Distribution, List < Pkg >> sorted = new LinkedHashMap<>();
         distrosToUpdate.entrySet()

@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 buildscript {
     repositories {
         mavenCentral()
@@ -15,12 +17,12 @@ buildscript {
 plugins {
     id 'java-library'
     id 'application'
-    id 'com.google.osdetector' version '1.7.0'
+    id 'com.google.osdetector'           version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.8'
-    id 'org.beryx.jlink' version '2.24.2'
+    id 'org.beryx.jlink'                 version '2.24.2'
+    id 'net.nemerosa.versioning'         version '2.14.0'
+    id 'biz.aQute.bnd.builder'           version '5.3.0'
 }
-
-ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
 
 normalization {
     runtimeClasspath {
@@ -33,6 +35,19 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+}
+
+Date buildTimeAndDate = new Date()
+ext {
+    buildDate       = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
+    buildTime       = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
+    platform        = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
+    ciOssrhUsername = System.getenv('OSSRH_USERNAME')
+    ciOssrhPassword = System.getenv('OSSRH_PASSWORD')
+    ciGHUser        = System.getenv('GH_USER')
+    ciGHToken       = System.getenv('GH_TOKEN')
+    gpgkey          = System.getenv("GPG_PRIVATE_KEY")
+    gpgpassphrase   = System.getenv("PASSPHRASE")
 }
 
 dependencies {
@@ -48,7 +63,8 @@ dependencies {
 
 //mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
 ext.moduleName = 'eu.hansolo.fx.jdkmon'
-mainClassName = 'eu.hansolo.fx.jdkmon.Launcher'
+mainClassName  = 'eu.hansolo.fx.jdkmon.Launcher'
+description    = 'JDKMon is a little tool written in JavaFX that will help you to keep track of updates for your installed distributions of OpenJDK'
 
 jar {
     from {
@@ -61,9 +77,21 @@ jar {
     }
     manifest {
         attributes(
-                'Implementation-Title': 'JDKMon',
-                'Class-Path': 'JDKMon-17.0.4.jar',
-                'Main-Class': 'eu.hansolo.fx.jdkmon.Launcher'
+                'Built-By'              : System.properties['user.name'],
+                'Created-By'            : System.properties['java.version'] + " (" + System.properties['java.vendor'] + " " + System.properties['java.vm.version'] + ")",
+                'Build-Date'            : project.buildDate,
+                'Build-Time'            : project.buildTime,
+                'Build-Revision'        : versioning.info.commit,
+                'Specification-Title'   : project.name,
+                'Specification-Version' : project.version,
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version,
+                'Bundle-Name'           : project.name,
+                'Bundle-License'        : 'https://www.apache.org/licenses/LICENSE-2.0;description=Apache License Version 2.0;link=https://spdx.org/licenses/Apache-2.0.html',
+                'Bundle-Description'    : description,
+                'Bundle-SymbolicName'   : 'eu.hansolo.fx.jdkmon',
+                'Class-Path'            : '${project.name}-${project.version}.jar',
+                'Main-Class'            : 'eu.hansolo.fx.jdkmon.Launcher'
         )
     }
 }
@@ -89,6 +117,21 @@ tasks.withType(JavaExec) {
 task Main(type: JavaExec) {
     main = "eu.hansolo.fx.jdkmon.Launcher"
     classpath = sourceSets.main.runtimeClasspath
+}
+
+// create properties file including the version
+task createProperties(dependsOn: processResources) {
+    doLast {
+        new File("$buildDir//classes/java/main/eu/hansolo/fx/jdkmon/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createProperties
 }
 
 // Fix problems with loading resources
