@@ -38,43 +38,43 @@ public class NotifierBuilder<B extends NotifierBuilder<B>> {
         return new NotifierBuilder();
     }
     
-    public final B owner(final Stage OWNER) {
-        properties.put("stage", new SimpleObjectProperty<>(OWNER));
+    public final B owner(final Stage owner) {
+        properties.put("stage", new SimpleObjectProperty<>(owner));
         return (B)this;
     }
 
-    public final B popupLocation(Pos LOCATION) {
-        properties.put("popupLocation", new SimpleObjectProperty<>(LOCATION));
+    public final B popupLocation(final Pos location) {
+        properties.put("popupLocation", new SimpleObjectProperty<>(location));
         return (B)this;
     }
 
-    public final B width(final double WIDTH) {
-        properties.put("width", new SimpleDoubleProperty(WIDTH));
+    public final B width(final double width) {
+        properties.put("width", new SimpleDoubleProperty(width));
         return (B) this;
     }
 
-    public final B height(final double HEIGHT) {
-        properties.put("height", new SimpleDoubleProperty(HEIGHT));
+    public final B height(final double height) {
+        properties.put("height", new SimpleDoubleProperty(height));
         return (B) this;
     }
 
-    public final B spacingY(final double SPACING_Y) {
-        properties.put("spacingY", new SimpleDoubleProperty(SPACING_Y));
+    public final B spacingY(final double spacingY) {
+        properties.put("spacingY", new SimpleDoubleProperty(spacingY));
         return (B) this;
     }
 
-    public final B popupLifeTime(final Duration POPUP_LIFETIME) {
-        properties.put("popupLifeTime", new SimpleObjectProperty<>(POPUP_LIFETIME));
+    public final B popupLifeTime(final Duration popupLifetime) {
+        properties.put("popupLifeTime", new SimpleObjectProperty<>(popupLifetime));
         return (B) this;
     }
 
-    public final B popupAnimationTime(final Duration POPUP_ANIMATION_TIME) {
-        properties.put("popupAnimationTime", new SimpleObjectProperty<>(POPUP_ANIMATION_TIME));
+    public final B popupAnimationTime(final Duration popupAnimationTime) {
+        properties.put("popupAnimationTime", new SimpleObjectProperty<>(popupAnimationTime));
         return (B) this;
     }
 
-    public final B styleSheet(final String STYLE_SHEET) {
-        properties.put("styleSheet", new SimpleStringProperty(STYLE_SHEET));
+    public final B styleSheet(final String styleSheet) {
+        properties.put("styleSheet", new SimpleStringProperty(styleSheet));
         return (B) this;
     }
 
