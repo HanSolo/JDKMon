@@ -164,18 +164,18 @@
 .notification-win .msg-area > .scroll-pane > .scroll-bar .increment-arrow,
 .notification-win .msg-area > .scroll-pane > .scroll-bar .decrement-arrow {
     -fx-shape            : "";
-    -fx-background-insets: 2;
+    -fx-background-insets: 0;
     -fx-padding          : 0;
 }
 .notification-win .msg-area > .scroll-pane > .scroll-bar:horizontal .thumb,
 .notification-win .msg-area > .scroll-pane > .scroll-bar:vertical .thumb {
     -fx-background-color : rgba(0, 0, 0, 0.1);
-    -fx-background-radius: 2em;
+    -fx-background-radius: 0;
 }
 .notification-win .msg-area > .scroll-pane > .scroll-bar:horizontal .thumb:hover,
 .notification-win .msg-area > .scroll-pane > .scroll-bar:vertical .thumb:hover {
     -fx-background-color : rgba(0, 0, 0, 0.3);
-    -fx-background-radius: 2em;
+    -fx-background-radius: 0;
 }
 .notification-win .msg-area > .scroll-pane > .scroll-bar:horizontal {
     visibility           : hidden;
@@ -186,7 +186,7 @@
     -fx-background-color : -background-color;
     -fx-border-color     : -background-color;
     -fx-background-radius: 0;
-    -fx-border-radius    : 2em;
+    -fx-border-radius    : 0;
 }
 .notification-win .msg-area > .scroll-pane > .scroll-bar:horizontal > .increment-button,
 .notification-win .msg-area > .scroll-pane > .scroll-bar:horizontal > .decrement-button {
@@ -201,7 +201,7 @@
     -fx-background-color : -background-color;
     -fx-border-color     : -background-color;
     -fx-background-radius: 0;
-    -fx-border-radius    : 2em;
+    -fx-border-radius    : 0;
 }
 .notification-win .msg-area > .scroll-pane > .scroll-bar:vertical > .increment-button,
 .notification-win .msg-area > .scroll-pane > .scroll-bar:vertical > .decrement-button {
