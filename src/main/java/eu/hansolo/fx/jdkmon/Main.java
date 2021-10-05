@@ -704,6 +704,8 @@ public class Main extends Application {
         initOnFXApplicationThread();
 
         this.stage             = stage;
+        this.stage.setMinWidth(402);
+        this.stage.setMinHeight(272);
         this.trayIconSupported = FXTrayIcon.isSupported();
 
         if (trayIconSupported) {
@@ -1445,7 +1447,6 @@ public class Main extends Application {
             PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
             PropertyManager.INSTANCE.storeProperties();
             searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
-            //setupFileWatcher();
             rescan();
         }
     }
