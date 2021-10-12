@@ -26,6 +26,7 @@ public class Distribution {
     private final String  location;
     private       boolean inUse;
 
+
     public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location) {
         this.name            = name;
         this.apiString       = apiString;

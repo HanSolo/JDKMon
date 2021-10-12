@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: '.\build\installer\JDKMon-17.0.4.msi'
+          path: '.\build\installer\JDKMon-17.0.7.msi'
 
 
 
@@ -48,8 +48,8 @@ jobs:
         with:
           name: JDKMon Mac
           path: |
-            ./build/installer/JDKMon-17.0.4.pkg
-            ./build/libs/JDKMon-17.0.4.jar
+            ./build/installer/JDKMon-17.0.7.pkg
+            ./build/libs/JDKMon-17.0.7.jar
 
   build-linux:
 
@@ -74,6 +74,6 @@ jobs:
         with:
           name: JDKMon Linux
           path: |
-            ./build/installer/jdkmon_17.0.4-1_amd64.deb
-            ./build/installer/jdkmon_17.0.4-1_x86_64.rpm
-            ./build/libs/JDKMon-17.0.4.jar
+            ./build/installer/jdkmon_17.0.7-1_amd64.deb
+            ./build/installer/jdkmon_17.0.7-1_x86_64.rpm
+            ./build/libs/JDKMon-17.0.7.jar

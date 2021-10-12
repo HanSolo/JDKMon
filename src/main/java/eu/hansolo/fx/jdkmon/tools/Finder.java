@@ -211,6 +211,12 @@ public class Finder {
                 } else if (line2.contains("Semeru")) {
                     name      = "Semeru";
                     apiString = "semeru";
+                } else if (line2.contains("Tencent")) {
+                    name      = "Kona";
+                    apiString = "kona";
+                } else if (line2.contains("Bisheng")) {
+                    name      = "Bishenq";
+                    apiString = "bisheng";
                 }
 
                 if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
@@ -238,6 +244,8 @@ public class Finder {
                                 case "OpenLogic"         : name = "OpenLogic";      apiString = "openlogic";      break;
                                 case "JetBrains s.r.o."  : name = "JetBrains";      apiString = "jetbrains";      break;
                                 case "Eclipse Foundation": name = "Temurin";        apiString = "temurin";        break;
+                                case "Tencent"           : name = "Kona";           apiString = "kona";           break;
+                                case "Bisheng"           : name = "Bisheng";        apiString = "bisheng";        break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }

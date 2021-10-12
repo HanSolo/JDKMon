@@ -141,6 +141,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -218,7 +219,7 @@ public class Main extends Application {
     private              ComboBox<Architecture>                                  downloadJDKArchitectureComboBox;
     private              ComboBox<ArchiveType>                                   downloadJDKArchiveTypeComboBox;
     private              Label                                                   downloadJDKFilenameLabel;
-    private              List<MajorVersion>                                      downloadJDKMaintainedVersions;
+    private              Set<MajorVersion>                                       downloadJDKMaintainedVersions;
     private              List<Pkg>                                               downloadJDKSelectedPkgs;
     private              Pkg                                                     downloadJDKSelectedPkg;
     private              List<Pkg>                                               downloadJDKSelectedPkgsForMajorVersion;
@@ -453,7 +454,7 @@ public class Main extends Application {
         timeline = new Timeline();
 
 
-        downloadJDKMaintainedVersions          = new LinkedList<>();
+        downloadJDKMaintainedVersions          = new LinkedHashSet<>();
         downloadJDKSelectedPkgs                = new LinkedList<>();
         downloadJDKSelectedPkg                 = null;
         downloadJDKSelectedPkgsForMajorVersion = new LinkedList<>();
@@ -692,6 +693,7 @@ public class Main extends Application {
 
         discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
             downloadJDKMaintainedVersions.addAll(uv);
+            downloadJDKMaintainedVersions.forEach(mv -> System.out.println(mv + " : " + mv.isEarlyAccessOnly()));
             downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
             if (downloadJDKMaintainedVersions.size() > 0) {
                 downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
