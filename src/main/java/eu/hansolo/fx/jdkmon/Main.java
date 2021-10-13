@@ -693,7 +693,6 @@ public class Main extends Application {
 
         discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
             downloadJDKMaintainedVersions.addAll(uv);
-            downloadJDKMaintainedVersions.forEach(mv -> System.out.println(mv + " : " + mv.isEarlyAccessOnly()));
             downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
             if (downloadJDKMaintainedVersions.size() > 0) {
                 downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
