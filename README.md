@@ -2,7 +2,49 @@
 
 <br>
 JDKMon is a little tool written in JavaFX that tries to detect all JDK's installed
-on your machine and will inform you about new updates of each OpenJDK distribution found. Depending on the operating system it will try to find the JDK's
+on your machine and will inform you about new updates of each OpenJDK distribution found. 
+
+At the moment the following distributions will be identified:
+- AdoptOpenJDK
+- AdoptOpenJDK J9
+- Bi Sheng
+- Corretto
+- Dragonwell
+- Graalvm CE8
+- Graalvm CE11
+- Graalvm CE16
+- Graalvm CE17
+- JetBrains
+- Kona
+- Liberica
+- Liberica Native
+- Mandrel
+- Microsoft
+- OJDK Build
+- Open Logic
+- Oracle
+- Oracle OpenJDK
+- RedHat
+- SAP Machine
+- Semeru
+- Temurin
+- Trava
+- Zulu
+
+In case the distribution found was not identified it will be mentioned in the main window as
+"Unknown build of OpenJDK". If you stumble upon this case, please file an [issue](https://github.com/HanSolo/JDKMon/issues) and mention
+the distribution incl. version that you are using.
+
+You can always check if you have the latest version install by taking a look at the About window.
+This can be opened by selecting ```About``` from the menu. If there is a new version available
+you will find a link in the About window that will open the page with the latest release in your default
+browser.
+
+![About](https://i.ibb.co/S5gGPQT/JDKMon-About.png)
+
+You could also always get the latest version [here](https://github.com/HanSolo/JDKMon/releases).
+
+Depending on the operating system it will try to find the JDK's
 in the following folders:
 
 MacOS: `/System/Volumes/Data/Library/Java/JavaVirtualMachines/`
