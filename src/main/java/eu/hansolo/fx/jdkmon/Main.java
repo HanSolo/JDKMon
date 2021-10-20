@@ -141,9 +141,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -204,6 +206,7 @@ public class Main extends Application {
     private              Timeline                                                timeline;
     private              boolean                                                 isUpdateAvailable;
     private              VersionNumber                                           latestVersion;
+    private              Map<String, Popup>                                      popups;
     private              Stage                                                   downloadJDKStage;
     private              AnchorPane                                              downloadJDKHeaderPane;
     private              Label                                                   downloadJDKWindowTitle;
@@ -244,6 +247,7 @@ public class Main extends Application {
     @Override public void init() {
         isUpdateAvailable = false;
         latestVersion     = VERSION;
+        popups            = new HashMap<>();
 
         checkForLatestVersion();
 
@@ -1132,6 +1136,7 @@ public class Main extends Application {
         }
 
         popup.getContent().add(popupPane);
+        popups.put(distroLabel.getText(), popup);
         // ********************************************************************
 
         if (distribution.getApiString().equals(nameToCheck)) {
@@ -1144,6 +1149,7 @@ public class Main extends Application {
             infoIcon.getStyleClass().add("icon");
             infoIcon.setId("info");
             infoIcon.setOnMousePressed(e -> {
+                popups.values().forEach(p -> p.hide());
                 if (null != popup) {
                     popup.setX(e.getScreenX() + 10);
                     popup.setY(e.getScreenY() + 10);
