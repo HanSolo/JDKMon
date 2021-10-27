@@ -1160,6 +1160,8 @@ public class Main extends Application {
                     }
                 });
                 hBox.getChildren().add(infoIcon);
+            } else {
+                hBox.getChildren().remove(arrowLabel);
             }
         }
 
