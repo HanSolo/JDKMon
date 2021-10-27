@@ -1138,25 +1138,29 @@ public class Main extends Application {
         popup.getContent().add(popupPane);
         popups.put(distroLabel.getText(), popup);
         // ********************************************************************
+        final String distributionApiString = distribution.getApiString();
 
-        if (distribution.getApiString().equals(nameToCheck)) {
+        if (distributionApiString.equals(nameToCheck)) {
             Label versionLabel = new Label(firstPkg.getJavaVersion().toString(true));
             versionLabel.setMinWidth(56);
             hBox.getChildren().add(versionLabel);
         } else {
-            // There is a newer update for the currently installed version from another distribution
-            Region infoIcon = new Region();
-            infoIcon.getStyleClass().add("icon");
-            infoIcon.setId("info");
-            infoIcon.setOnMousePressed(e -> {
-                popups.values().forEach(p -> p.hide());
-                if (null != popup) {
-                    popup.setX(e.getScreenX() + 10);
-                    popup.setY(e.getScreenY() + 10);
-                    popup.show(stage);
-                }
-            });
-            hBox.getChildren().add(infoIcon);
+            // Only show newer update for installed version from another distribution if not AOJ_OpenJ9, Semeru, Semeru Certified and Zulu Prime
+            if (!distributionApiString.equals("zulu_prime") && !distributionApiString.equals("aoj_openj9") && !distributionApiString.equals("semeru") && !distributionApiString.equals("semeru_certified")) {
+                // There is a newer update for the installed version from another distribution
+                Region infoIcon = new Region();
+                infoIcon.getStyleClass().add("icon");
+                infoIcon.setId("info");
+                infoIcon.setOnMousePressed(e -> {
+                    popups.values().forEach(p -> p.hide());
+                    if (null != popup) {
+                        popup.setX(e.getScreenX() + 10);
+                        popup.setY(e.getScreenY() + 10);
+                        popup.show(stage);
+                    }
+                });
+                hBox.getChildren().add(infoIcon);
+            }
         }
 
         Region spacer = new Region();
