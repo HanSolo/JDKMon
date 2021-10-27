@@ -209,8 +209,13 @@ public class Finder {
                         version = VersionNumber.fromText(result.group(2));
                     }
                 } else if (line2.contains("Semeru")) {
-                    name      = "Semeru";
-                    apiString = "semeru";
+                    if (line2.contains("Certified")) {
+                        name      = "Semeru certified";
+                        apiString = "semeru_certified";
+                    } else {
+                        name      = "Semeru";
+                        apiString = "semeru";
+                    }
                 } else if (line2.contains("Tencent")) {
                     name      = "Kona";
                     apiString = "kona";
