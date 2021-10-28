@@ -18,6 +18,7 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
+import io.foojay.api.discoclient.pkg.FPU;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
@@ -173,6 +174,7 @@ public class Finder {
                 String       operatingSystem  = "";
                 String       architecture     = "";
                 Boolean      fxBundled        = Boolean.FALSE;
+                //FPU          fpu              = FPU.UNKNOWN;
 
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
                     inUse.set(true);
@@ -279,6 +281,15 @@ public class Finder {
                         if (releaseProperties.containsKey("MODULES") && !fxBundled) {
                             fxBundled = (releaseProperties.getProperty("MODULES").contains("javafx"));
                         }
+                        /*
+                        if (releaseProperties.containsKey("SUN_ARCH_ABI")) {
+                            String abi = releaseProperties.get("SUN_ARCH_ABI").toString();
+                            switch (abi) {
+                                case "gnueabi"   -> fpu = FPU.SOFT_FLOAT;
+                                case "gnueabihf" -> fpu = FPU.HARD_FLOAT;
+                            }
+                        }
+                        */
                     }
                 }
 

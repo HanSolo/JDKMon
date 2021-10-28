@@ -1796,8 +1796,7 @@ public class Main extends Application {
                        if (downloadJDKBundledWithFXCheckBox.isSelected()) {
                            List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
                                                                                  .stream()
-                                                                                 .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (
-                                                                              semVer.getReleaseStatus() == ReleaseStatus.GA))
+                                                                                 .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (semVer.getReleaseStatus() == ReleaseStatus.GA))
                                                                                  .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
                                                                                  .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
                                                                                  .distinct()
