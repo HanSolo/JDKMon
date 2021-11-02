@@ -259,6 +259,7 @@ public class Finder {
                                 case "Eclipse Foundation": name = "Temurin";        apiString = "temurin";        break;
                                 case "Tencent"           : name = "Kona";           apiString = "kona";           break;
                                 case "Bisheng"           : name = "Bisheng";        apiString = "bisheng";        break;
+                                case "Debian"            : name = "Debian";         apiString = "debian";         break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }
