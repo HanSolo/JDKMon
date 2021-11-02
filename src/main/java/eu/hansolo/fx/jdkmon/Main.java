@@ -375,7 +375,11 @@ public class Main extends Application {
 
         List<HBox> distroEntries = new ArrayList<>();
 
-        finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
+        try {
+            finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        }
         distroBox = new VBox(10);
         distroBox.getChildren().setAll(distroEntries);
 

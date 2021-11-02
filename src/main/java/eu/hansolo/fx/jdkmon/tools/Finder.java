@@ -112,10 +112,16 @@ public class Finder {
         //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
-        distributions.forEach(distribution -> distrosToUpdate.put(distribution, discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null)));
+        distributions.forEach(distribution -> {
+            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null);
+            if (null != availableUpdates) {
+                distrosToUpdate.put(distribution, availableUpdates);
+            }
+            distrosToUpdate.put(distribution, availableUpdates);
+            //distrosToUpdate.put(distribution, discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null));
+        });
 
         // Check if there are newer versions from other distributions
-
         distrosToUpdate.entrySet()
                        .stream()
                        .filter(entry -> !entry.getKey().getApiString().startsWith("graal"))
