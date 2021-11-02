@@ -66,11 +66,13 @@ public class Finder {
     private static final String[]                                      MAC_JAVA_HOME_CMDS        = { "/bin/bash", "-c", "echo $JAVA_HOME" };
     private static final String[]                                      LINUX_JAVA_HOME_CMDS      = { "/usr/bin/bash", "-c", "echo $JAVA_HOME" };
     private static final String[]                                      WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
+    private static final String[]                                      DETECT_ALPINE_CMDS        = { "cat", "/etc/os-release", "| grep \"NAME=\"", "| grep -ic \"Alpine\"" };
     private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
     private              Properties                                    releaseProperties         = new Properties();
     private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = DiscoClient.getOperatingSystem();
     private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
     private              String                                        javaHome                  = "";
+    private              String                                        isAlpine                  = "";
     private              DiscoClient                                   discoclient;
 
 
@@ -81,6 +83,8 @@ public class Finder {
         this.discoclient = discoclient;
         getJavaHome();
         if (this.javaHome.isEmpty()) { this.javaHome = System.getProperties().get("java.home").toString(); }
+        isAlpineLinux();
+        System.out.println("isAlpine: " + isAlpine);
     }
 
 
@@ -117,6 +121,7 @@ public class Finder {
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
+            //TODO: get the right package e.g. on linux check if on Alpine Linux which means musl otherwise glibc
             distrosToUpdate.put(distribution, availableUpdates);
             //distrosToUpdate.put(distribution, discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null));
         });
@@ -351,6 +356,19 @@ public class Finder {
 
                 distros.add(distributionFound);
             });
+            service.submit(streamer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void isAlpineLinux() {
+        if (OperatingSystem.WINDOWS == operatingSystem || OperatingSystem.MACOS == operatingSystem) { return; }
+        // cat /etc/os-release | grep "NAME=" | grep -ic "Alpine"
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(DETECT_ALPINE_CMDS);
+            Process        process        = processBuilder.start();
+            Streamer       streamer       = new Streamer(process.getInputStream(), d -> this.isAlpine = d);
             service.submit(streamer);
         } catch (IOException e) {
             e.printStackTrace();
