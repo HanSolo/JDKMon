@@ -1288,7 +1288,7 @@ public class Main extends Application {
             updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
 
             if (isDarkMode) {
-                updateLabel.setTextFill(isWindows ? Color.web("#292929") : Color.web("#dddddd"));
+                updateLabel.setTextFill(isWindows ? Color.web("#dddddd") : Color.web("#292929"));
             } else {
                 updateLabel.setTextFill(isWindows ? Color.web("#2a2a2a") : Color.web("#2a2a2a"));
             }
