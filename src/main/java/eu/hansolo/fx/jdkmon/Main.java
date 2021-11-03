@@ -779,7 +779,9 @@ public class Main extends Application {
             trayIcon.show();
         } else {
             MenuBar menuBar = new MenuBar();
-            menuBar.useSystemMenuBarProperty().set(true);
+            menuBar.setPrefWidth(100);
+            menuBar.setUseSystemMenuBar(true);
+            //menuBar.useSystemMenuBarProperty().set(true);
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
