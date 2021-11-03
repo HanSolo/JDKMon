@@ -878,8 +878,11 @@ public class Main extends Application {
         StackPane glassPane = new StackPane(mainPane);
         glassPane.setPadding(new Insets(10));
         glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), 10.0, 0.0, 0.0, 5));
-
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+            glassPane.setEffect(null);
+        } else {
+            glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), 10.0, 0.0, 0.0, 5));
+        }
         Scene scene = new Scene(glassPane);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
@@ -1251,6 +1254,9 @@ public class Main extends Application {
         Label versionLabel = new Label(VERSION.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
         versionLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
+        Label infrastructureLabel = new Label("(" + finder.getOperatingSystem().getUiString() + ", " + finder.getArchitecture().getUiString() + ")");
+        infrastructureLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+
         Node updateNode;
         if (isUpdateAvailable) {
             Hyperlink updateLink = new Hyperlink();
@@ -1289,7 +1295,7 @@ public class Main extends Application {
             updateNode = updateLabel;
         }
 
-        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater that helps you to keep track of your installed OpenJDK distributions.");
+        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater helps you keeping track of your installed OpenJDK distributions.");
         if (isWindows) {
             descriptionLabel.setFont(Fonts.segoeUi(11));
         } else if (io.foojay.api.discoclient.pkg.OperatingSystem.MACOS == operatingSystem) {
@@ -1301,22 +1307,26 @@ public class Main extends Application {
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);
 
-        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, updateNode, descriptionLabel);
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, infrastructureLabel, updateNode, descriptionLabel);
 
         HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
         aboutBox.setAlignment(Pos.CENTER);
         aboutBox.setPadding(new Insets(20, 20, 10, 20));
-        aboutBox.setMinSize(420, 180);
-        aboutBox.setMaxSize(420, 180);
-        aboutBox.setPrefSize(420, 180);
+        aboutBox.setMinSize(420, 200);
+        aboutBox.setMaxSize(420, 200);
+        aboutBox.setPrefSize(420, 200);
 
 
         StackPane glassPane = new StackPane(aboutBox);
         glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        glassPane.setMinSize(440, 200);
-        glassPane.setMaxSize(440, 200);
-        glassPane.setPrefSize(440, 200);
-        glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+        glassPane.setMinSize(440, 220);
+        glassPane.setMaxSize(440, 220);
+        glassPane.setPrefSize(440, 220);
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+            glassPane.setEffect(null);
+        } else {
+            glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+        }
 
         aboutDialog.getDialogPane().setContent(glassPane);
         aboutDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -1689,7 +1699,11 @@ public class Main extends Application {
         downloadJDKGlassPane.setMinSize(310, isWindows ? 480 : 390);
         downloadJDKGlassPane.setMaxSize(310, isWindows ? 480 : 390);
         downloadJDKGlassPane.setPrefSize(310, isWindows ? 480 : 390);
-        downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+            downloadJDKGlassPane.setEffect(null);
+        } else {
+            downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+        }
         downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
             downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
             downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());

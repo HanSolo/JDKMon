@@ -16,6 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import io.foojay.api.discoclient.pkg.OperatingSystem;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
@@ -26,10 +27,11 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class Detector {
-    public enum OperatingSystem { WINDOWS, MACOS, LINUX, SOLARIS, NONE }
+    public enum OperatingSystem { WINDOWS, MACOS, LINUX, ALPINE_LINUX, SOLARIS, NOT_FOUND }
     public enum MacOSSystemColor {
         BLUE(Color.rgb(0, 122, 255), Color.rgb(10, 132, 255)),
         BROWN(Color.rgb(162, 132, 94), Color.rgb(172, 142, 104)),
@@ -115,9 +117,11 @@ public class Detector {
         public static final List<MacOSAccentColor> getAsList() { return Arrays.asList(values()); }
     }
 
-    private static final String REGQUERY_UTIL  = "reg query ";
-    private static final String REGDWORD_TOKEN = "REG_DWORD";
-    private static final String DARK_THEME_CMD = REGQUERY_UTIL + "\"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\"" + " /v AppsUseLightTheme";
+    private static final String[] DETECT_ALPINE_CMDS = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+
+    private static final String   REGQUERY_UTIL      = "reg query ";
+    private static final String   REGDWORD_TOKEN     = "REG_DWORD";
+    private static final String   DARK_THEME_CMD     = REGQUERY_UTIL + "\"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\"" + " /v AppsUseLightTheme";
 
     public static final Map<Integer, Color[]> MACOS_ACCENT_COLOR_MAP = Map.of(-1, new Color[] { MacOSSystemColor.GRAY.colorAqua, MacOSSystemColor.GRAY.colorDark },
                                                                               0, new Color[] { MacOSSystemColor.RED.colorAqua, MacOSSystemColor.RED.colorDark },
@@ -235,11 +239,19 @@ public class Detector {
         } else if (os.indexOf("mac") >= 0) {
             return OperatingSystem.MACOS;
         } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
-            return OperatingSystem.LINUX;
+            try {
+                final ProcessBuilder processBuilder = new ProcessBuilder(DETECT_ALPINE_CMDS);
+                final Process        process        = processBuilder.start();
+                final String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+                return null == result ? OperatingSystem.LINUX : result.equals("1") ? OperatingSystem.ALPINE_LINUX : OperatingSystem.LINUX;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return OperatingSystem.LINUX;
+            }
         } else if (os.indexOf("sunos") >= 0) {
             return OperatingSystem.SOLARIS;
         } else {
-            return OperatingSystem.NONE;
+            return OperatingSystem.NOT_FOUND;
         }
     }
 

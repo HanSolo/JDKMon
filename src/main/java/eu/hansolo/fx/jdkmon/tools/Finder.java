@@ -18,7 +18,6 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
@@ -73,8 +72,8 @@ public class Finder {
     private static final Matcher                                       ARCHITECTURE_MATCHER      = ARCHITECTURE_PATTERN.matcher("");
     private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
     private              Properties                                    releaseProperties         = new Properties();
-    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = getOperatingSystem();
-    private              Architecture                                  architecture              = getArchitecture();
+    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = detectOperatingSystem();
+    private              Architecture                                  architecture              = detectArchitecture();
     private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
     private              String                                        javaHome                  = "";
     private              boolean                                       isAlpine                  = false;
@@ -157,8 +156,11 @@ public class Finder {
         return sorted;
     }
 
+    public OperatingSystem getOperatingSystem() { return operatingSystem; }
 
-    public static final OperatingSystem getOperatingSystem() {
+    public Architecture getArchitecture() { return architecture; }
+
+    public static final OperatingSystem detectOperatingSystem() {
         final String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0) {
             return OperatingSystem.WINDOWS;
@@ -181,8 +183,8 @@ public class Finder {
         }
     }
 
-    public static Architecture getArchitecture() {
-        final OperatingSystem operatingSystem = getOperatingSystem();
+    public static Architecture detectArchitecture() {
+        final OperatingSystem operatingSystem = detectOperatingSystem();
         try {
             final ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_DETECT_ARCH_CMDS) : new ProcessBuilder(UX_DETECT_ARCH_CMDS);
             final Process        process        = processBuilder.start();
