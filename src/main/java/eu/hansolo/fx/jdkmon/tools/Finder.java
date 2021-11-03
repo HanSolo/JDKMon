@@ -18,6 +18,7 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
+import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
@@ -124,13 +125,16 @@ public class Finder {
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
-            /*
+
             if (OperatingSystem.ALPINE_LINUX == operatingSystem) {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() == LibCType.MUSL).collect(Collectors.toList());
             } else if (OperatingSystem.LINUX == operatingSystem) {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() != LibCType.MUSL).collect(Collectors.toList());
             }
-            */
+            if (Architecture.NOT_FOUND != architecture) {
+                availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getArchitecture() == architecture).collect(Collectors.toList());
+            }
+
             distrosToUpdate.put(distribution, availableUpdates);
         });
 
