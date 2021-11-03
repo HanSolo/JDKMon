@@ -783,6 +783,7 @@ public class Main extends Application {
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
+            menu.setText("Menu");
             menu.setOnShowing(e -> hideMenu = false);
             menu.setOnHidden(e -> {
                 if (!hideMenu) {
@@ -1290,9 +1291,9 @@ public class Main extends Application {
             updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
 
             if (isDarkMode) {
-                updateLabel.setTextFill(isWindows ? Color.web("#dddddd") : Color.web("#292929"));
+                updateLabel.setTextFill(Color.web("#dddddd"));
             } else {
-                updateLabel.setTextFill(isWindows ? Color.web("#2a2a2a") : Color.web("#2a2a2a"));
+                updateLabel.setTextFill(Color.web("#2a2a2a"));
             }
 
             updateNode = updateLabel;
@@ -1344,10 +1345,10 @@ public class Main extends Application {
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
-                nameLabel.setTextFill(Color.web("#292929"));
-                versionLabel.setTextFill(Color.web("#292929"));
-                infrastructureLabel.setTextFill(Color.web("#292929"));
-                descriptionLabel.setTextFill(Color.web("#292929"));
+                nameLabel.setTextFill(Color.web("#dddddd"));
+                versionLabel.setTextFill(Color.web("#dddddd"));
+                infrastructureLabel.setTextFill(Color.web("#dddddd"));
+                descriptionLabel.setTextFill(Color.web("#dddddd"));
             }
         } else {
             if (isWindows) {
