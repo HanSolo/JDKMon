@@ -1,5 +1,17 @@
 # JDKMon <a href="https://foojay.io/today/works-with-openjdk"><img align="right" src="https://github.com/foojayio/badges/raw/main/works_with_openjdk/Works-with-OpenJDK.png" width="100"></a>
 
+
+[![GitHub stars](https://badgen.net/github/stars/HanSolo/JDKMon)](https://GitHub.com/HanSolo/JDKMon/stargazers/)
+
+[![Github all releases](https://img.shields.io/github/downloads/HanSolo/JDKMon/total.svg)](https://GitHub.com/HanSolo/JDKMon/releases/)
+
+[![Windows](https://svgshare.com/i/ZhY.svg)](https://svgshare.com/i/ZhY.svg)
+[![macOS](https://svgshare.com/i/ZjP.svg)](https://svgshare.com/i/ZjP.svg)
+[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
+
+[![GitHub license](https://badgen.net/github/license/HanSolo/JDKMon)](https://github.com/HanSolo/JDKMon/blob/master/LICENSE)
+
+
 <br>
 JDKMon is a little tool written in JavaFX that tries to detect all JDK's installed
 on your machine and will inform you about new updates of each OpenJDK distribution found. 
@@ -50,7 +62,8 @@ JDKMon can be build for:
 <b>Attention:</b>
 At the moment it looks like the MacOS aarch64 version of OpenJFX is a bit instable. So if
 you would like to run JDKMon on an Apple M1 machine you can use the MacOS x64 version which
-will then run using Apple's Rosetta2.
+will then run using Apple's Rosetta2. In this case the architecture that will be detected
+will be X64 because of Rosetta2.
 
 You can always check if you have the latest version install by taking a look at the About window.
 This can be opened by selecting ```About``` from the menu. If there is a new version available
