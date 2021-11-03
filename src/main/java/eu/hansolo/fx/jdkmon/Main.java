@@ -713,7 +713,7 @@ public class Main extends Application {
     @Override public void start(final Stage stage) {
         initOnFXApplicationThread();
 
-        this.stage             = stage;
+        this.stage = stage;
         this.stage.setMinWidth(402);
         this.stage.setMinHeight(272);
         this.trayIconSupported = FXTrayIcon.isSupported();
@@ -1336,16 +1336,16 @@ public class Main extends Application {
         if (isDarkMode) {
             if (isWindows) {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-                nameLabel.setTextFill(Color.web("#292929"));
-                versionLabel.setTextFill(Color.web("#292929"));
-                infrastructureLabel.setTextFill(Color.web("#292929"));
-                descriptionLabel.setTextFill(Color.web("#292929"));
-            } else {
-                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#dddddd"));
                 versionLabel.setTextFill(Color.web("#dddddd"));
                 infrastructureLabel.setTextFill(Color.web("#dddddd"));
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
+            } else {
+                aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
+                nameLabel.setTextFill(Color.web("#292929"));
+                versionLabel.setTextFill(Color.web("#292929"));
+                infrastructureLabel.setTextFill(Color.web("#292929"));
+                descriptionLabel.setTextFill(Color.web("#292929"));
             }
         } else {
             if (isWindows) {
