@@ -876,15 +876,17 @@ public class Main extends Application {
             mainPane.getChildren().add(menuBar);
         }
 
-        StackPane glassPane = new StackPane(mainPane);
-        glassPane.setPadding(new Insets(10));
-        glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+        Scene scene;
         if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
-            glassPane.setEffect(null);
+            scene = new Scene(mainPane);
         } else {
+            StackPane glassPane = new StackPane(mainPane);
+            glassPane.setPadding(new Insets(10));
+            glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
             glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), 10.0, 0.0, 0.0, 5));
+            scene = new Scene(glassPane);
         }
-        Scene scene = new Scene(glassPane);
+
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
@@ -1318,18 +1320,18 @@ public class Main extends Application {
         aboutBox.setPrefSize(420, 200);
 
 
-        StackPane glassPane = new StackPane(aboutBox);
-        glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        glassPane.setMinSize(440, 220);
-        glassPane.setMaxSize(440, 220);
-        glassPane.setPrefSize(440, 220);
         if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
-            glassPane.setEffect(null);
+            aboutDialog.getDialogPane().setContent(new StackPane(aboutBox));
         } else {
+            StackPane glassPane = new StackPane(aboutBox);
+            glassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+            glassPane.setMinSize(440, 220);
+            glassPane.setMaxSize(440, 220);
+            glassPane.setPrefSize(440, 220);
             glassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+            aboutDialog.getDialogPane().setContent(glassPane);
         }
 
-        aboutDialog.getDialogPane().setContent(glassPane);
         aboutDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Adjustments related to dark/light mode
@@ -1699,22 +1701,26 @@ public class Main extends Application {
 
         downloadJDKProgressBar.prefWidthProperty().bind(downloadJDKMainPane.widthProperty());
 
-        StackPane downloadJDKGlassPane = new StackPane(downloadJDKMainPane);
-        downloadJDKGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        downloadJDKGlassPane.setMinSize(310, isWindows ? 480 : 390);
-        downloadJDKGlassPane.setMaxSize(310, isWindows ? 480 : 390);
-        downloadJDKGlassPane.setPrefSize(310, isWindows ? 480 : 390);
         if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
-            downloadJDKGlassPane.setEffect(null);
+            downloadJDKMainPane.setOnMousePressed(press -> downloadJDKMainPane.setOnMouseDragged(drag -> {
+                downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
+                downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            downloadJDKDialog.getDialogPane().setContent(new StackPane(downloadJDKMainPane));
         } else {
+            StackPane downloadJDKGlassPane = new StackPane(downloadJDKMainPane);
+            downloadJDKGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+            downloadJDKGlassPane.setMinSize(310, isWindows ? 480 : 390);
+            downloadJDKGlassPane.setMaxSize(310, isWindows ? 480 : 390);
+            downloadJDKGlassPane.setPrefSize(310, isWindows ? 480 : 390);
             downloadJDKGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+            downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
+                downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
+                downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            downloadJDKDialog.getDialogPane().setContent(downloadJDKGlassPane);
         }
-        downloadJDKGlassPane.setOnMousePressed(press -> downloadJDKGlassPane.setOnMouseDragged(drag -> {
-            downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
-            downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
-        }));
 
-        downloadJDKDialog.getDialogPane().setContent(downloadJDKGlassPane);
         downloadJDKDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Adjustments related to dark/light mode
