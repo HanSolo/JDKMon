@@ -167,7 +167,8 @@ public class Main extends Application {
     private static final PseudoClass                                             DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
     private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
-    private              io.foojay.api.discoclient.pkg.OperatingSystem           operatingSystem        = DiscoClient.getOperatingSystem();
+    private              io.foojay.api.discoclient.pkg.OperatingSystem           operatingSystem        = Finder.detectOperatingSystem();
+    private              Architecture                                            architecture           = Finder.detectArchitecture();
     private              boolean                                                 isWindows              = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
     private              String                                                  cssFile;
     private              Notification.Notifier                                   notifier;
@@ -1254,8 +1255,8 @@ public class Main extends Application {
         Label versionLabel = new Label(VERSION.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
         versionLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
-        Label infrastructureLabel = new Label("(" + finder.getOperatingSystem().getUiString() + ", " + finder.getArchitecture().getUiString() + ")");
-        infrastructureLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
+        Label infrastructureLabel = new Label("(" + operatingSystem.getUiString() + ", " + architecture.getUiString() + ")");
+        infrastructureLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
 
         Node updateNode;
         if (isUpdateAvailable) {
@@ -1337,11 +1338,13 @@ public class Main extends Application {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#292929"));
                 versionLabel.setTextFill(Color.web("#292929"));
+                infrastructureLabel.setTextFill(Color.web("#292929"));
                 descriptionLabel.setTextFill(Color.web("#292929"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#dddddd"));
                 versionLabel.setTextFill(Color.web("#dddddd"));
+                infrastructureLabel.setTextFill(Color.web("#dddddd"));
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
             }
         } else {
@@ -1349,11 +1352,13 @@ public class Main extends Application {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#2a2a2a"));
                 versionLabel.setTextFill(Color.web("#2a2a2a"));
+                infrastructureLabel.setTextFill(Color.web("#2a2a2a"));
                 descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#2a2a2a"));
                 versionLabel.setTextFill(Color.web("#2a2a2a"));
+                infrastructureLabel.setTextFill(Color.web("#2a2a2a"));
                 descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             }
         }
