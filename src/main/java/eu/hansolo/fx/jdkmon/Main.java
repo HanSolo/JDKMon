@@ -719,7 +719,13 @@ public class Main extends Application {
         this.trayIconSupported = FXTrayIcon.isSupported();
 
         if (trayIconSupported) {
-            FXTrayIcon trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"));
+            FXTrayIcon trayIcon;
+            if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_blk.png"), 24, 24);
+            } else {
+                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"));
+            }
+
             trayIcon.setTrayIconTooltip("JDKMon " + VERSION);
             trayIcon.addExitItem(false);
             trayIcon.setApplicationTitle("JDKMon " + VERSION);
@@ -1977,7 +1983,7 @@ public class Main extends Application {
                                                  .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
                                                  .collect(Collectors.toList());
         downloadJDKArchitectures = selection.stream().map(pkg -> pkg.getArchitecture()).collect(Collectors.toSet());
-        
+
         Platform.runLater(() -> {
             downloadJDKArchitectureComboBox.getItems().clear();
             downloadJDKArchitectures.forEach(architecture -> downloadJDKArchitectureComboBox.getItems().add(architecture));
