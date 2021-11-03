@@ -18,7 +18,6 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.FPU;
 import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
@@ -64,13 +63,18 @@ public class Finder {
     private static final Matcher                                       GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
     private static final Pattern                                       ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
     private static final Matcher                                       ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
-    private static final String[]                                      MAC_JAVA_HOME_CMDS        = { "/bin/bash", "-c", "echo $JAVA_HOME" };
-    private static final String[]                                      LINUX_JAVA_HOME_CMDS      = { "/usr/bin/bash", "-c", "echo $JAVA_HOME" };
+    private static final String[]                                      MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]                                      LINUX_JAVA_HOME_CMDS      = { "/usr/bin/sh", "-c", "echo $JAVA_HOME" };
     private static final String[]                                      WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
-    private static final String[]                                      DETECT_ALPINE_CMDS        = { "/bin/bash", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+    private static final String[]                                      DETECT_ALPINE_CMDS        = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+    private static final String[]                                      UX_DETECT_ARCH_CMDS       = { "/bin/sh", "-c", "uname -m" };
+    private static final String[]                                      WIN_DETECT_ARCH_CMDS      = { "cmd.exe", "/c", "SET Processor" };
+    private static final Pattern                                       ARCHITECTURE_PATTERN      = Pattern.compile("(PROCESSOR_ARCHITECTURE)=([a-zA-Z0-9_\\-]+)");
+    private static final Matcher                                       ARCHITECTURE_MATCHER      = ARCHITECTURE_PATTERN.matcher("");
     private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
     private              Properties                                    releaseProperties         = new Properties();
-    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = DiscoClient.getOperatingSystem();
+    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = getOperatingSystem();
+    private              Architecture                                  architecture              = getArchitecture();
     private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
     private              String                                        javaHome                  = "";
     private              boolean                                       isAlpine                  = false;
@@ -117,15 +121,17 @@ public class Finder {
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         distributions.forEach(distribution -> {
-            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null);
+            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null);
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
+            /*
             if (OperatingSystem.ALPINE_LINUX == operatingSystem) {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() == LibCType.MUSL).collect(Collectors.toList());
             } else if (OperatingSystem.LINUX == operatingSystem) {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() != LibCType.MUSL).collect(Collectors.toList());
             }
+            */
             distrosToUpdate.put(distribution, availableUpdates);
         });
 
@@ -149,6 +155,59 @@ public class Finder {
                        .forEachOrdered(entry -> sorted.put(entry.getKey(), entry.getValue()));
 
         return sorted;
+    }
+
+
+    public static final OperatingSystem getOperatingSystem() {
+        final String os = System.getProperty("os.name").toLowerCase();
+        if (os.indexOf("win") >= 0) {
+            return OperatingSystem.WINDOWS;
+        } else if (os.indexOf("mac") >= 0) {
+            return OperatingSystem.MACOS;
+        } else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+            try {
+                final ProcessBuilder processBuilder = new ProcessBuilder(DETECT_ALPINE_CMDS);
+                final Process        process        = processBuilder.start();
+                final String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+                return null == result ? OperatingSystem.LINUX : result.equals("1") ? OperatingSystem.ALPINE_LINUX : OperatingSystem.LINUX;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return OperatingSystem.LINUX;
+            }
+        } else if (os.indexOf("sunos") >= 0) {
+            return OperatingSystem.SOLARIS;
+        } else {
+            return OperatingSystem.NOT_FOUND;
+        }
+    }
+
+    public static Architecture getArchitecture() {
+        final OperatingSystem operatingSystem = getOperatingSystem();
+        try {
+            final ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_DETECT_ARCH_CMDS) : new ProcessBuilder(UX_DETECT_ARCH_CMDS);
+            final Process        process        = processBuilder.start();
+            final String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+            switch(operatingSystem) {
+                case WINDOWS -> {
+                    ARCHITECTURE_MATCHER.reset(result);
+                    final List<MatchResult> results     = ARCHITECTURE_MATCHER.results().collect(Collectors.toList());
+                    final int               noOfResults = results.size();
+                    if (noOfResults > 0) {
+                        final MatchResult   res = results.get(0);
+                        return Architecture.fromText(res.group(2));
+                    } else {
+                        return Architecture.NOT_FOUND;
+                    }
+                }
+                case MACOS, LINUX -> {
+                    return Architecture.fromText(result);
+                }
+            }
+            return Architecture.NOT_FOUND;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Architecture.NOT_FOUND;
+        }
     }
 
     private List<Path> findByFileName(final Path path, final String fileName) {
@@ -353,6 +412,8 @@ public class Finder {
                         }
                     }
                 }
+
+                if (architecture.isEmpty()) { architecture = this.architecture.name().toLowerCase(); }
 
                 Distribution distributionFound = new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath);
                 if (inUse.get()) { distributionFound.setInUse(true); }
