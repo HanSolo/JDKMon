@@ -779,9 +779,7 @@ public class Main extends Application {
             trayIcon.show();
         } else {
             MenuBar menuBar = new MenuBar();
-            menuBar.setPrefWidth(100);
             menuBar.setUseSystemMenuBar(true);
-            //menuBar.useSystemMenuBarProperty().set(true);
             menuBar.setTranslateX(16);
 
             Menu menu = new Menu("JDK Mon");
@@ -1947,12 +1945,27 @@ public class Main extends Application {
                                                  .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
                                                  .collect(Collectors.toList());
         downloadJDKLibcTypes = selection.stream().map(pkg -> pkg.getLibCType()).collect(Collectors.toSet());
+
         Platform.runLater(() -> {
             downloadJDKLibcTypeComboBox.getItems().setAll(downloadJDKLibcTypes);
-            if (downloadJDKLibcTypes.size() > 0) {
-                downloadJDKLibcTypeComboBox.getSelectionModel().select(0);
+            int selectIndex = -1;
+
+            for (int i = 0; i < downloadJDKLibcTypeComboBox.getItems().size() ; i++) {
+                if (downloadJDKLibcTypeComboBox.getItems().get(i) == operatingSystem.getLibCType()) {
+                    selectIndex = i;
+                    break;
+                }
+            }
+            if (-1 == selectIndex) {
+                if (downloadJDKLibcTypes.size() > 0) {
+                    downloadJDKLibcTypeComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadJDKLibcTypeComboBox.getSelectionModel().select(selectIndex);
             }
         });
+
+
     }
 
     private void selectLibcType() {
@@ -1964,12 +1977,24 @@ public class Main extends Application {
                                                  .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
                                                  .collect(Collectors.toList());
         downloadJDKArchitectures = selection.stream().map(pkg -> pkg.getArchitecture()).collect(Collectors.toSet());
+        
         Platform.runLater(() -> {
             downloadJDKArchitectureComboBox.getItems().clear();
             downloadJDKArchitectures.forEach(architecture -> downloadJDKArchitectureComboBox.getItems().add(architecture));
             downloadJDKArchitectureComboBox.getItems().setAll(downloadJDKArchitectures);
-            if (downloadJDKArchitectures.size() > 0) {
-                downloadJDKArchitectureComboBox.getSelectionModel().select(0);
+            int selectIndex = -1;
+            for (int i = 0; i < downloadJDKArchitectureComboBox.getItems().size() ; i++) {
+                if (downloadJDKArchitectureComboBox.getItems().get(i) == architecture) {
+                    selectIndex = i;
+                    break;
+                }
+            }
+            if (-1 == selectIndex) {
+                if (downloadJDKArchitectures.size() > 0) {
+                    downloadJDKArchitectureComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadJDKArchitectureComboBox.getSelectionModel().select(selectIndex);
             }
         });
     }
