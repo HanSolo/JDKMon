@@ -877,7 +877,7 @@ public class Main extends Application {
         }
 
         Scene scene;
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             scene = new Scene(mainPane);
         } else {
             StackPane glassPane = new StackPane(mainPane);
@@ -1320,7 +1320,7 @@ public class Main extends Application {
         aboutBox.setPrefSize(420, 200);
 
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             aboutDialog.getDialogPane().setContent(new StackPane(aboutBox));
         } else {
             StackPane glassPane = new StackPane(aboutBox);
@@ -1701,7 +1701,7 @@ public class Main extends Application {
 
         downloadJDKProgressBar.prefWidthProperty().bind(downloadJDKMainPane.widthProperty());
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == finder.getArchitecture() ||Architecture.ARM64 == finder.getArchitecture())) {
+        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture ||Architecture.ARM64 == architecture)) {
             downloadJDKMainPane.setOnMousePressed(press -> downloadJDKMainPane.setOnMouseDragged(drag -> {
                 downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
                 downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
