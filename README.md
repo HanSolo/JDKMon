@@ -21,7 +21,7 @@ At the moment the following distributions will be identified:
 - AdoptOpenJDK J9
 - Bi Sheng
 - Corretto
-- Debian*
+- Debian (pkgs not downloadable)
 - Dragonwell
 - Graalvm CE8
 - Graalvm CE11
@@ -35,9 +35,9 @@ At the moment the following distributions will be identified:
 - Microsoft
 - OJDK Build
 - Open Logic
-- Oracle*
+- Oracle (not all pkgs downloadable)
 - Oracle OpenJDK
-- RedHat*
+- RedHat (pkgs not downloadable)
 - SAP Machine
 - Semeru
 - Semeru Certified
@@ -46,7 +46,6 @@ At the moment the following distributions will be identified:
 - Zulu
 - Zulu Prime
 
-* not directly downloadable
 
 In case the distribution found was not identified it will be mentioned in the main window as
 "Unknown build of OpenJDK". If you stumble upon this case, please file an [issue](https://github.com/HanSolo/JDKMon/issues) and mention
