@@ -26,8 +26,8 @@
 # APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
 JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.11.jar"
-APP_VERSION=17.0.11
+MAIN_JAR="JDKMon-17.0.12.jar"
+APP_VERSION=17.0.12
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
@@ -94,6 +94,8 @@ $JAVA_HOME/bin/jlink \
 # A loop iterates over the various packaging types supported by jpackage. In
 # the end we will find all packages inside the build/installer directory.
 
+# Somehow before signing there needs to be another step: xattr -cr build/installer/JDKMon.app
+
 for type in "app-image" "dmg" "pkg"
 do
   echo "Creating installer of type ... $type"
@@ -110,9 +112,9 @@ do
   --runtime-image build/java-runtime \
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon.icns \
   --app-version ${APP_VERSION} \
-  --mac-package-name JDKMon \
-  #--vendor "Alliance" \
-  #--copyright "Copyright © 2021 Alliance Inc." \
-  #--mac-package-identifier eu.hansolo.fx.jdkmon \
+  --vendor "Gerrit Grunwald" \
+  --copyright "Copyright © 2021 Gerrit Grunwald" \
+  --description "Your friendly JDK distribution updater" \
+  --mac-package-name "JDKMon"
 
 done

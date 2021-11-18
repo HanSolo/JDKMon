@@ -5,3 +5,5 @@
 /out
 /classes
 /JDKMon.iml
+/entitlement.plist
+/sign.sh

@@ -22,14 +22,14 @@
 
 /* Notifications for MacOS */
 .notification-mac {
-    -fx-background-color : rgb(119, 118, 118);
-    -fx-border-color     : rgb(139, 138, 138);
+    -fx-background-color : rgb(0, 0, 0, 0.75); /*rgb(119, 118, 118, 0.95);*/
+    -fx-border-color     : rgb(0, 0, 0, 0.85); /*rgb(139, 138, 138, 0.95);*/
     -fx-border-width     : 1px;
     -fx-background-radius: 10px;
     -fx-border-radius    : 10px;
     -fx-effect           : none;
     -foreground-color    : rgb(242, 241, 241);
-    -background-color    : rgb(119, 118, 118);
+    -background-color    : rgb(0, 0, 0, 0.75); /*rgb(119, 118, 118, 0.95);*/
     -icon-color          : white;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .notification-mac .msg-area {
-    -fx-background-color : -background-color;
+    -fx-background-color : transparent; /*-background-color;*/
     -fx-background-insets: 0;
     -fx-font-size        : 1.0em;
     -fx-text-fill        : -foreground-color;
@@ -50,18 +50,18 @@
 }
 .notification-mac .msg-area .content,
 .notification-mac .msg-area:focused .content {
-    -fx-background-color : -background-color;
+    -fx-background-color : transparent; /*-background-color;*/
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding          : 0px;
 }
 .notification-mac .msg-area > .scroll-pane {
-    -fx-background-color : -background-color;
+    -fx-background-color : transparent; /*-background-color;*/
     -fx-background-insets: 0;
     -fx-padding          : 0;
 }
 .notification-mac .msg-area > .scroll-pane > .viewport {
-    -fx-background-color : -background-color;
+    -fx-background-color : transparent; /*-background-color;*/
     -fx-background-insets: 0;
     -fx-padding          : 0;
 }

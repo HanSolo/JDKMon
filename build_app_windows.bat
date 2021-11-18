@@ -10,8 +10,8 @@ rem PROJECT_VERSION: version used in pom.xml, e.g. 1.0-SNAPSHOT
 rem APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
 set JAVA_VERSION=17
-set MAIN_JAR=JDKMon-17.0.11.jar
-set APP_VERSION=17.0.11
+set MAIN_JAR=JDKMon-17.0.12.jar
+set APP_VERSION=17.0.12
 
 rem ------ SETUP DIRECTORIES AND FILES ----------------------------------------
 rem Remove previously generated java runtime and installers. Copy all required
@@ -87,4 +87,7 @@ for %%s in ("msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
   --win-menu ^
   --win-menu-group "JDKMon" ^
   --app-version %APP_VERSION% ^
+  --vendor "Gerrit Grunwald" ^
+  --copyright "Copyright © 2021 Gerrit Grunwald" ^
+  --description "Your friendly JDK distribution updater" ^
 

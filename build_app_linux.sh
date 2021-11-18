@@ -26,8 +26,8 @@
 # APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
 JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.11.jar"
-APP_VERSION=17.0.11
+MAIN_JAR="JDKMon-17.0.12.jar"
+APP_VERSION=17.0.12
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
@@ -112,6 +112,8 @@ do
   --linux-shortcut \
   --linux-menu-group "JDKMon" \
   --app-version ${APP_VERSION}
-  #--vendor "Alliance" \
-  #--copyright "Copyright © 2021 Alliance Inc." \
+  --vendor "Gerrit Grunwald" \
+  --copyright "Copyright © 2021 Gerrit Grunwald" \
+  --description "Your friendly JDK distribution updater" \
+
 done

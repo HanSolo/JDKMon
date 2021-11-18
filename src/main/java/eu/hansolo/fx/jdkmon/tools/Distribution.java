@@ -24,10 +24,11 @@ public class Distribution {
     private final String  architecture;
     private final Boolean fxBundled;
     private final String  location;
+    private final String  feature;
     private       boolean inUse;
 
 
-    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location) {
+    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
@@ -35,6 +36,7 @@ public class Distribution {
         this.architecture    = architecture;
         this.fxBundled       = fxBundled;
         this.location        = location;
+        this.feature         = feature;
         this.inUse           = false;
     }
 
@@ -53,6 +55,8 @@ public class Distribution {
 
     public String getLocation() { return location; }
 
+    public String getFeature() { return feature; }
+
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }
 
@@ -65,6 +69,7 @@ public class Distribution {
                                   .append("\"architecture\":\"").append(getArchitecture()).append("\",")
                                   .append("\"fx\":\"").append(getFxBundled()).append("\",")
                                   .append("\"location\":\"").append(getLocation()).append("\",")
+                                  .append("\"feature\":\"").append(getFeature()).append("\",")
                                   .append("\"in_use\":").append(isInUse())
                                   .append("}")
                                   .toString();

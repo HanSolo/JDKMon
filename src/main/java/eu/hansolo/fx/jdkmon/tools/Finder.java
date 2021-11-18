@@ -121,7 +121,7 @@ public class Finder {
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         distributions.forEach(distribution -> {
-            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null);
+            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
@@ -252,6 +252,7 @@ public class Finder {
                 String       apiString        = "";
                 String       operatingSystem  = "";
                 String       architecture     = "";
+                String       feature          = "";
                 Boolean      fxBundled        = Boolean.FALSE;
                 //FPU          fpu              = FPU.UNKNOWN;
 
@@ -373,6 +374,24 @@ public class Finder {
                     }
                 }
 
+
+                if (lines.length > 2) {
+                    String line3 = lines[2].toLowerCase();
+                    if (!PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
+                        PropertyManager.INSTANCE.setString(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla");
+                    }
+
+                    String[] features = PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).split(",");
+                    for (String feat : features) {
+                            feat = feat.trim().toLowerCase();
+                            if (line3.contains(feat)) {
+                                feature = feat;
+                                break;
+                            }
+                        }
+
+                }
+
                 if (name.equals("Unknown build of OpenJDK") && lines.length > 2) {
                     String line3      = lines[2].toLowerCase();
                     File   readmeFile = new File(parentPath + "readme.txt");
@@ -421,7 +440,7 @@ public class Finder {
 
                 if (architecture.isEmpty()) { architecture = this.architecture.name().toLowerCase(); }
 
-                Distribution distributionFound = new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath);
+                Distribution distributionFound = new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath, feature);
                 if (inUse.get()) { distributionFound.setInUse(true); }
 
                 distros.add(distributionFound);

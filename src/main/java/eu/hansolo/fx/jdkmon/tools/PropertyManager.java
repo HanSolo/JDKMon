@@ -40,30 +40,31 @@ public enum PropertyManager {
     public  static final String     REMEMBER_DOWNLOAD_FOLDER = "remember_download_folder";
     public  static final String     DOWNLOAD_FOLDER          = "download_folder";
     public  static final String     DARK_MODE                = "dark_mode";
+    public  static final String     FEATURES                 = "features";
     public  static final String     VERSION                  = "version";
-    private              Properties jdkMonProperties;
+    private              Properties properties;
     private              Properties versionProperties;
 
 
     // ******************** Constructors **************************************
     PropertyManager() {
-        jdkMonProperties = new Properties();
+        properties = new Properties();
         // Load properties
         final String jdkMonPropertiesFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
 
         // Create properties file if not exists
         Path path = Paths.get(jdkMonPropertiesFilePath);
-        if (!Files.exists(path)) { createProperties(jdkMonProperties); }
+        if (!Files.exists(path)) { createProperties(properties); }
 
         // Load properties file
         try (FileInputStream jdkMonPropertiesFile = new FileInputStream(jdkMonPropertiesFilePath)) {
-            jdkMonProperties.load(jdkMonPropertiesFile);
+            properties.load(jdkMonPropertiesFile);
         } catch (IOException ex) {
             System.out.println("Error reading jdkmon properties file. " + ex);
         }
 
         // If properties empty, fill with default values
-        if (jdkMonProperties.isEmpty()) { createProperties(jdkMonProperties); }
+        if (properties.isEmpty()) { createProperties(properties); }
 
         // Version number properties
         versionProperties = new Properties();
@@ -77,37 +78,49 @@ public enum PropertyManager {
 
 
     // ******************** Methods *******************************************
-    public Properties getJdkMonProperties() { return jdkMonProperties; }
+    public Properties getProperties() { return properties; }
 
-    public Object get(final String KEY) { return jdkMonProperties.getOrDefault(KEY, ""); }
+    public Object get(final String KEY) { return properties.getOrDefault(KEY, ""); }
     public void set(final String KEY, final String VALUE) {
-        jdkMonProperties.setProperty(KEY, VALUE);
+        properties.setProperty(KEY, VALUE);
         try {
-            jdkMonProperties.store(new FileOutputStream(String.join(File.separator, System.getProperty("user.dir"), JDKMON_PROPERTIES)), null);
+            properties.store(new FileOutputStream(String.join(File.separator, System.getProperty("user.dir"), JDKMON_PROPERTIES)), null);
         } catch (IOException exception) {
             System.out.println("Error writing properties file: " + exception);
         }
     }
 
-    public String getString(final String key) { return jdkMonProperties.getOrDefault(key, "").toString(); }
+    public String getString(final String key) { return properties.getOrDefault(key, "").toString(); }
+    public void setString(final String key, final String value) { properties.setProperty(key, value); }
 
-    public double getDouble(final String key) { return Double.parseDouble(jdkMonProperties.getOrDefault(key, "0").toString()); }
+    public double getDouble(final String key) { return getDouble(key, 0); }
+    public double getDouble(final String key, final double defaultValue) { return Double.parseDouble(properties.getOrDefault(key, Double.toString(defaultValue)).toString()); }
+    public void setDouble(final String key, final double value) { properties.setProperty(key, Double.toString(value)); }
 
-    public float getFloat(final String key) { return Float.parseFloat(jdkMonProperties.getOrDefault(key, "0").toString()); }
+    public float getFloat(final String key) { return getFloat(key, 0); }
+    public float getFloat(final String key, final float defaultValue) { return Float.parseFloat(properties.getOrDefault(key, Float.toString(defaultValue)).toString()); }
+    public void setFloat(final String key, final float value) { properties.setProperty(key, Float.toString(value)); }
 
-    public int getInt(final String key) { return Integer.parseInt(jdkMonProperties.getOrDefault(key, "0").toString()); }
+    public int getInt(final String key) { return getInt(key, 0); }
+    public int getInt(final String key, final int defaultValue) { return Integer.parseInt(properties.getOrDefault(key, Integer.toString(defaultValue)).toString()); }
+    public void setInt(final String key, final int value) { properties.setProperty(key, Integer.toString(value)); }
 
-    public long getLong(final String key) { return Long.parseLong(jdkMonProperties.getOrDefault(key, "0").toString()); }
+    public long getLong(final String key) { return getLong(key, 0); }
+    public long getLong(final String key, final long defaultValue) { return Long.parseLong(properties.getOrDefault(key, Long.toString(defaultValue)).toString()); }
+    public void setLong(final String key, final long value) { properties.setProperty(key, Long.toString(value)); }
 
-    public boolean getBoolean(final String key) { return Boolean.parseBoolean(jdkMonProperties.getOrDefault(key, Boolean.FALSE).toString()); }
+    public boolean getBoolean(final String key) { return getBoolean(key, false); }
+    public boolean getBoolean(final String key, final boolean defaultValue) { return Boolean.parseBoolean(properties.getOrDefault(key, Boolean.toString(defaultValue)).toString()); }
+    public void setBoolean(final String key, final boolean value) { properties.setProperty(key, Boolean.toString(value)); }
 
-    public boolean hasKey(final String key) { return jdkMonProperties.containsKey(key); }
+    public boolean hasKey(final String key) { return properties.containsKey(key); }
+
 
     public void storeProperties() {
-        if (null == jdkMonProperties) { return; }
+        if (null == properties) { return; }
         final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
-            jdkMonProperties.store(output, null);
+            properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -123,8 +136,8 @@ public enum PropertyManager {
                 case LINUX  : searchPath = Finder.LINUX_JAVA_INSTALL_PATH;   break;
                 default     : searchPath = "";
             }
-            jdkMonProperties.put(SEARCH_PATH, searchPath);
-            jdkMonProperties.store(output, null);
+            properties.put(SEARCH_PATH, searchPath);
+            properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -150,6 +163,7 @@ public enum PropertyManager {
             properties.put(REMEMBER_DOWNLOAD_FOLDER, "FALSE");
             properties.put(DOWNLOAD_FOLDER, "");
             properties.put(DARK_MODE, "FALSE");
+            properties.put(FEATURES, "loom,panama,metropolis,valhalla"); // comma separated list of available features
             properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();

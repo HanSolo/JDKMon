@@ -1014,7 +1014,7 @@ public class Main extends Application {
     private HBox getDistroEntry(final Distribution distribution, final List<Pkg> pkgs) {
         final boolean isDistributionInUse = distribution.isInUse();
 
-        Label distroLabel = new Label(new StringBuilder(distribution.getName()).append(distribution.getFxBundled() ? " (FX)" : "").append("  ").append(distribution.getVersion()).append(isDistributionInUse ? "*" : "").toString());
+        Label distroLabel = new Label(new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")").append(distribution.getFxBundled() ? " (FX)" : "").append("  ").append(distribution.getVersion()).append(isDistributionInUse ? "*" : "").toString());
         distroLabel.setMinWidth(180);
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);
