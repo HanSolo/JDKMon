@@ -123,8 +123,8 @@ done
 arch_name="$(uname -m)"
 
 if [ "${arch_name}" = "aarch64" ]; then
-    sha256sum "build/installer/JDKMon-$APP_VERSION-1_arm64.deb" > "build/installer/JDKMon-$APP_VERSION-1_arm64.deb.sha256"
+    sha256sum "build/installer/jdkmon_$APP_VERSION-1_arm64.deb" > "build/installer/jdkmon_$APP_VERSION-1_arm64.deb.sha256"
 else
-    sha256sum "build/installer/JDKMon-${APP_VERSION}-1_amd64.deb" > "build/installer/JDKMon-${APP_VERSION}-1_amd64.deb.sha256"
-    sha256sum "build/installer/JDKMon-${APP_VERSION}-1.x86_64.rpm" > "build/installer/JDKMon-${APP_VERSION}-1.x86_64.rpm.sha256"
+    sha256sum "build/installer/jdkmon_${APP_VERSION}-1_amd64.deb" > "build/installer/jdkmon_${APP_VERSION}-1_amd64.deb.sha256"
+    sha256sum "build/installer/jdkmon-${APP_VERSION}-1.x86_64.rpm" > "build/installer/jdkmon-${APP_VERSION}-1.x86_64.rpm.sha256"
 fi
