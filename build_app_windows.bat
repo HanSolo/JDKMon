@@ -91,3 +91,6 @@ for %%s in ("msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
   --copyright "Copyright © 2021 Gerrit Grunwald" ^
   --description "Your friendly JDK distribution updater" ^
 
+
+rem ------ CHECKSUM FILE ------------------------------------------------------
+certutil -hashfile "build\installer\%APP_VERSION%.msi" SHA256 "build\installer\%APP_VERSION%.msi.sha256"
