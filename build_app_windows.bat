@@ -93,4 +93,4 @@ for %%s in ("msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
 
 
 rem ------ CHECKSUM FILE ------------------------------------------------------
-certutil -hashfile "build\installer\%APP_VERSION%.msi" SHA256 "build\installer\%APP_VERSION%.msi.sha256"
+certutil -hashfile "build\installer\JDKMon-%APP_VERSION%.msi" SHA256 > "build\installer\JDKMon-%APP_VERSION%.msi.sha256"
