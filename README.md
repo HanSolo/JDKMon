@@ -21,7 +21,7 @@ At the moment the following distributions will be identified:
 - AdoptOpenJDK J9
 - Bi Sheng
 - Corretto
-- Debian*
+- Debian (pkgs not downloadable)
 - Dragonwell
 - Graalvm CE8
 - Graalvm CE11
@@ -35,9 +35,9 @@ At the moment the following distributions will be identified:
 - Microsoft
 - OJDK Build
 - Open Logic
-- Oracle*
+- Oracle (not all pkgs downloadable)
 - Oracle OpenJDK
-- RedHat*
+- RedHat (pkgs not downloadable)
 - SAP Machine
 - Semeru
 - Semeru Certified
@@ -46,7 +46,6 @@ At the moment the following distributions will be identified:
 - Zulu
 - Zulu Prime
 
-* not directly downloadable
 
 In case the distribution found was not identified it will be mentioned in the main window as
 "Unknown build of OpenJDK". If you stumble upon this case, please file an [issue](https://github.com/HanSolo/JDKMon/issues) and mention
@@ -55,15 +54,9 @@ the distribution incl. version that you are using.
 JDKMon can be build for: 
 - Windows x64
 - MacOS x64
-- MacOS aarch64 (instable)
+- MacOS aarch64
 - Linux x64
 - Linux aarch64 (e.g. Raspberry Pi 4 running Raspberry Pi OS 64bit)
-
-<b>Attention:</b>
-At the moment it looks like the MacOS aarch64 version of OpenJFX is a bit instable. So if
-you would like to run JDKMon on an Apple M1 machine you can use the MacOS x64 version which
-will then run using Apple's Rosetta2. In this case the architecture that will be detected
-will be X64 because of Rosetta2.
 
 You can always check if you have the latest version install by taking a look at the About window.
 This can be opened by selecting ```About``` from the menu. If there is a new version available
