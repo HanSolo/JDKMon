@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# ------ ENVIRONMENT --------------------------------------------------------
+# ------ ENVIRONMENT ----------------------------------------------------------
 # The script depends on various environment variables to exist in order to
 # run properly. The java version we want to use, the location of the java
 # binaries (java home), and the project version as defined inside the pom.xml
@@ -34,7 +34,7 @@ echo "project version: $PROJECT_VERSION"
 echo "app version: $APP_VERSION"
 echo "main JAR file: $MAIN_JAR"
 
-# ------ SETUP DIRECTORIES AND FILES ----------------------------------------
+# ------ SETUP DIRECTORIES AND FILES ------------------------------------------
 # Remove previously generated java runtime and installers. Copy all required
 # jar files into the input/libs folder.
 
@@ -46,7 +46,7 @@ mkdir -p build/installer/input/libs/
 cp build/libs/* build/installer/input/libs/
 cp build/libs/${MAIN_JAR} build/installer/input/libs/
 
-# ------ REQUIRED MODULES ---------------------------------------------------
+# ------ REQUIRED MODULES -----------------------------------------------------
 # Use jlink to detect all modules that are required to run the application.
 # Starting point for the jdep analysis is the set of jars being used by the
 # application.
@@ -61,7 +61,7 @@ detected_modules=`$JAVA_HOME/bin/jdeps \
 echo "detected modules: ${detected_modules}"
 
 
-# ------ MANUAL MODULES -----------------------------------------------------
+# ------ MANUAL MODULES -------------------------------------------------------
 # jdk.crypto.ec has to be added manually bound via --bind-services or
 # otherwise HTTPS does not work.
 #
@@ -74,7 +74,7 @@ echo "detected modules: ${detected_modules}"
 manual_modules=jdk.crypto.ec,jdk.localedata
 echo "manual modules: ${manual_modules}"
 
-# ------ RUNTIME IMAGE ------------------------------------------------------
+# ------ RUNTIME IMAGE --------------------------------------------------------
 # Use the jlink tool to create a runtime image for our application. We are
 # doing this is a separate step instead of letting jlink do the work as part
 # of the jpackage tool. This approach allows for finer configuration and also
@@ -90,7 +90,7 @@ $JAVA_HOME/bin/jlink \
   --include-locales=en,de \
   --output build/java-runtime
 
-# ------ PACKAGING ----------------------------------------------------------
+# ------ PACKAGING ------------------------------------------------------------
 # A loop iterates over the various packaging types supported by jpackage. In
 # the end we will find all packages inside the build/installer directory.
 
@@ -119,4 +119,12 @@ do
 
 done
 
-shasum -a 256 "build/installer/JDKMon-$APP_VERSION.pkg" > "build/installer/JDKMon-$APP_VERSION.pkg.sha256"
+# ------ CHECKSUM FILE --------------------------------------------------------
+arch_name="$(uname -m)"
+
+if [ "${arch_name}" = "arm64" ]; then
+    mv "build/installer/JDKMon-${APP_VERSION}.pkg" "build/installer/JDKMon-${APP_VERSION}-aarch64.pkg"
+    shasum -a 256 "build/installer/JDKMon-${APP_VERSION}-aarch64.pkg" > "build/installer/JDKMon-${APP_VERSION}-aarch64.pkg.sha256"
+else
+    shasum -a 256 "build/installer/JDKMon-${APP_VERSION}.pkg" > "build/installer/JDKMon-${APP_VERSION}.pkg.sha256"  
+fi
