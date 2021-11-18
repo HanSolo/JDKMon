@@ -379,6 +379,7 @@ public class Finder {
                     String line3 = lines[2].toLowerCase();
                     if (!PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
                         PropertyManager.INSTANCE.setString(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla");
+                        PropertyManager.INSTANCE.storeProperties();
                     }
 
                     String[] features = PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).split(",");
