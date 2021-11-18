@@ -118,3 +118,5 @@ do
   --mac-package-name "JDKMon"
 
 done
+
+shasum -a 256 "build/installer/JDKMon-$APP_VERSION.pkg" > "build/installer/JDKMon-$APP_VERSION.pkg.sha256"
