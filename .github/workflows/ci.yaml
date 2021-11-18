@@ -49,6 +49,7 @@ jobs:
           name: JDKMon Mac
           path: |
             ./build/installer/JDKMon-17.0.13.pkg
+            ./build/installer/JDKMon-17.0.13.pkg.sha256
             ./build/libs/JDKMon-17.0.13.jar
 
   build-linux:
@@ -75,5 +76,7 @@ jobs:
           name: JDKMon Linux
           path: |
             ./build/installer/jdkmon_17.0.13-1_amd64.deb
+            ./build/installer/jdkmon_17.0.13-1_amd64.deb.sha256
             ./build/installer/jdkmon_17.0.13-1_x86_64.rpm
+            ./build/installer/jdkmon_17.0.13-1_x86_64.rmp.sha256
             ./build/libs/JDKMon-17.0.13.jar
