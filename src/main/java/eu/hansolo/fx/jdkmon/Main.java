@@ -341,11 +341,14 @@ public class Main extends Application {
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
-        // Add .sdkman/candidates folder to search paths if present
-        if (Detector.isSDKMANInstalled() && searchPaths.stream().filter(path -> path.equals(Detector.SDKMAN_FOLDER)).findFirst().isEmpty()) {
-            searchPaths.add(Detector.SDKMAN_FOLDER);
-            PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
-            PropertyManager.INSTANCE.storeProperties();
+
+        // If on Linux or Mac add .sdkman/candidates/java folder to search paths if present
+        if (operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.LINUX || operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.MACOS) {
+            if (Detector.isSDKMANInstalled() && searchPaths.stream().filter(path -> path.equals(Detector.SDKMAN_FOLDER)).findFirst().isEmpty()) {
+                searchPaths.add(Detector.SDKMAN_FOLDER);
+                PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.storeProperties();
+            }
         }
 
         directoryChooser = new DirectoryChooser();
@@ -1170,7 +1173,7 @@ public class Main extends Application {
             hBox.getChildren().add(versionLabel);
         } else {
             // Only show newer update for installed version from another distribution if not AOJ_OpenJ9, Semeru, Semeru Certified and Zulu Prime
-            if (!distributionApiString.equals("zulu_prime") && !distributionApiString.equals("aoj_openj9") && !distributionApiString.equals("semeru") && !distributionApiString.equals("semeru_certified") && (!firstPkg.getMajorVersion().isEarlyAccessOnly() && firstPkg.getReleaseStatus() != ReleaseStatus.EA)) {
+            if (!distributionApiString.equals("zulu_prime") && !distributionApiString.equals("aoj_openj9") && !distributionApiString.equals("semeru") && !distributionApiString.equals("semeru_certified")) {
                 // There is a newer update for the installed version from another distribution
                 Region infoIcon = new Region();
                 infoIcon.getStyleClass().add("icon");
@@ -1238,7 +1241,7 @@ public class Main extends Application {
                 }
         });
         final String releaseDetailsUrl = discoclient.getReleaseDetailsUrl(availableJavaVersion);
-        if (!releaseDetailsUrl.isEmpty() && (!firstPkg.getMajorVersion().isEarlyAccessOnly() && firstPkg.getReleaseStatus() != ReleaseStatus.EA)) {
+        if (!releaseDetailsUrl.isEmpty() && firstPkg.getReleaseStatus() != ReleaseStatus.EA) {
             Label releaseDetailsLabel = new Label("?");
             releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.BLUE.getColorDark() : MacOSAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
             releaseDetailsLabel.getStyleClass().add("release-details-label");
