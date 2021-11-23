@@ -1238,7 +1238,7 @@ public class Main extends Application {
                 }
         });
         final String releaseDetailsUrl = discoclient.getReleaseDetailsUrl(availableJavaVersion);
-        if (!releaseDetailsUrl.isEmpty()) {
+        if (!releaseDetailsUrl.isEmpty() && (!firstPkg.getMajorVersion().isEarlyAccessOnly() && firstPkg.getReleaseStatus() != ReleaseStatus.EA)) {
             Label releaseDetailsLabel = new Label("?");
             releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.BLUE.getColorDark() : MacOSAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
             releaseDetailsLabel.getStyleClass().add("release-details-label");
