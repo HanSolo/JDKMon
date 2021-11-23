@@ -16,16 +16,19 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.OperatingSystem;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -122,6 +125,8 @@ public class Detector {
     private static final String   REGQUERY_UTIL      = "reg query ";
     private static final String   REGDWORD_TOKEN     = "REG_DWORD";
     private static final String   DARK_THEME_CMD     = REGQUERY_UTIL + "\"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\"" + " /v AppsUseLightTheme";
+
+    public static final String                SDKMAN_FOLDER = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".sdkman").append(File.separator).append("candidates").toString();
 
     public static final Map<Integer, Color[]> MACOS_ACCENT_COLOR_MAP = Map.of(-1, new Color[] { MacOSSystemColor.GRAY.colorAqua, MacOSSystemColor.GRAY.colorDark },
                                                                               0, new Color[] { MacOSSystemColor.RED.colorAqua, MacOSSystemColor.RED.colorDark },
@@ -254,6 +259,21 @@ public class Detector {
             return OperatingSystem.NOT_FOUND;
         }
     }
+
+    public static final Architecture getArchitecture() {
+        final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+        if (arch.contains("sparc")) return Architecture.SPARC;
+        if (arch.contains("amd64") || arch.contains("86_64")) return Architecture.AMD64;
+        if (arch.contains("86")) return Architecture.X86;
+        if (arch.contains("s390x")) return Architecture.S390X;
+        if (arch.contains("ppc64")) return Architecture.PPC64;
+        if (arch.contains("arm") && arch.contains("64")) return Architecture.AARCH64;
+        if (arch.contains("arm")) return Architecture.ARM;
+        if (arch.contains("aarch64")) return Architecture.AARCH64;
+        return Architecture.NOT_FOUND;
+    }
+
+    public static final boolean isSDKMANInstalled() { return new File(SDKMAN_FOLDER).exists(); }
 
 
     // ******************** Internal Classes **********************************

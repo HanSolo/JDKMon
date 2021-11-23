@@ -39,6 +39,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -209,6 +210,17 @@ public class Finder {
                     return Architecture.fromText(result);
                 }
             }
+
+            // If not found yet try via system property
+            final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+            if (arch.contains("sparc")) return Architecture.SPARC;
+            if (arch.contains("amd64") || arch.contains("86_64")) return Architecture.AMD64;
+            if (arch.contains("86")) return Architecture.X86;
+            if (arch.contains("s390x")) return Architecture.S390X;
+            if (arch.contains("ppc64")) return Architecture.PPC64;
+            if (arch.contains("arm") && arch.contains("64")) return Architecture.AARCH64;
+            if (arch.contains("arm")) return Architecture.ARM;
+            if (arch.contains("aarch64")) return Architecture.AARCH64;
             return Architecture.NOT_FOUND;
         } catch (IOException e) {
             e.printStackTrace();

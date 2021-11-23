@@ -341,6 +341,12 @@ public class Main extends Application {
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+        // Add .sdkman/candidates folder to search paths if present
+        if (Detector.isSDKMANInstalled() && searchPaths.stream().filter(path -> path.equals(Detector.SDKMAN_FOLDER)).findFirst().isEmpty()) {
+            searchPaths.add(Detector.SDKMAN_FOLDER);
+            PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+            PropertyManager.INSTANCE.storeProperties();
+        }
 
         directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Choose search path");
@@ -1155,10 +1161,11 @@ public class Main extends Application {
         popup.getContent().add(popupPane);
         popups.put(distroLabel.getText(), popup);
         // ********************************************************************
-        final String distributionApiString = distribution.getApiString();
 
+        final String distributionApiString = distribution.getApiString();
+        final SemVer availableJavaVersion  = firstPkg.getJavaVersion();
         if (distributionApiString.equals(nameToCheck)) {
-            Label versionLabel = new Label(firstPkg.getJavaVersion().toString(true));
+            Label versionLabel = new Label(availableJavaVersion.toString(true));
             versionLabel.setMinWidth(56);
             hBox.getChildren().add(versionLabel);
         } else {
@@ -1230,6 +1237,24 @@ public class Main extends Application {
                     }
                 }
         });
+        final String releaseDetailsUrl = discoclient.getReleaseDetailsUrl(availableJavaVersion);
+        if (!releaseDetailsUrl.isEmpty()) {
+            Label releaseDetailsLabel = new Label("?");
+            releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.BLUE.getColorDark() : MacOSAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
+            releaseDetailsLabel.getStyleClass().add("release-details-label");
+            releaseDetailsLabel.setTooltip(new Tooltip("Release Details"));
+            releaseDetailsLabel.setOnMouseClicked(e -> { if (!blocked.get()) {
+                if (Desktop.isDesktopSupported()) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(releaseDetailsUrl));
+                    } catch (IOException | URISyntaxException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            } });
+
+            hBox.getChildren().add(releaseDetailsLabel);
+        }
         return hBox;
     }
 

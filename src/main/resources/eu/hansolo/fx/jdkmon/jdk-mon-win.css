@@ -417,6 +417,18 @@
 }
 
 
+.jdk-mon .release-details-label {
+    -fx-alignment  : CENTER;
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size  : 10;
+    -fx-text-fill  : white;
+    -fx-padding    : 1 5 1 5;
+}
+.jdk-mon:dark .release-details-label {
+    -fx-text-fill: white;
+}
+
+
 .jdk-mon .dialog-pane {
     -fx-background-color: -light-main-background;
 }
