@@ -122,6 +122,10 @@ and that you can download it as a tar.gz file.
 To download an update just click on the archive type tag and choose a folder
 where the download should be stored.
 
+If an update is available and there are release details available, a little blue dot with a question mark
+will appear at the end of the packages list. When clicking on the dot the default browser will open with
+the release details over at [foojay.io](https://foojay.io)
+
 How it looks on MacOS and Linux (light/dark mode):
 ![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
 
