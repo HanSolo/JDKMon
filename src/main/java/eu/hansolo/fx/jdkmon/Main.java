@@ -1170,7 +1170,7 @@ public class Main extends Application {
             hBox.getChildren().add(versionLabel);
         } else {
             // Only show newer update for installed version from another distribution if not AOJ_OpenJ9, Semeru, Semeru Certified and Zulu Prime
-            if (!distributionApiString.equals("zulu_prime") && !distributionApiString.equals("aoj_openj9") && !distributionApiString.equals("semeru") && !distributionApiString.equals("semeru_certified")) {
+            if (!distributionApiString.equals("zulu_prime") && !distributionApiString.equals("aoj_openj9") && !distributionApiString.equals("semeru") && !distributionApiString.equals("semeru_certified") && (!firstPkg.getMajorVersion().isEarlyAccessOnly() && firstPkg.getReleaseStatus() != ReleaseStatus.EA)) {
                 // There is a newer update for the installed version from another distribution
                 Region infoIcon = new Region();
                 infoIcon.getStyleClass().add("icon");
