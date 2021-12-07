@@ -13,7 +13,9 @@
 
 <br>
 JDKMon is a little tool written in JavaFX that tries to detect all JDK's installed
-on your machine and will inform you about new updates of each OpenJDK distribution found. 
+on your machine and will inform you about new updates of each OpenJDK distribution found.
+In addition JDKMon is also able to monitor JavaFX SDK versions that are installed on your
+machine.
 
 At the moment the following distributions will be identified:
 - AdoptOpenJDK
