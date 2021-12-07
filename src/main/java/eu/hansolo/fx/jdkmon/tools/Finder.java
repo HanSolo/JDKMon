@@ -577,7 +577,7 @@ public class Finder {
                linkBuilder.append("-");
                switch(architecture) {
                    case X86            -> linkBuilder.append("x86");
-                   case X64            -> linkBuilder.append("x64");
+                   case X64, AMD64     -> linkBuilder.append("x64");
                    case AARCH64, ARM64 -> linkBuilder.append("aarch64");
                    case AARCH32, ARM   -> linkBuilder.append("arm32");
                    default             -> { return new SemVerUri(latestVersion, ""); }
