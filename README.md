@@ -77,13 +77,21 @@ Windows: `C:\Program Files\Java\`
 
 Linux: `/usr/lib/jvm`(FXTrayIcon only supports a few linux distros) 
 
-You can change the folder JDKMon is scanning for installed JDK's by selecting
-the `"Add search path"` menu entry. The selected path will be added to the list of 
+You can change the folders JDKMon is scanning for installed JDK's by selecting
+the `"Add JDK search path"` menu entry. The selected path will be added to the list of 
 folders stored in the jdkmon.properties file in your user home folder.
 JDKMon will scan all given folders for installed JDK's. 
 
 If you would like to reset the folders that should be scanned to the default, simply
-select `"Default search path"` in the menu.
+select `"Default JDK search path"` in the menu.
+
+You can also change the folders JDKMon is scanning for JavaFX SDK's by selecting
+the `"Add JavaFX search path"` menu entry. The selected path will be added to the list of
+folders stored in the jdkmon.properties file in your user home folder.
+You just need to add the folder than contains all your `javafx-sdk-mm.ii.uu` folders.
+
+If you would like to reset the folders that should be scanned for JavaFX SDK's to the default,
+simply select `"Default JavaFX search path"`. It will be reset to the your home folder.
 
 You can search and download for a JDK from different distributions in the dialog that opens when
 you select `"Download a JDK"` from the menu.
