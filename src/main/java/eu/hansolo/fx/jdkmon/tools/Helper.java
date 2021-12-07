@@ -24,10 +24,17 @@ import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -110,5 +117,30 @@ public class Helper {
             }
         }
         return false;
+    }
+
+    public static final boolean isUriValid(final String uri) {
+        final HttpClient httpClient = HttpClient.newBuilder()
+                                                .connectTimeout(Duration.ofSeconds(10))
+                                                .version(Version.HTTP_2)
+                                                .followRedirects(Redirect.NORMAL)
+                                                .build();
+        final HttpRequest request;
+        try {
+            request = HttpRequest.newBuilder()
+                                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                                 .uri(URI.create(uri))
+                                 .timeout(Duration.ofSeconds(3))
+                                 .build();
+        } catch (Exception e) {
+            System.out.println(uri);
+            return false;
+        }
+        try {
+            HttpResponse<Void> responseFuture = httpClient.send(request, BodyHandlers.discarding());
+            return 200 == responseFuture.statusCode();
+        } catch (InterruptedException | IOException e) {
+            return false;
+        }
     }
 }

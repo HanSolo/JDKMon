@@ -194,6 +194,7 @@ public class Main extends Application {
     private              VBox                                                    distroBox;
     private              VBox                                                    vBox;
     private              List<String>                                            searchPaths;
+    private              List<String>                                            javafxSearchPaths;
     private              DirectoryChooser                                        directoryChooser;
     private              ProgressBar                                             progressBar;
     private              DiscoClient                                             discoclient;
@@ -243,6 +244,8 @@ public class Main extends Application {
     private              ProgressBar                                             downloadJDKProgressBar;
     private              Button                                                  downloadJDKCancelButton;
     private              Button                                                  downloadJDKDownloadButton;
+
+    public record SemVerUri(SemVer semver, String uri) {}
 
 
     @Override public void init() {
@@ -341,6 +344,7 @@ public class Main extends Application {
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
         searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+        javafxSearchPaths  = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.JAVAFX_SEARCH_PATH).split(",")));
 
         // If on Linux or Mac add .sdkman/candidates/java folder to search paths if present
         if (operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.LINUX || operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.MACOS) {
@@ -386,7 +390,11 @@ public class Main extends Application {
         List<HBox> distroEntries = new ArrayList<>();
 
         try {
+            // Find JDK distribution updates
             finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
+
+            // Find JavaFX SDK updates
+            finder.checkForJavaFXUpdates(javafxSearchPaths).entrySet().forEach(entry -> distroEntries.add(getJavaFXEntry(entry.getKey(), entry.getValue())));
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }
@@ -414,15 +422,27 @@ public class Main extends Application {
         contextRescan.getStyleClass().add("context-menu-item");
         contextRescan.setOnAction(e -> rescan());
 
-        MenuItem contextAddSearchPath = new MenuItem("Add search path");
+        SeparatorMenuItem separator1 = new SeparatorMenuItem();
+
+        MenuItem contextAddSearchPath = new MenuItem("Add JDK search path");
         contextAddSearchPath.getStyleClass().add("context-menu-item");
-        contextAddSearchPath.setOnAction(e -> selectSearchPath());
+        contextAddSearchPath.setOnAction(e -> selectSearchPath(false));
 
-        MenuItem contextDefaultSearchPath = new MenuItem("Default search path");
+        MenuItem contextDefaultSearchPath = new MenuItem("Default JDK search path");
         contextDefaultSearchPath.getStyleClass().add("context-menu-item");
-        contextDefaultSearchPath.setOnAction(e -> resetToDefaultSearchPath());
+        contextDefaultSearchPath.setOnAction(e -> resetToDefaultSearchPath(false));
 
-        contextMenu = new ContextMenu(contextRescan, contextAddSearchPath, contextDefaultSearchPath);
+        SeparatorMenuItem separator2 = new SeparatorMenuItem();
+
+        MenuItem contextAddJavaFXSearchPath = new MenuItem("Add JavaFX search path");
+        contextAddJavaFXSearchPath.getStyleClass().add("context-menu-item");
+        contextAddJavaFXSearchPath.setOnAction(e -> selectSearchPath(true));
+
+        MenuItem contextDefaultJavaFXSearchPath = new MenuItem("Default JavaFX search path");
+        contextDefaultJavaFXSearchPath.getStyleClass().add("context-menu-item");
+        contextDefaultJavaFXSearchPath.setOnAction(e -> resetToDefaultSearchPath(true));
+
+        contextMenu = new ContextMenu(contextRescan, separator1, contextAddSearchPath, contextDefaultSearchPath, separator2, contextAddJavaFXSearchPath, contextDefaultJavaFXSearchPath);
         contextMenu.getStyleClass().add("jdk-mon");
         contextMenu.setAutoHide(true);
 
@@ -752,13 +772,23 @@ public class Main extends Application {
 
             trayIcon.addSeparator();
 
-            MenuItem searchPathItem = new MenuItem("Add search path");
-            searchPathItem.setOnAction(e -> selectSearchPath());
+            MenuItem searchPathItem = new MenuItem("Add JDK search path");
+            searchPathItem.setOnAction(e -> selectSearchPath(false));
             trayIcon.addMenuItem(searchPathItem);
 
-            MenuItem defaultSearchPathItem = new MenuItem("Default search path");
-            defaultSearchPathItem.setOnAction(e -> resetToDefaultSearchPath());
+            MenuItem defaultSearchPathItem = new MenuItem("Default JDK search path");
+            defaultSearchPathItem.setOnAction(e -> resetToDefaultSearchPath(false));
             trayIcon.addMenuItem(defaultSearchPathItem);
+
+            trayIcon.addSeparator();
+
+            MenuItem javafxSearchPathItem = new MenuItem("Add JavaFX search path");
+            javafxSearchPathItem.setOnAction(e -> selectSearchPath(true));
+            trayIcon.addMenuItem(javafxSearchPathItem);
+
+            MenuItem defaultJavaFXSearchPathItem = new MenuItem("Default JavaFX search path");
+            defaultJavaFXSearchPathItem.setOnAction(e -> resetToDefaultSearchPath(true));
+            trayIcon.addMenuItem(defaultJavaFXSearchPathItem);
 
             trayIcon.addSeparator();
 
@@ -830,24 +860,46 @@ public class Main extends Application {
             menu.getItems().add(new SeparatorMenuItem());
 
             CustomMenuItem searchPathItem = new CustomMenuItem();
-            Label searchPathLabel = new Label("Add search path");
+            Label searchPathLabel = new Label("Add JDK search path");
             searchPathLabel.setTooltip(new Tooltip("Add another folder that should be scanned for JDK's"));
             searchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             searchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             searchPathItem.setContent(searchPathLabel);
             searchPathItem.setHideOnClick(false);
-            searchPathItem.setOnAction( e -> selectSearchPath());
+            searchPathItem.setOnAction( e -> selectSearchPath(false));
             menu.getItems().add(searchPathItem);
 
             CustomMenuItem defaultSearchPathItem = new CustomMenuItem();
-            Label defaultSearchPathLabel = new Label("Default search path");
-            defaultSearchPathLabel.setTooltip(new Tooltip("Reset search paths to default"));
+            Label defaultSearchPathLabel = new Label("Default JDK search path");
+            defaultSearchPathLabel.setTooltip(new Tooltip("Reset JDK search paths to default"));
             defaultSearchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             defaultSearchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             defaultSearchPathItem.setContent(defaultSearchPathLabel);
             defaultSearchPathItem.setHideOnClick(false);
-            defaultSearchPathItem.setOnAction( e -> resetToDefaultSearchPath());
+            defaultSearchPathItem.setOnAction( e -> resetToDefaultSearchPath(false));
             menu.getItems().add(defaultSearchPathItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
+
+            CustomMenuItem javafxSearchPathItem = new CustomMenuItem();
+            Label javafxSearchPathLabel = new Label("Add JavaFX search path");
+            javafxSearchPathLabel.setTooltip(new Tooltip("Add another folder that should be scanned for JavaFX"));
+            javafxSearchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            javafxSearchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            javafxSearchPathItem.setContent(javafxSearchPathLabel);
+            javafxSearchPathItem.setHideOnClick(false);
+            javafxSearchPathItem.setOnAction( e -> selectSearchPath(true));
+            menu.getItems().add(javafxSearchPathItem);
+
+            CustomMenuItem defaultJavaFXSearchPathItem = new CustomMenuItem();
+            Label defaultJavaFXSearchPathLabel = new Label("Default JavaFX search path");
+            defaultJavaFXSearchPathLabel.setTooltip(new Tooltip("Reset JavaFX search paths to default"));
+            defaultJavaFXSearchPathLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            defaultJavaFXSearchPathLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            defaultJavaFXSearchPathItem.setContent(defaultJavaFXSearchPathLabel);
+            defaultJavaFXSearchPathItem.setHideOnClick(false);
+            defaultJavaFXSearchPathItem.setOnAction( e -> resetToDefaultSearchPath(true));
+            menu.getItems().add(defaultJavaFXSearchPathItem);
 
             menu.getItems().add(new SeparatorMenuItem());
 
@@ -999,6 +1051,12 @@ public class Main extends Application {
                 updatesAvailable.set(true);
             }
         });
+
+        finder.checkForJavaFXUpdates(javafxSearchPaths).entrySet().forEach(entry -> {
+            HBox javafxEntry = getJavaFXEntry(entry.getKey(), entry.getValue());
+            distroEntries.add(javafxEntry);
+        });
+
         Platform.runLater(() -> {
             int numberOfDistros = distroBox.getChildren().size();
             distroBox.getChildren().setAll(distroEntries);
@@ -1261,6 +1319,45 @@ public class Main extends Application {
         return hBox;
     }
 
+    private HBox getJavaFXEntry(final SemVer existingSemver, final SemVerUri semverUri) {
+        final String uri = semverUri.uri();
+
+        Label javafxSDKLabel = new Label(new StringBuilder("JavaFX SDK ").append(existingSemver.toString(true)).toString());
+        javafxSDKLabel.setMinWidth(180);
+        javafxSDKLabel.setAlignment(Pos.CENTER_LEFT);
+        javafxSDKLabel.setMaxWidth(Double.MAX_VALUE);
+
+        HBox hBox = new HBox(5, javafxSDKLabel);
+        hBox.setMinWidth(360);
+
+        if (uri.isEmpty()) { return hBox; }
+
+        Label  arrowLabel   = new Label(" -> ");
+        hBox.getChildren().add(arrowLabel);
+
+        Label versionLabel = new Label(semverUri.semver().toString(true));
+        versionLabel.setMinWidth(56);
+        hBox.getChildren().add(versionLabel);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        hBox.getChildren().add(spacer);
+
+        ArchiveType archiveType      = ArchiveType.getFromFileName(uri.substring(uri.lastIndexOf("/")));
+        Label       archiveTypeLabel = new Label(archiveType.getUiString());
+        archiveTypeLabel.getStyleClass().add("tag-label");
+        archiveTypeLabel.setTooltip(new Tooltip("Download JavaFX SDK" + existingSemver.toString(true)));
+        switch (archiveType) {
+            case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+            case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+            case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+        }
+        archiveTypeLabel.disableProperty().bind(blocked);
+        archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadJavaFXSDK(uri); }});
+        hBox.getChildren().add(archiveTypeLabel);
+        return hBox;
+    }
+
     private void openDistribution(Distribution distribution) {
         try {
             Desktop.getDesktop().open(new File(distribution.getLocation()));
@@ -1475,6 +1572,77 @@ public class Main extends Application {
         }
     }
 
+    private void downloadJavaFXSDK(final String uri) {
+        if (null == uri || uri.isEmpty()) { return; }
+        directoryChooser.setTitle("Choose folder for download");
+
+        final File downloadFolder;
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                directoryChooser.setTitle("Choose folder for download");
+                downloadFolder = directoryChooser.showDialog(stage);
+            } else {
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                if (folder.isDirectory()) {
+                    downloadFolder = folder;
+                } else {
+                    downloadFolder = directoryChooser.showDialog(stage);
+                }
+            }
+        } else {
+            downloadFolder = directoryChooser.showDialog(stage);
+        }
+        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.storeProperties();
+
+        if (null != downloadFolder) {
+            final String filename = uri.substring(uri.lastIndexOf("/"));
+            final String target = downloadFolder.getAbsolutePath() + File.separator + filename;
+
+            System.out.println(filename);
+
+            worker = createWorker(uri, target);
+            worker.stateProperty().addListener((o, ov, nv) -> {
+                if (nv.equals(State.READY)) {
+                } else if (nv.equals(State.RUNNING)) {
+                    blocked.set(true);
+                    progressBar.setVisible(true);
+                } else if (nv.equals(State.CANCELLED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    progressBar.setProgress(0);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.FAILED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    progressBar.setProgress(0);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.SUCCEEDED)) {
+                    blocked.set(false);
+                    progressBar.setProgress(0);
+                    progressBar.setVisible(false);
+                } else if (nv.equals(State.SCHEDULED)) {
+                    blocked.set(true);
+                    progressBar.setVisible(true);
+                }
+            });
+            worker.progressProperty().addListener((o, ov, nv) -> progressBar.setProgress(nv.doubleValue() * 100.0));
+
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                new Thread((Runnable) worker).start();
+            } else {
+                Alert info = new Alert(AlertType.INFORMATION);
+                info.setTitle("JDKMon");
+                info.setHeaderText("JDKMon Download Info");
+                info.setContentText("Download will be started and update will be saved to " + downloadFolder);
+                info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
+                info.show();
+            }
+        }
+    }
+
     private Worker<Boolean> createWorker(final String uri, final String filename) {
         return new Task<>() {
             @Override protected Boolean call() {
@@ -1498,35 +1666,60 @@ public class Main extends Application {
         };
     }
 
-    private void selectSearchPath() {
+    private void selectSearchPath(final boolean javafx) {
         stage.show();
-        boolean searchPathExists;
-        if (searchPaths.isEmpty()) {
-            searchPathExists = false;
+        if (javafx) {
+            boolean javafxSearchPathExists;
+            if (javafxSearchPaths.isEmpty()) {
+                javafxSearchPathExists = false;
+            } else {
+                javafxSearchPathExists = new File(javafxSearchPaths.get(0)).exists();
+            }
+            directoryChooser.setTitle("Add JavaFX search path");
+            directoryChooser.setInitialDirectory(javafxSearchPathExists ? new File(javafxSearchPaths.get(0)) : new File(System.getProperty("user.home")));
+            final File selectedFolder = directoryChooser.showDialog(stage);
+            if (null != selectedFolder) {
+                String javafxSearchPath = selectedFolder.getAbsolutePath() + File.separator;
+                if (javafxSearchPaths.contains(javafxSearchPath)) { return; }
+                javafxSearchPaths.add(javafxSearchPath);
+                PropertyManager.INSTANCE.set(PropertyManager.JAVAFX_SEARCH_PATH, javafxSearchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.storeProperties();
+                rescan();
+            }
         } else {
-            searchPathExists = new File(searchPaths.get(0)).exists();
-        }
-        directoryChooser.setTitle("Add search path");
-        directoryChooser.setInitialDirectory(searchPathExists ? new File(searchPaths.get(0)) : new File(System.getProperty("user.home")));
-        final File selectedFolder = directoryChooser.showDialog(stage);
-        if (null != selectedFolder) {
-            String searchPath = selectedFolder.getAbsolutePath() + File.separator;
-            if (searchPaths.contains(searchPath)) { return; }
-            searchPaths.add(searchPath);
-            PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
-            PropertyManager.INSTANCE.storeProperties();
-            searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
-            rescan();
+            boolean searchPathExists;
+            if (searchPaths.isEmpty()) {
+                searchPathExists = false;
+            } else {
+                searchPathExists = new File(searchPaths.get(0)).exists();
+            }
+            directoryChooser.setTitle("Add JDK search path");
+            directoryChooser.setInitialDirectory(searchPathExists ? new File(searchPaths.get(0)) : new File(System.getProperty("user.home")));
+            final File selectedFolder = directoryChooser.showDialog(stage);
+            if (null != selectedFolder) {
+                String searchPath = selectedFolder.getAbsolutePath() + File.separator;
+                if (searchPaths.contains(searchPath)) { return; }
+                searchPaths.add(searchPath);
+                PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.storeProperties();
+                searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
+                rescan();
+            }
         }
     }
 
-    private void resetToDefaultSearchPath() {
+    private void resetToDefaultSearchPath(final boolean javafx) {
         stage.show();
-        PropertyManager.INSTANCE.resetProperties();
-        distros.clear();
-        searchPaths.clear();
-        searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
-        searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
+        PropertyManager.INSTANCE.resetSearchPathProperty(javafx);
+        if (javafx) {
+            javafxSearchPaths.clear();
+            javafxSearchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.JAVAFX_SEARCH_PATH).split(",")));
+        } else {
+            distros.clear();
+            searchPaths.clear();
+            searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+            searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
+        }
         rescan();
     }
 

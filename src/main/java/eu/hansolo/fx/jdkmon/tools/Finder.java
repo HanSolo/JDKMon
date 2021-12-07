@@ -16,6 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import eu.hansolo.fx.jdkmon.Main.SemVerUri;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.LibCType;
@@ -24,18 +25,28 @@ import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import io.foojay.api.discoclient.util.OutputFormat;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,6 +89,7 @@ public class Finder {
     private              Architecture                                  architecture              = detectArchitecture();
     private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
     private              String                                        javaHome                  = "";
+    private              String                                        javafxPropertiesFile      = "javafx.properties";
     private              boolean                                       isAlpine                  = false;
     private              DiscoClient                                   discoclient;
 
@@ -485,6 +497,119 @@ public class Finder {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Map<SemVer, SemVerUri> checkForJavaFXUpdates(final List<String> javafxSearchPaths) {
+        // Find the javafx sdk folders starting at the folder given by JAVAFX_SEARCH_PATH
+        if (null == javafxSearchPaths || javafxSearchPaths.isEmpty()) { return new HashMap<>(); }
+
+        Set<String> searchPaths = new HashSet<>();
+        javafxSearchPaths.forEach(searchPath -> {
+            try {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(searchPath))) {
+                    for (Path path : stream) {
+                        if (Files.isDirectory(path)) {
+                            String folderName = path.getFileName().toString();
+                            if (folderName.toLowerCase().startsWith("javafx")) {
+                                searchPaths.add(String.join(File.separator, searchPath, folderName, "lib"));
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Check every update found for validity and only return the ones that are valid
+        Map<SemVer, SemVerUri> validUpdatesFound  = new HashMap<>();
+        Map<SemVer, String> javafxUpdatesFound = findJavaFX(searchPaths);
+        javafxUpdatesFound.entrySet().forEach(entry -> {
+            validUpdatesFound.put(entry.getKey(), checkForJavaFXUpdate(entry.getKey()));
+        });
+        return validUpdatesFound;
+    }
+
+    private Map<SemVer, String> findJavaFX(final Set<String> searchPaths) {
+        Map<SemVer, String> versionsFound = new HashMap<>();
+        searchPaths.forEach(searchPath -> {
+            final String javafxPropertiesFilePath = new StringBuilder(searchPath).append(File.separator).append(javafxPropertiesFile).toString();
+            Path path = Paths.get(javafxPropertiesFilePath);
+            if (!Files.exists(path)) { return; }
+
+            Properties javafxPropertes = new Properties();
+            try (FileInputStream javafxPropertiesFileIS = new FileInputStream(javafxPropertiesFilePath)) {
+                javafxPropertes.load(javafxPropertiesFileIS);
+                String runtimeVersion = javafxPropertes.getProperty(Constants.JAVAFX_RUNTIME_VERSION, "");
+                if (!runtimeVersion.isEmpty()) {
+                    SemVer versionFound = SemVer.fromText(runtimeVersion).getSemVer1();
+                    versionsFound.put(versionFound, javafxPropertiesFilePath);
+                }
+            } catch (IOException ex) {
+                System.out.println("Error reading javafx properties file. " + ex);
+            }
+        });
+        return versionsFound;
+    }
+
+    private SemVerUri checkForJavaFXUpdate(final SemVer versionToCheck) {
+       List<SemVer> openjfxVersions         = getAvailableOpenJfxVersions();
+       List<SemVer> filteredOpenjfxVersions = openjfxVersions.stream()
+                                                             .filter(semver -> semver.getFeature() == versionToCheck.getFeature())
+                                                             .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
+                                                             .collect(Collectors.toList());
+
+       if (!filteredOpenjfxVersions.isEmpty()) {
+           SemVer latestVersion = filteredOpenjfxVersions.get(0);
+           OperatingSystem operatingSystem = getOperatingSystem();
+           Architecture    architecture    = Detector.getArchitecture();
+           if (latestVersion.greaterThan(versionToCheck)) {
+               StringBuilder linkBuilder = new StringBuilder();
+               linkBuilder.append("https://download2.gluonhq.com/openjfx/").append(latestVersion.getFeature());
+               if (latestVersion.getUpdate() != 0) { linkBuilder.append(".").append(latestVersion.getInterim()).append(".").append(latestVersion.getUpdate()); }
+               linkBuilder.append("/openjfx-").append(latestVersion.toString(true)).append("_");
+               switch(operatingSystem) {
+                   case WINDOWS -> linkBuilder.append("windows");
+                   case LINUX   -> linkBuilder.append("linux");
+                   case MACOS   -> linkBuilder.append("osx");
+                   default      -> { return new SemVerUri(latestVersion, ""); }
+               }
+               linkBuilder.append("-");
+               switch(architecture) {
+                   case X86            -> linkBuilder.append("x86");
+                   case X64            -> linkBuilder.append("x64");
+                   case AARCH64, ARM64 -> linkBuilder.append("aarch64");
+                   case AARCH32, ARM   -> linkBuilder.append("arm32");
+                   default             -> { return new SemVerUri(latestVersion, ""); }
+               }
+               linkBuilder.append("_bin-sdk.zip");
+               final String uri = linkBuilder.toString();
+               return new SemVerUri(latestVersion, Helper.isUriValid(uri) ? uri : "");
+           } else {
+               return new SemVerUri(latestVersion, "");
+           }
+       } else {
+           return new SemVerUri(versionToCheck, "");
+       }
+    }
+
+    public List<SemVer> getAvailableOpenJfxVersions() {
+        List<SemVer> availableOpenJfxVersions = new ArrayList<>();
+        try {
+            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            final DocumentBuilder db  = dbf.newDocumentBuilder();
+            final Document        doc = db.parse(Constants.OPENJFX_MAVEN_METADATA);
+            doc.getDocumentElement().normalize();
+            final NodeList list = doc.getElementsByTagName("version");
+            for (int i = 0; i < list.getLength(); i++) {
+                Node node = list.item(i);
+                availableOpenJfxVersions.add(SemVer.fromText(node.getTextContent()).getSemVer1());
+            }
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+        return availableOpenJfxVersions;
     }
 
     private class Streamer implements Runnable {

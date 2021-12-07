@@ -16,6 +16,7 @@
 
 package eu.hansolo.fx.jdkmon;
 
+
 public class Launcher {
     public static void main(String[] args) { Main.main(args); }
 }

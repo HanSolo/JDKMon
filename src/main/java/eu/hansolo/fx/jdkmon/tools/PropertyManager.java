@@ -37,6 +37,7 @@ public enum PropertyManager {
     public  static final String     VERSION_PROPERTIES       = "version.properties";
     public  static final String     JDKMON_PROPERTIES        = "jdkmon.properties";
     public  static final String     SEARCH_PATH              = "searchpath";
+    public  static final String     JAVAFX_SEARCH_PATH       = "javafx_searchpath";
     public  static final String     REMEMBER_DOWNLOAD_FOLDER = "remember_download_folder";
     public  static final String     DOWNLOAD_FOLDER          = "download_folder";
     public  static final String     DARK_MODE                = "dark_mode";
@@ -50,7 +51,7 @@ public enum PropertyManager {
     PropertyManager() {
         properties = new Properties();
         // Load properties
-        final String jdkMonPropertiesFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
+        final String jdkMonPropertiesFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
 
         // Create properties file if not exists
         Path path = Paths.get(jdkMonPropertiesFilePath);
@@ -64,7 +65,12 @@ public enum PropertyManager {
         }
 
         // If properties empty, fill with default values
-        if (properties.isEmpty()) { createProperties(properties); }
+        if (properties.isEmpty()) {
+            createProperties(properties);
+        } else if (!properties.containsKey(JAVAFX_SEARCH_PATH)) {
+            properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
+            storeProperties();
+        }
 
         // Version number properties
         versionProperties = new Properties();
@@ -118,7 +124,7 @@ public enum PropertyManager {
 
     public void storeProperties() {
         if (null == properties) { return; }
-        final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
+        final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
             properties.store(output, null);
         } catch (IOException ex) {
@@ -126,17 +132,28 @@ public enum PropertyManager {
         }
     }
 
-    public void resetProperties() {
-        final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
+    public void resetSearchPathProperty(final boolean javafx) {
+        final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
-            final String searchPath;
-            switch(DiscoClient.getOperatingSystem()) {
-                case MACOS  : searchPath = Finder.MACOS_JAVA_INSTALL_PATH;   break;
-                case WINDOWS: searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH; break;
-                case LINUX  : searchPath = Finder.LINUX_JAVA_INSTALL_PATH;   break;
-                default     : searchPath = "";
+            if (javafx) {
+                properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
+            } else {
+                final String searchPath;
+                switch (DiscoClient.getOperatingSystem()) {
+                    case MACOS:
+                        searchPath = Finder.MACOS_JAVA_INSTALL_PATH;
+                        break;
+                    case WINDOWS:
+                        searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH;
+                        break;
+                    case LINUX:
+                        searchPath = Finder.LINUX_JAVA_INSTALL_PATH;
+                        break;
+                    default:
+                        searchPath = "";
+                }
+                properties.put(SEARCH_PATH, searchPath);
             }
-            properties.put(SEARCH_PATH, searchPath);
             properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -150,7 +167,7 @@ public enum PropertyManager {
 
     // ******************** Properties ****************************************
     private void createProperties(Properties properties) {
-        final String propFilePath = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(JDKMON_PROPERTIES).toString();
+        final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
             final String searchPath;
             switch(DiscoClient.getOperatingSystem()) {
@@ -160,6 +177,7 @@ public enum PropertyManager {
                 default     : searchPath = "";
             }
             properties.put(SEARCH_PATH, searchPath);
+            properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
             properties.put(REMEMBER_DOWNLOAD_FOLDER, "FALSE");
             properties.put(DOWNLOAD_FOLDER, "");
             properties.put(DARK_MODE, "FALSE");
