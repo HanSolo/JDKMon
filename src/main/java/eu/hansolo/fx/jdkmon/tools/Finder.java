@@ -566,8 +566,25 @@ public class Finder {
            if (latestVersion.greaterThan(versionToCheck)) {
                StringBuilder linkBuilder = new StringBuilder();
                linkBuilder.append("https://download2.gluonhq.com/openjfx/").append(latestVersion.getFeature());
-               if (latestVersion.getUpdate() != 0) { linkBuilder.append(".").append(latestVersion.getInterim()).append(".").append(latestVersion.getUpdate()); }
-               linkBuilder.append("/openjfx-").append(latestVersion.toString(true)).append("_");
+               if (latestVersion.getUpdate() > 0) {
+                   linkBuilder.append(".").append(latestVersion.getInterim()).append(".").append(latestVersion.getUpdate());
+                   if (latestVersion.getPatch() > 0) {
+                       linkBuilder.append(".").append(latestVersion.getPatch());
+                   }
+               }
+               linkBuilder.append("/openjfx-");
+               if (latestVersion.getPre().isEmpty()) {
+                   linkBuilder.append(latestVersion.getFeature());
+                   if (latestVersion.getUpdate() > 0) {
+                       linkBuilder.append(".").append(latestVersion.getInterim()).append(".").append(latestVersion.getUpdate());
+                       if (latestVersion.getPatch() > 0) {
+                           linkBuilder.append(".").append(latestVersion.getPatch());
+                       }
+                   }
+                   linkBuilder.append("_");
+               } else {
+                   linkBuilder.append(latestVersion.toString(true)).append("_");
+               }
                switch(operatingSystem) {
                    case WINDOWS -> linkBuilder.append("windows");
                    case LINUX   -> linkBuilder.append("linux");
