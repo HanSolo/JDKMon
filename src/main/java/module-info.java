@@ -10,8 +10,9 @@ module eu.hansolo.fx.jdkmon {
     requires javafx.controls;
 
     // 3rd Party
-    requires com.google.gson;
+    requires transitive com.google.gson;
     requires io.foojay.api.discoclient;
+    requires eu.hansolo.cvescanner;
     requires FXTrayIcon;
 
     exports eu.hansolo.fx.jdkmon;

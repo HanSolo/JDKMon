@@ -266,33 +266,6 @@
 }
 
 
-.jdk-mon:dark .button {
-    -fx-pref-height      : 15;
-    -fx-background-color : -dark-control-background;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-    -fx-background-radius: 5px;
-    -fx-padding          : 2 5 2 5;
-    -fx-text-fill        : -text-color;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-    -fx-font-family      : 'SF Pro';
-    -fx-font-size        : 12px;
-}
-.jdk-mon:dark .button:armed {
-    -fx-pref-height      : 16;
-    -fx-background-color : -selection-color;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-    -fx-background-radius: 5px;
-    -fx-padding          : 2 5 2 5;
-    -fx-text-fill        : -text-color;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-}
-.jdk-mon:dark .button:disabled {
-    -fx-background-color: -disabled-color;
-    -fx-text-fill       : -disabled-text-color;
-}
-
 .jdk-mon .button {
     -fx-pref-height      : 15;
     -fx-background-color : -light-control-background;
@@ -318,6 +291,33 @@
 .jdk-mon .button:disabled {
     -fx-background-color: -light-disabled-color;
     -fx-text-fill       : -light-disabled-text-color;
+}
+
+.jdk-mon:dark .button {
+    -fx-pref-height      : 15;
+    -fx-background-color : -dark-control-background;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5px;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+    -fx-font-family      : 'SF Pro';
+    -fx-font-size        : 12px;
+}
+.jdk-mon:dark .button:armed {
+    -fx-pref-height      : 16;
+    -fx-background-color : -selection-color;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5px;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+}
+.jdk-mon:dark .button:disabled {
+    -fx-background-color: -disabled-color;
+    -fx-text-fill       : -disabled-text-color;
 }
 
 
@@ -479,6 +479,18 @@
     -fx-text-fill: white;
 }
 
+.jdk-mon .attention-label {
+    -fx-alignment  : CENTER;
+    -fx-font-family: 'SF Pro Text';
+    -fx-font-size  : 11;
+    -fx-font-weight: bold;
+    -fx-text-fill  : black;
+    -fx-padding    : 1 6 1 6;
+}
+.jdk-mon:dark .attention-label {
+    -fx-text-fill: black;
+}
+
 
 .jdk-mon .dialog-pane {
     -fx-background-color: -light-main-background;
@@ -534,7 +546,6 @@
     -fx-text-fill       : -light-disabled-text-color;
 }
 
-
 .jdk-mon:dark .dialog-pane {
     -fx-background-color: -dark-main-background;
 }
@@ -589,6 +600,7 @@
     -fx-text-fill       : -disabled-text-color;
 }
 
+
 .jdk-mon .icon {
     -fx-min-width       : 14px;
     -fx-min-height      : 14px;
@@ -603,6 +615,7 @@
 .jdk-mon:dark .icon {
     -fx-background-color: rgb(242, 241, 241);
 }
+
 
 .jdk-mon .combo-box-base {
     -fx-background-color : linear-gradient(to bottom, #cac7c7, #b3b0b0), white;
@@ -857,6 +870,60 @@
     -fx-background-radius: 2em;
 }
 
+
+.cve-close-button {
+    -fx-pref-height      : 15;
+    -fx-background-color : -light-control-background;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5 5 5 5;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -light-text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+    -fx-font-family      : 'SF Pro';
+    -fx-font-size        : 12px;
+}
+.cve-close-button:armed {
+    -fx-pref-height      : 16;
+    -fx-background-color : -selection-color;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5px;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+}
+.cve-close-button:disabled {
+    -fx-background-color: -light-disabled-color;
+    -fx-text-fill       : -light-disabled-text-color;
+}
+
+.cve-close-button:dark {
+    -fx-pref-height      : 15;
+    -fx-background-color : -dark-control-background;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5 5 5 5;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+    -fx-font-family      : 'SF Pro';
+    -fx-font-size        : 12px;
+}
+.cve-close-button:dark:armed {
+    -fx-pref-height      : 16;
+    -fx-background-color : -selection-color;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 5px;
+    -fx-padding          : 2 5 2 5;
+    -fx-text-fill        : -text-color;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+}
+.cve-close-button:dark:disabled {
+    -fx-background-color: -disabled-color;
+    -fx-text-fill       : -disabled-text-color;
+}
 
 
 #success {

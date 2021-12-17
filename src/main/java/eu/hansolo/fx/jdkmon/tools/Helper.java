@@ -19,6 +19,7 @@ package eu.hansolo.fx.jdkmon.tools;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.Main;
+import eu.hansolo.fx.jdkmon.tools.Records.CVE;
 import io.foojay.api.discoclient.pkg.VersionNumber;
 import javafx.scene.paint.Color;
 
@@ -142,5 +143,9 @@ public class Helper {
         } catch (InterruptedException | IOException e) {
             return false;
         }
+    }
+
+    public static final List<CVE> getCVEsForVersion(final List<CVE> cves, final VersionNumber versionNumber) {
+        return cves.stream().filter(cve -> cve.affectedVersions().contains(versionNumber)).collect(Collectors.toList());
     }
 }
