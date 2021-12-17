@@ -135,6 +135,19 @@ If an update is available and there are release details available, a little blue
 will appear at the end of the packages list. When clicking on the dot the default browser will open with
 the release details over at [foojay.io](https://foojay.io)
 
+JDKMon will not only help you to keep your installed OpenJDK distributions up to date but will also check
+the NVD for known vulnerabilities (CVE) related to their version number. If you have for example installed
+an OpenJDK distribution with the version 16.0.1, JDKMon will check the NVD for known vulnerabilities of OpenJDK
+with the version number 16.0.1. In case JDKMon will find vulnerabilities, it will indicate this with a yellow
+circle with an exclamation mark behind the version number. 
+
+![vulnerability](https://i.ibb.co/LZkshY8/Vulnerability.png)
+
+When you click on the yellow circle a window will open which shows the CVE's found. 
+You can click on each CVE to open it in a browser with more detailled information.
+
+![Vulnerabilities-found](https://i.ibb.co/wr7yCkr/Vulnerabilities-found.png)
+
 How it looks on MacOS and Linux (light/dark mode):
 ![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
 
