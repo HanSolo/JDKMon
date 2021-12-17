@@ -102,7 +102,7 @@ jlink {
         name = 'eu.hansolo.fx.jdkmon'
     }
 }
-
+/*
 tasks.withType(JavaCompile) {
     options.compilerArgs += "--enable-preview"
 }
@@ -112,6 +112,7 @@ tasks.withType(Test) {
 tasks.withType(JavaExec) {
     jvmArgs += "--enable-preview"
 }
+*/
 
 // start the from gradle
 task Main(type: JavaExec) {
