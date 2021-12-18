@@ -139,7 +139,10 @@ JDKMon will not only help you to keep your installed OpenJDK distributions up to
 the NVD for known vulnerabilities (CVE) related to their version number. If you have for example installed
 an OpenJDK distribution with the version 16.0.1, JDKMon will check the NVD for known vulnerabilities of OpenJDK
 with the version number 16.0.1. In case JDKMon will find vulnerabilities, it will indicate this with a yellow
-circle with an exclamation mark behind the version number. 
+circle with an exclamation mark behind the version number. Meaning to say if you have for example Zulu 16.0.1 
+and Liberica 16.0.1 installed ony your machine, JDKMon will show you the vulnerabilties, it found for
+OpenJDK 16.0.1 for both distributions. So there is no guarantee that your installed distribution is really
+affected by the CVE's found in NVD but you at least get the info that there are vulnerabilities for 16.0.1.
 
 ![vulnerability](https://i.ibb.co/LZkshY8/Vulnerability.png)
 
