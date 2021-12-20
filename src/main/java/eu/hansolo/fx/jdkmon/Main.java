@@ -1747,6 +1747,7 @@ public class Main extends Application {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
+                info.initOwner(stage);
                 info.setTitle("JDKMon");
                 info.setHeaderText("JDKMon Download Info");
                 info.setContentText("Download will be started and update will be saved to " + downloadFolder);
