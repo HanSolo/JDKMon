@@ -18,6 +18,8 @@ package eu.hansolo.fx.jdkmon;
 
 import com.dustinredmond.fxtrayicon.FXTrayIcon;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.CveScanner;
 import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
@@ -40,8 +42,8 @@ import eu.hansolo.fx.jdkmon.tools.DistributionCell;
 import eu.hansolo.fx.jdkmon.tools.Finder;
 import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
-import eu.hansolo.fx.jdkmon.tools.LibcTypeCell;
 import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
+import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
 import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
@@ -51,13 +53,9 @@ import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Architecture;
 import io.foojay.api.discoclient.pkg.ArchiveType;
-import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
-import io.foojay.api.discoclient.pkg.Match;
 import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.ReleaseStatus;
-import io.foojay.api.discoclient.pkg.Scope;
 import io.foojay.api.discoclient.pkg.SemVer;
 import io.foojay.api.discoclient.pkg.Verification;
 import io.foojay.api.discoclient.pkg.VersionNumber;
@@ -162,6 +160,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.foojay.api.discoclient.pkg.ReleaseStatus.EA;
+import static io.foojay.api.discoclient.pkg.ReleaseStatus.GA;
+
 
 /**
  * User: hansolo
@@ -239,26 +240,23 @@ public class Main extends Application {
     private              ComboBox<SemVer>                                        downloadJDKUpdateLevelComboBox;
     private              ComboBox<io.foojay.api.discoclient.pkg.Distribution>    downloadJDKDistributionComboBox;
     private              ComboBox<io.foojay.api.discoclient.pkg.OperatingSystem> downloadJDKOperatingSystemComboBox;
-    private              ComboBox<LibCType>                                      downloadJDKLibcTypeComboBox;
     private              ComboBox<Architecture>                                  downloadJDKArchitectureComboBox;
     private              ComboBox<ArchiveType>                                   downloadJDKArchiveTypeComboBox;
     private              Label                                                   downloadJDKFilenameLabel;
     private              Set<MajorVersion>                                       downloadJDKMaintainedVersions;
-    private              List<Pkg>                                               downloadJDKSelectedPkgs;
-    private              Pkg                                                     downloadJDKSelectedPkg;
-    private              List<Pkg>                                               downloadJDKSelectedPkgsForMajorVersion;
-    private              List<io.foojay.api.discoclient.pkg.Distribution>        downloadJDKDistributionsThatSupportFx;
+    private              List<MinimizedPkg>                                      downloadJDKSelectedPkgs;
+    private              MinimizedPkg                                            downloadJDKSelectedPkg;
+    private              List<MinimizedPkg>                                      downloadJDKSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>                                      downloadJDKMinimizedPkgs;
     private              boolean                                                 downloadJDKJavafxBundled;
     private              MajorVersion                                            downloadJDKSelectedMajorVersion;
     private              SemVer                                                  downloadJDKSelectedVersionNumber;
     private              io.foojay.api.discoclient.pkg.Distribution              downloadJDKSelectedDistribution;
     private              io.foojay.api.discoclient.pkg.OperatingSystem           downloadJDKSelectedOperatingSystem;
-    private              LibCType                                                downloadJDKSelectedLibcType;
     private              Architecture                                            downloadJDKSelectedArchitecture;
     private              ArchiveType                                             downloadJDKSelectedArchiveType;
     private              Set<io.foojay.api.discoclient.pkg.OperatingSystem>      downloadJDKOperatingSystems;
     private              Set<Architecture>                                       downloadJDKArchitectures;
-    private              Set<LibCType>                                           downloadJDKLibcTypes;
     private              Set<ArchiveType>                                        downloadJDKArchiveTypes;
     private              ProgressBar                                             downloadJDKProgressBar;
     private              ImageView                                               tckTestedTag;
@@ -285,6 +283,7 @@ public class Main extends Application {
         }
 
         notifier = NotifierBuilder.create()
+                                  .owner(stage)
                                   .popupLocation(OperatingSystem.MACOS == Detector.getOperatingSystem() ? Pos.TOP_RIGHT : Pos.BOTTOM_RIGHT)
                                   .popupLifeTime(Duration.millis(5000))
                                   .build();
@@ -367,9 +366,11 @@ public class Main extends Application {
             headerPane.getChildren().addAll(closeMacWindowButton, windowTitle);
         }
 
-        executor = Executors.newSingleThreadScheduledExecutor();
+        // Scheduled jobs
+        executor = Executors.newScheduledThreadPool(2);
         executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_HOURS, Constants.RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -530,10 +531,10 @@ public class Main extends Application {
         downloadJDKSelectedPkgsForMajorVersion = new LinkedList<>();
         downloadJDKJavafxBundled               = false;
         downloadJDKOperatingSystems            = new TreeSet<>();
-        downloadJDKLibcTypes                   = new TreeSet<>();
         downloadJDKArchitectures               = new TreeSet<>();
         downloadJDKArchiveTypes                = new TreeSet<>();
-        downloadJDKDistributionsThatSupportFx  = List.of(DiscoClient.getDistributionFromText("zulu"), DiscoClient.getDistributionFromText("liberica"), DiscoClient.getDistributionFromText("corretto"));
+        downloadJDKMinimizedPkgs               = new CopyOnWriteArrayList<>();
+        updateDownloadPkgs();
     }
 
     private void registerListeners() {
@@ -700,24 +701,28 @@ public class Main extends Application {
             downloadJDKJavafxBundled = nv;
 
             boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
-            List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection = downloadJDKSelectedPkgsForMajorVersion.stream()
-                                                                                                                     .filter(pkg -> downloadJDKJavafxBundled == pkg.isJavaFXBundled())
-                                                                                                                     .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED,true, include_build).equals(
-                                                                                                                         downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
-                                                                                                                     .map(pkg -> pkg.getDistribution())
-                                                                                                                     .distinct()
-                                                                                                                     .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
-                                                                                                                     .collect(Collectors.toList());
+
+            List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection = downloadJDKMinimizedPkgs.stream()
+                                                                                                           .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                                                           .map(pkg -> pkg.getDistribution())
+                                                                                                           .distinct()
+                                                                                                           .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                                                           .collect(Collectors.toList());
+
             Platform.runLater(() -> {
                 downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
-                if (downloadJDKDistributionComboBox.getItems().size() > 0) {
+
+                downloadJDKDistributionComboBox.getItems().clear();
+                downloadJDKOperatingSystemComboBox.getItems().clear();
+                downloadJDKArchitectureComboBox.getItems().clear();
+                downloadJDKArchiveTypeComboBox.getItems().clear();
+                downloadJDKFilenameLabel.setText("-");
+
+                if (downloadJDKUpdateLevelComboBox.getItems().size() > 0) {
+                    downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
+                    selectVersionNumber();
+                } else if (distrosForSelection.size() > 0) {
                     downloadJDKDistributionComboBox.getSelectionModel().select(0);
-                } else {
-                    downloadJDKOperatingSystemComboBox.getItems().clear();
-                    downloadJDKLibcTypeComboBox.getItems().clear();
-                    downloadJDKArchitectureComboBox.getItems().clear();
-                    downloadJDKArchiveTypeComboBox.getItems().clear();
-                    downloadJDKFilenameLabel.setText("-");
                 }
             });
         });
@@ -749,22 +754,11 @@ public class Main extends Application {
             selectOperatingSystem();
         });
 
-        downloadJDKLibcTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
-            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
-            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
-            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
-            if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
-            if (null == downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem())        { return; }
-            if (downloadJDKSelectedPkgs.isEmpty()) { return; }
-            selectLibcType();
-        });
-
         downloadJDKArchitectureComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
             if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
-            if (null == downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem())        { return; }
             if (null == downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (downloadJDKSelectedPkgs.isEmpty()) { return; }
             selectArchitecture();
@@ -1145,6 +1139,31 @@ public class Main extends Application {
         checkForUpdates();
     }
 
+    private void updateDownloadPkgs() {
+        downloadJDKPane.setDisable(true);
+        Helper.getAsync(Constants.ALL_PKGS_MINIMIZED_URI).thenAccept(response -> {
+            if (null == response) { return; }
+            final String bodyText = response.body();
+            if (null == bodyText || bodyText.isEmpty()) { return; }
+            final Gson        gson    = new Gson();
+            final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+            if (element instanceof JsonObject) {
+                final List<MinimizedPkg> pkgs       = new ArrayList<>();
+                final JsonObject         jsonObject = element.getAsJsonObject();
+                final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    final JsonObject json = jsonArray.get(i).getAsJsonObject();
+                    pkgs.add(new MinimizedPkg(json.toString()));
+                }
+                if (!pkgs.isEmpty()) {
+                    downloadJDKMinimizedPkgs.clear();
+                    downloadJDKMinimizedPkgs.addAll(pkgs);
+                }
+            }
+            downloadJDKPane.setDisable(false);
+        });
+    }
+
     private void rescan() {
 
         Platform.runLater(() -> {
@@ -1482,7 +1501,7 @@ public class Main extends Application {
             }
         });
         final String releaseDetailsUrl = discoclient.getReleaseDetailsUrl(availableJavaVersion);
-        if (null != releaseDetailsUrl && !releaseDetailsUrl.isEmpty() && firstPkg.getReleaseStatus() != ReleaseStatus.EA) {
+        if (null != releaseDetailsUrl && !releaseDetailsUrl.isEmpty() && firstPkg.getReleaseStatus() != EA) {
             Label releaseDetailsLabel = new Label("?");
             releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.BLUE.getColorDark() : MacOSAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
             releaseDetailsLabel.getStyleClass().add("release-details-label");
@@ -1710,7 +1729,11 @@ public class Main extends Application {
         if (null != downloadFolder) {
             final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             if (null == directDownloadUri) {
-                new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.initOwner(stage);
+                alert.setContentText("Problem downloading the package, please try again.");
+                alert.getButtonTypes().add(ButtonType.CLOSE);
+                alert.show();
                 return;
             }
             final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFileName();
@@ -1747,6 +1770,7 @@ public class Main extends Application {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
+                info.initOwner(stage);
                 info.setTitle("JDKMon");
                 info.setHeaderText("JDKMon Download Info");
                 info.setContentText("Download will be started and update will be saved to " + downloadFolder);
@@ -2086,8 +2110,7 @@ public class Main extends Application {
         downloadJDKBundledWithFXCheckBox = new CheckBox("Bundled with FX");
         downloadJDKBundledWithFXCheckBox.setFont(isWindows ? Fonts.segoeUi(13) : Fonts.sfPro(13));
         downloadJDKBundledWithFXCheckBox.setTextFill(isWindows ? Color.web("#dddddd") : Color.web("#2a2a2a"));
-        HBox findlJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox);
-
+        HBox downloadJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox);
 
         Label downloadJDKMajorVersionLabel = new Label("Major version");
         Region findlJDKMajorVersionSpacer = new Region();
@@ -2140,60 +2163,6 @@ public class Main extends Application {
         downloadJDKOperatingSystemComboBox.setPrefWidth(150);
         HBox downloadJDKOperatingSystemBox = new HBox(5, downloadJDKOperatingSystemLabel, findlJDKOperatingSystemSpacer, downloadJDKOperatingSystemComboBox);
         downloadJDKOperatingSystemBox.setAlignment(Pos.CENTER);
-
-        Label downloadJDKLibcTypeLabel = new Label("Libc type");
-        Region downloadJDKLibcTypeSpacer = new Region();
-        HBox.setHgrow(downloadJDKLibcTypeSpacer, Priority.ALWAYS);
-        downloadJDKLibcTypeComboBox = new ComboBox<>();
-        downloadJDKLibcTypeComboBox.setCellFactory(libcTypeListView -> new LibcTypeCell());
-        downloadJDKLibcTypeComboBox.setMinWidth(150);
-        downloadJDKLibcTypeComboBox.setMinWidth(150);downloadJDKStage.focusedProperty().addListener((o, ov, nv) -> {
-            if (nv) {
-                if (darkMode.get()) {
-                    if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
-                    } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#dddddd"));
-                    }
-                } else {
-                    if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
-                    } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
-                    }
-                }
-                downloadJDKCloseMacWindowButton.setDisable(false);
-                downloadJDKCloseWinWindowButton.setDisable(false);
-            } else {
-                if (darkMode.get()) {
-                    if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
-                    } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#696a68"));
-                    }
-                } else {
-                    if (isWindows) {
-                        downloadJDKCloseWinWindowButton.setStyle("-fx-fill: #969696;");
-                    } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#a9a6a6"));
-                        downloadJDKCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
-                    }
-                }
-                downloadJDKCloseMacWindowButton.setDisable(true);
-                downloadJDKCloseWinWindowButton.setDisable(true);
-            }
-        });
-        downloadJDKLibcTypeComboBox.setMaxWidth(150);
-        downloadJDKLibcTypeComboBox.setPrefWidth(150);
-        HBox downloadJDKLibcTypeBox = new HBox(5, downloadJDKLibcTypeLabel, downloadJDKLibcTypeSpacer, downloadJDKLibcTypeComboBox);
-        downloadJDKLibcTypeBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKArchitectureLabel = new Label("Architecture");
         Region downloadJDKArchitectureSpacer = new Region();
@@ -2333,8 +2302,8 @@ public class Main extends Application {
         downloadJDKProgressBar.setVisible(false);
         VBox.setMargin(downloadJDKProgressBar, new Insets(0, 0, 5, 0));
 
-        VBox downloadJDKVBox = new VBox(10, findlJDKFxBox, downloadJDKMajorVersionBox, downloadJDKUpdateLevelBox, downloadJDKDistributionBox, downloadJDKOperatingSystemBox,
-                                        downloadJDKLibcTypeBox, downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, downloadJDKProgressBar, downloadJDKButtonBox);
+        VBox downloadJDKVBox = new VBox(10, downloadJDKFxBox, downloadJDKMajorVersionBox, downloadJDKUpdateLevelBox, downloadJDKDistributionBox, downloadJDKOperatingSystemBox,
+                                        downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, downloadJDKProgressBar, downloadJDKButtonBox);
         downloadJDKVBox.setAlignment(Pos.CENTER);
 
         downloadJDKPane.getChildren().add(downloadJDKVBox);
@@ -2392,7 +2361,6 @@ public class Main extends Application {
                 downloadJDKUpdateLevelLabel.setTextFill(Color.web("#292929"));
                 downloadJDKDistributionLabel.setTextFill(Color.web("#292929"));
                 downloadJDKOperatingSystemLabel.setTextFill(Color.web("#292929"));
-                downloadJDKLibcTypeLabel.setTextFill(Color.web("#292929"));
                 downloadJDKArchitectureLabel.setTextFill(Color.web("#292929"));
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#292929"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#292929"));
@@ -2407,7 +2375,6 @@ public class Main extends Application {
                 downloadJDKUpdateLevelLabel.setTextFill(Color.web("#dddddd"));
                 downloadJDKDistributionLabel.setTextFill(Color.web("#dddddd"));
                 downloadJDKOperatingSystemLabel.setTextFill(Color.web("#dddddd"));
-                downloadJDKLibcTypeLabel.setTextFill(Color.web("#dddddd"));
                 downloadJDKArchitectureLabel.setTextFill(Color.web("#dddddd"));
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#dddddd"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#dddddd"));
@@ -2425,7 +2392,6 @@ public class Main extends Application {
                 downloadJDKUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKDistributionLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
-                downloadJDKLibcTypeLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#2a2a2a"));
@@ -2440,7 +2406,6 @@ public class Main extends Application {
                 downloadJDKUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKDistributionLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
-                downloadJDKLibcTypeLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
                 downloadJDKFilenameLabel.setTextFill(Color.web("#2a2a2a"));
@@ -2458,75 +2423,68 @@ public class Main extends Application {
             downloadJDKUpdateLevelComboBox.getItems().clear();
             downloadJDKDistributionComboBox.getItems().clear();
             downloadJDKOperatingSystemComboBox.getItems().clear();
-            downloadJDKLibcTypeComboBox.getItems().clear();
             downloadJDKArchitectureComboBox.getItems().clear();
             downloadJDKArchiveTypeComboBox.getItems().clear();
         }
-        discoclient.getPkgsForFeatureVersionAsync(downloadJDKDistributionsThatSupportFx, downloadJDKSelectedMajorVersion.getAsInt(), include_build ? List.of(ReleaseStatus.EA) : List.of(ReleaseStatus.GA),
-                                                  true, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE, Scope.BUILD_OF_OPEN_JDK), Match.ANY)
-                   .thenAccept(pkgs -> {
-                       downloadJDKSelectedPkgsForMajorVersion.clear();
-                       downloadJDKSelectedPkgsForMajorVersion.addAll(pkgs);
-                       Platform.runLater(() -> downloadJDKBundledWithFXCheckBox.setDisable(false));
-                       if (downloadJDKBundledWithFXCheckBox.isSelected()) {
-                           List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
-                                                                                 .stream()
-                                                                                 .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (semVer.getReleaseStatus() == ReleaseStatus.GA))
-                                                                                 .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
-                                                                                 .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
-                                                                                 .distinct()
-                                                                                 .map(versionString -> SemVer.fromText(versionString).getSemVer1())
-                                                                                 .collect(Collectors.toList());
-                           Platform.runLater(() -> {
-                               downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
-                               if (versionList.size() > 0) {
-                                   downloadJDKUpdateLevelComboBox.getSelectionModel().clearSelection();
-                                   downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
-                               }
-                           });
 
-                       }
-                   });
+        List<MinimizedPkg> pkgs;
+        if (downloadJDKJavafxBundled) {
+            pkgs = downloadJDKMinimizedPkgs.stream()
+                                           .filter(pkg -> pkg.isJavaFXBundled())
+                                           .filter(pkg -> pkg.getMajorVersion().getAsInt() == downloadJDKSelectedMajorVersion.getAsInt())
+                                           .filter(pkg -> pkg.getReleaseStatus() == (include_build ? EA : GA))
+                                           .filter(pkg -> pkg.isDirectlyDownloadable())
+                                           .collect(Collectors.toList());
+        } else {
+            pkgs = downloadJDKMinimizedPkgs.stream()
+                                           .filter(pkg -> pkg.getMajorVersion().getAsInt() == downloadJDKSelectedMajorVersion.getAsInt())
+                                           .filter(pkg -> pkg.getReleaseStatus() == (include_build ? EA : GA))
+                                           .filter(pkg -> pkg.isDirectlyDownloadable())
+                                           .collect(Collectors.toList());
+        }
 
-        if (!downloadJDKBundledWithFXCheckBox.isSelected()) {
-            List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
+        downloadJDKSelectedPkgsForMajorVersion.clear();
+        downloadJDKSelectedPkgsForMajorVersion.addAll(pkgs);
+
+        Platform.runLater(() -> downloadJDKBundledWithFXCheckBox.setDisable(false));
+        List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
                                                                   .stream()
-                                                                  .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == ReleaseStatus.EA) : (semVer.getReleaseStatus() == ReleaseStatus.GA))
+                                                                  .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == EA) : (semVer.getReleaseStatus() == GA))
                                                                   .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
                                                                   .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
                                                                   .distinct().map(versionString -> SemVer.fromText(versionString).getSemVer1())
                                                                   .collect(Collectors.toList());
-            Platform.runLater(() -> {
-                downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
-                if (versionList.size() > 0) {
-                    downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
-                }
-            });
-        }
+        Platform.runLater(() -> {
+            downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
+            if (versionList.size() > 0) {
+                downloadJDKUpdateLevelComboBox.getSelectionModel().select(0);
+            }
+        });
     }
 
     private void selectVersionNumber() {
         downloadJDKSelectedVersionNumber = downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem();
 
         List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection;
+
+        boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
         if (downloadJDKJavafxBundled) {
-            boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
             distrosForSelection = downloadJDKSelectedPkgsForMajorVersion.stream()
-                                                                    .filter(pkg -> downloadJDKJavafxBundled == pkg.isJavaFXBundled())
-                                                                    .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED,true,include_build).equals(
-                                                                        downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
-                                                                    .map(pkg -> pkg.getDistribution())
-                                                                    .distinct()
-                                                                    .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
-                                                                    .collect(Collectors.toList());
+                                                                        .filter(pkg -> pkg.isJavaFXBundled())
+                                                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                        .map(pkg -> pkg.getDistribution())
+                                                                        .distinct()
+                                                                        .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                        .collect(Collectors.toList());
         } else {
-            distrosForSelection = discoclient.getDistributionsForSemVerAsync(downloadJDKSelectedVersionNumber)
-                                             .thenApply(distros -> distros.stream()
-                                                                          .filter(distro -> distro.getScopes().contains(Scope.DIRECTLY_DOWNLOADABLE))
-                                                                          .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed()))
-                                             .join()
-                                             .collect(Collectors.toList());
+            distrosForSelection = downloadJDKSelectedPkgsForMajorVersion.stream()
+                                                                        .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                        .map(pkg -> pkg.getDistribution())
+                                                                        .distinct()
+                                                                        .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                        .collect(Collectors.toList());
         }
+
         Platform.runLater(() -> {
             downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
             if (downloadJDKDistributionComboBox.getItems().size() > 0) {
@@ -2537,7 +2495,6 @@ public class Main extends Application {
                 }
             } else {
                 downloadJDKOperatingSystemComboBox.getItems().clear();
-                downloadJDKLibcTypeComboBox.getItems().clear();
                 downloadJDKArchitectureComboBox.getItems().clear();
                 downloadJDKArchiveTypeComboBox.getItems().clear();
             }
@@ -2551,16 +2508,29 @@ public class Main extends Application {
         downloadJDKSelectedPkgs.clear();
         downloadJDKOperatingSystems.clear();
         downloadJDKArchitectures.clear();
-        downloadJDKLibcTypes.clear();
         downloadJDKArchiveTypes.clear();
 
-        downloadJDKSelectedPkgs.addAll(discoclient.getPkgs(List.of(downloadJDKSelectedDistribution), VersionNumber.fromText((downloadJDKSelectedVersionNumber).toString(true)), null, null, null, null, null, null, PackageType.JDK,
-                                                       null, true, null, null, List.of(Scope.PUBLIC, Scope.DIRECTLY_DOWNLOADABLE, Scope.BUILD_OF_OPEN_JDK), Match.ANY));
+        boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
 
+        if (downloadJDKJavafxBundled) {
+            downloadJDKSelectedPkgs.addAll(downloadJDKMinimizedPkgs.stream()
+                                                                   .filter(pkg -> pkg.isJavaFXBundled())
+                                                                   .filter(pkg -> pkg.getDistribution().getApiString().equals(downloadJDKSelectedDistribution.getApiString()))
+                                                                   .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                   .filter(pkg -> pkg.getPackageType() == PackageType.JDK)
+                                                                   .filter(pkg -> pkg.isDirectlyDownloadable())
+                                                                   .collect(Collectors.toList()));
+        } else {
+            downloadJDKSelectedPkgs.addAll(downloadJDKMinimizedPkgs.stream()
+                                                                   .filter(pkg -> pkg.getDistribution().getApiString().equals(downloadJDKSelectedDistribution.getApiString()))
+                                                                   .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                   .filter(pkg -> pkg.getPackageType() == PackageType.JDK)
+                                                                   .filter(pkg -> pkg.isDirectlyDownloadable())
+                                                                   .collect(Collectors.toList()));
+        }
         downloadJDKSelectedPkgs.forEach(pkg -> {
             downloadJDKOperatingSystems.add(pkg.getOperatingSystem());
             downloadJDKArchitectures.add(pkg.getArchitecture());
-            downloadJDKLibcTypes.add(pkg.getLibCType());
             downloadJDKArchiveTypes.add(pkg.getArchiveType());
         });
         Platform.runLater(() -> {
@@ -2584,43 +2554,20 @@ public class Main extends Application {
 
     private void selectOperatingSystem() {
         downloadJDKSelectedOperatingSystem = downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem();
-        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
-                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
-                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
-                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
-                                                 .collect(Collectors.toList());
-        downloadJDKLibcTypes = selection.stream().map(pkg -> pkg.getLibCType()).collect(Collectors.toSet());
+        List<MinimizedPkg> selection;
+        if (downloadJDKJavafxBundled) {
+            selection = downloadJDKSelectedPkgs.stream()
+                                               .filter(pkg -> pkg.isJavaFXBundled())
+                                               .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                               .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                               .collect(Collectors.toList());
+        } else {
+            selection = downloadJDKSelectedPkgs.stream()
+                                               .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                               .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                               .collect(Collectors.toList());
+        }
 
-        Platform.runLater(() -> {
-            downloadJDKLibcTypeComboBox.getItems().setAll(downloadJDKLibcTypes);
-            int selectIndex = -1;
-
-            for (int i = 0; i < downloadJDKLibcTypeComboBox.getItems().size() ; i++) {
-                if (downloadJDKLibcTypeComboBox.getItems().get(i) == operatingSystem.getLibCType()) {
-                    selectIndex = i;
-                    break;
-                }
-            }
-            if (-1 == selectIndex) {
-                if (downloadJDKLibcTypes.size() > 0) {
-                    downloadJDKLibcTypeComboBox.getSelectionModel().select(0);
-                }
-            } else {
-                downloadJDKLibcTypeComboBox.getSelectionModel().select(selectIndex);
-            }
-        });
-
-
-    }
-
-    private void selectLibcType() {
-        downloadJDKSelectedLibcType = downloadJDKLibcTypeComboBox.getSelectionModel().getSelectedItem();
-        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
-                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
-                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
-                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
-                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
-                                                 .collect(Collectors.toList());
         downloadJDKArchitectures = selection.stream().map(pkg -> pkg.getArchitecture()).collect(Collectors.toSet());
 
         Platform.runLater(() -> {
@@ -2642,17 +2589,18 @@ public class Main extends Application {
                 downloadJDKArchitectureComboBox.getSelectionModel().select(selectIndex);
             }
         });
+
+
     }
 
     private void selectArchitecture() {
         downloadJDKSelectedArchitecture = downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem();
-        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
-                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
-                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
-                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
-                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
-                                                 .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
-                                                 .collect(Collectors.toList());
+        List<MinimizedPkg> selection = downloadJDKSelectedPkgs.stream()
+                                                              .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                              .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                              .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                              .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                              .collect(Collectors.toList());
         downloadJDKArchiveTypes = selection.stream().map(pkg -> pkg.getArchiveType()).collect(Collectors.toSet());
         Platform.runLater(() -> {
             downloadJDKArchiveTypeComboBox.getItems().setAll(downloadJDKArchiveTypes);
@@ -2669,18 +2617,17 @@ public class Main extends Application {
     }
 
     private void update() {
-        List<Pkg> selection = downloadJDKSelectedPkgs.stream()
-                                                 .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
-                                                 .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
-                                                 .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
-                                                 .filter(pkg -> downloadJDKSelectedLibcType == pkg.getLibCType())
-                                                 .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
-                                                 .filter(pkg -> downloadJDKSelectedArchiveType == pkg.getArchiveType())
-                                                 .collect(Collectors.toList());
+        List<MinimizedPkg> selection = downloadJDKSelectedPkgs.stream()
+                                                              .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                              .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                              .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                              .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                              .filter(pkg -> downloadJDKSelectedArchiveType == pkg.getArchiveType())
+                                                              .collect(Collectors.toList());
         if (selection.size() > 0) {
             downloadJDKSelectedPkg = selection.get(0);
             Platform.runLater(() -> {
-                downloadJDKFilenameLabel.setText(null == downloadJDKSelectedPkg ? "-" : downloadJDKSelectedPkg.getFileName());
+                downloadJDKFilenameLabel.setText(null == downloadJDKSelectedPkg ? "-" : downloadJDKSelectedPkg.getFilename());
                 tckTestedTag.setVisible(Verification.YES == downloadJDKSelectedPkg.getTckTested());
                 tckTestedLink.setText(Verification.YES == downloadJDKSelectedPkg.getTckTested() ? downloadJDKSelectedPkg.getTckCertUri() : "");
                 aqavitTestedTag.setVisible(Verification.YES == downloadJDKSelectedPkg.getAqavitCertified());
@@ -2696,7 +2643,7 @@ public class Main extends Application {
         }
     }
 
-    private void downloadPkgDownloadJDK(final Pkg pkg) {
+    private void downloadPkgDownloadJDK(final MinimizedPkg pkg) {
         if (null == pkg) { return; }
         directoryChooser.setTitle("Choose folder for download");
 
@@ -2725,7 +2672,7 @@ public class Main extends Application {
                 new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
                 return;
             }
-            final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFileName();
+            final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFilename();
             Worker<Boolean> worker = createWorker(directDownloadUri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
                 if (nv.equals(State.READY)) {

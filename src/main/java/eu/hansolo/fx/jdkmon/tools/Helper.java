@@ -20,7 +20,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
+import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.VersionNumber;
+import io.foojay.api.discoclient.util.BodyHandlerWrapper;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
@@ -38,10 +40,13 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 
 public class Helper {
+    private static HttpClient httpClient;
+
     public static double clamp(final double min, final double max, final double value) {
         if (value < min) return min;
         if (value > max) return max;
@@ -147,5 +152,54 @@ public class Helper {
 
     public static final List<CVE> getCVEsForVersion(final List<CVE> cves, final VersionNumber versionNumber) {
         return cves.stream().filter(cve -> cve.affectedVersions().contains(versionNumber)).collect(Collectors.toList());
+    }
+
+
+    // ******************** REST calls ****************************************
+    public static HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                         .connectTimeout(Duration.ofSeconds(20))
+                         .followRedirects(Redirect.NORMAL)
+                         .version(java.net.http.HttpClient.Version.HTTP_2)
+                         .build();
+    }
+
+    public static final HttpResponse<String> get(final String uri) { return get(uri, ""); }
+    public static final HttpResponse<String> get(final String uri, final String userAgent) {
+        if (null == httpClient) { httpClient = createHttpClient(); }
+        final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient V2" : "DiscoClient V2 (" + userAgent + ")";
+        HttpRequest request = HttpRequest.newBuilder()
+                                         .GET()
+                                         .uri(URI.create(uri))
+                                         .setHeader("Accept", "application/json")
+                                         .setHeader("User-Agent", userAgentText)
+                                         .timeout(Duration.ofSeconds(60))
+                                         .build();
+        try {
+            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return response;
+            } else {
+                // Problem with url request
+                return response;
+            }
+        } catch (CompletionException | InterruptedException | IOException e) {
+            return null;
+        }
+    }
+
+    public static final CompletableFuture<HttpResponse<String>> getAsync(final String uri) { return getAsync(uri, ""); }
+    public static final CompletableFuture<HttpResponse<String>> getAsync(final String uri, final String userAgent) {
+        if (null == httpClient) { httpClient = createHttpClient(); }
+
+        final String userAgentText = (null == userAgent || userAgent.isEmpty()) ? "DiscoClient" : "DiscoClient (" + userAgent + ")";
+        final HttpRequest request = HttpRequest.newBuilder()
+                                               .GET()
+                                               .uri(URI.create(uri))
+                                               .setHeader("Accept", "application/json")
+                                               .setHeader("User-Agent", userAgentText)
+                                               .timeout(Duration.ofSeconds(60))
+                                               .build();
+        return httpClient.sendAsync(request, BodyHandlers.ofString());
     }
 }

@@ -21,13 +21,16 @@ import java.util.regex.Pattern;
 
 
 public class Constants {
-    public static final String  RELEASES_URI                   = "https://github.com/HanSolo/JDKMon/releases/latest";
-    public static final long    INITIAL_DELAY_IN_HOURS         = 3;
-    public static final long    RESCAN_INTERVAL_IN_HOURS       = 3;
-    public static final long    INITIAL_CVE_DELAY_IN_MINUTES   = 5;
-    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES = 360;
-    public static final Pattern POSITIVE_INTEGER_PATTERN       = Pattern.compile("\\d+");
-    public static final String  HOME_FOLDER                    = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
-    public static final String  OPENJFX_MAVEN_METADATA         = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
-    public static final String  JAVAFX_RUNTIME_VERSION         = "javafx.runtime.version";
+    public static final String  RELEASES_URI                          = "https://github.com/HanSolo/JDKMon/releases/latest";
+    public static final long    INITIAL_DELAY_IN_HOURS                = 3;
+    public static final long    RESCAN_INTERVAL_IN_HOURS              = 3;
+    public static final long    INITIAL_CVE_DELAY_IN_MINUTES          = 5;
+    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES        = 360;
+    public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES = 30;
+    public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES       = 60;
+    public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");
+    public static final String  HOME_FOLDER                           = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
+    public static final String  OPENJFX_MAVEN_METADATA                = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
+    public static final String  JAVAFX_RUNTIME_VERSION                = "javafx.runtime.version";
+    public static final String  ALL_PKGS_MINIMIZED_URI                = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
 }
