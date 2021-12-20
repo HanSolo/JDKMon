@@ -1158,6 +1158,7 @@ public class Main extends Application {
                 if (!pkgs.isEmpty()) {
                     downloadJDKMinimizedPkgs.clear();
                     downloadJDKMinimizedPkgs.addAll(pkgs);
+                    Platform.runLater(() -> selectMajorVersion());
                 }
             }
             downloadJDKPane.setDisable(false);
