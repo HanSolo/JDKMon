@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 17.0.1
-        uses: actions/setup-java@v1
+        uses: foojayio/setup-java@disco
         with:
           java-version: 17.0.1
           architecture: x64
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: '.\build\installer\JDKMon-17.0.18.msi'
+          path: '.\build\installer\JDKMon-17.0.19.msi'
 
 
 
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 17.0.1
-        uses: actions/setup-java@v1
+        uses: foojayio/setup-java@disco
         with:
           java-version: 17.0.1
           architecture: x64
@@ -48,9 +48,9 @@ jobs:
         with:
           name: JDKMon Mac
           path: |
-            ./build/installer/JDKMon-17.0.18.pkg
-            ./build/installer/JDKMon-17.0.18.pkg.sha256
-            ./build/libs/JDKMon-17.0.18.jar
+            ./build/installer/JDKMon-17.0.19.pkg
+            ./build/installer/JDKMon-17.0.19.pkg.sha256
+            ./build/libs/JDKMon-17.0.19.jar
 
   build-linux:
 
@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 17.0.1
-        uses: actions/setup-java@v1
+        uses: foojayio/setup-java@disco
         with:
           java-version: 17.0.1
           architecture: x64
@@ -75,8 +75,8 @@ jobs:
         with:
           name: JDKMon Linux
           path: |
-            ./build/installer/jdkmon_17.0.18-1_amd64.deb
-            ./build/installer/jdkmon_17.0.18-1_amd64.deb.sha256
-            ./build/installer/jdkmon-17.0.18-1_x86_64.rpm
-            ./build/installer/jdkmon-17.0.18-1_x86_64.rpm.sha256
-            ./build/libs/JDKMon-17.0.18.jar
+            ./build/installer/jdkmon_17.0.19-1_amd64.deb
+            ./build/installer/jdkmon_17.0.19-1_amd64.deb.sha256
+            ./build/installer/jdkmon-17.0.19-1_x86_64.rpm
+            ./build/installer/jdkmon-17.0.19-1_x86_64.rpm.sha256
+            ./build/libs/JDKMon-17.0.19.jar
