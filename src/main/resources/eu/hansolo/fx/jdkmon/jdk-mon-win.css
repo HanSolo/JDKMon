@@ -602,12 +602,12 @@
     -fx-border-color: #7a7a7a #7a7a7a transparent #7a7a7a;
 }
 .jdk-mon .combo-box-base:disabled {
-    -fx-opacity: 1.0 ;
+    -fx-opacity: 1.0;
 }
 .jdk-mon .combo-box-base > .text-field:disabled,
 .jdk-mon .combo-box-base > .arrow-button:disabled,
 .jdk-mon .combo-box-base > .list-cell:disabled {
-    -fx-opacity: -fx-disabled-opacity;
+    -fx-opacity: 0.5;
 }
 .jdk-mon .combo-box > .list-cell {
     -fx-background      : transparent;
@@ -699,12 +699,12 @@
     -fx-border-color: #858585 #858585 transparent #858585;
 }
 .jdk-mon:dark .combo-box-base:disabled {
-    -fx-opacity: 1.0 ;
+    -fx-opacity: 1.0;
 }
 .jdk-mon:dark .combo-box-base > .text-field:disabled,
 .jdk-mon:dark .combo-box-base > .arrow-button:disabled,
 .jdk-mon:dark .combo-box-base > .list-cell:disabled {
-    -fx-opacity: -fx-disabled-opacity;
+    -fx-opacity: 0.5;
 }
 .jdk-mon:dark .combo-box > .list-cell {
     -fx-background      : transparent;

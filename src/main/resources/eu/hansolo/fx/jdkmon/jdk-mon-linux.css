@@ -664,7 +664,7 @@
 .jdk-mon .combo-box-base > .text-field:disabled,
 .jdk-mon .combo-box-base > .arrow-button:disabled,
 .jdk-mon .combo-box-base > .list-cell:disabled {
-    -fx-opacity: -fx-disabled-opacity;
+    -fx-opacity: 0.5;
 }
 .jdk-mon .combo-box > .list-cell {
     -fx-background      : transparent;
@@ -791,7 +791,7 @@
 .jdk-mon:dark .combo-box-base > .text-field:disabled,
 .jdk-mon:dark .combo-box-base > .arrow-button:disabled,
 .jdk-mon:dark .combo-box-base > .list-cell:disabled {
-    -fx-opacity: -fx-disabled-opacity;
+    -fx-opacity: 0.5;
 }
 .jdk-mon:dark .combo-box > .list-cell {
     -fx-background      : transparent;
