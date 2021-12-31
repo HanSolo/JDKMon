@@ -66,7 +66,10 @@ public class MinimizedPkg {
 
         this.id                    = json.get(Pkg.FIELD_ID).getAsString();
         this.distribution          = DiscoClient.getDistributionFromText(json.get(Pkg.FIELD_DISTRIBUTION).getAsString());
-        if (null == this.distribution) { throw new IllegalArgumentException("Distribution not found"); }
+        if (null == this.distribution) {
+            System.out.println(jsonText);
+            throw new IllegalArgumentException("Distribution not found");
+        }
         this.majorVersion          = new MajorVersion(json.get(Pkg.FIELD_MAJOR_VERSION).getAsInt());
         this.javaVersion           = SemVer.fromText(json.get(Pkg.FIELD_JAVA_VERSION).getAsString()).getSemVer1();
         this.architecture          = Architecture.fromText(json.get(Pkg.FIELD_ARCHITECTURE).getAsString());
@@ -87,7 +90,7 @@ public class MinimizedPkg {
     public MinimizedPkg(final String id, final ArchiveType archiveType, final Distribution distribution, final MajorVersion majorVersion, final SemVer javaVersion,
                         final ReleaseStatus releaseStatus, final OperatingSystem operatingSystem, final Architecture architecture, final PackageType packageType,
                         final boolean javafxBundled, final boolean directlyDownloadable, final String filename, final boolean freeToUseInProduction, final Verification tckTested,
-                        final String tckCertUri, final Verification aqavitCertified, final String aqqvitCertUri) {
+                        final String tckCertUri, final Verification aqavitCertified, final String aqavitCertUri) {
         this.id                    = id;
         this.archiveType           = archiveType;
         this.distribution          = distribution;
@@ -105,7 +108,7 @@ public class MinimizedPkg {
         this.tckTested             = tckTested;
         this.tckCertUri            = tckCertUri;
         this.aqavitCertified       = aqavitCertified;
-        this.aqavitCertUri         = aqqvitCertUri;
+        this.aqavitCertUri         = aqavitCertUri;
     }
 
     public String getId() { return id; }

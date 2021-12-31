@@ -1153,16 +1153,22 @@ public class Main extends Application {
                 final JsonObject         jsonObject = element.getAsJsonObject();
                 final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
                 for (int i = 0; i < jsonArray.size(); i++) {
-                    final JsonObject json = jsonArray.get(i).getAsJsonObject();
-                    pkgs.add(new MinimizedPkg(json.toString()));
+                    try {
+                        final JsonObject json = jsonArray.get(i).getAsJsonObject();
+                        pkgs.add(new MinimizedPkg(json.toString()));
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
                 if (!pkgs.isEmpty()) {
                     downloadJDKMinimizedPkgs.clear();
                     downloadJDKMinimizedPkgs.addAll(pkgs);
-                    Platform.runLater(() -> selectMajorVersion());
+                    Platform.runLater(() -> {
+                        downloadJDKPane.setDisable(false);
+                        selectMajorVersion();
+                    });
                 }
             }
-            downloadJDKPane.setDisable(false);
         });
     }
 
