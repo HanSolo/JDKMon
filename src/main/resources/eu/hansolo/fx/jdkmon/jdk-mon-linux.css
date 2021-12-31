@@ -344,15 +344,15 @@
     -fx-padding          : 4 4 4 4;
     -fx-alignment        : CENTER;
     -fx-content-display  : LEFT;
-    -fx-effect           : innershadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0.0 , 0, 2);
+    -fx-effect           : innershadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0 , 0, 2);
     -fx-font-family      : 'SF Pro';
 }
 .jdk-mon .check-box:armed > .box,
 .jdk-mon .check-box:selected > .box {
     -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 30%) 0%, -selection-color 6%, -selection-color 100%);
-    -fx-border-width     : 0px;
+    -fx-border-width     : 0;
     -fx-border           : 0;
-    -fx-border-radius    : 0px;
+    -fx-border-radius    : 0;
     -fx-border-color     : transparent;
 }
 .jdk-mon .check-box:selected > .box > .mark,
@@ -361,7 +361,7 @@
     -fx-background-insets: 0;/*1 0 -1 0;*/
 }
 .jdk-mon .check-box {
-    -fx-label-padding: 0.0em 0.0em 0.0em 0.416667em; /* 0 0 0 5 */
+    -fx-label-padding: 0 0 0 0.416667em; /* 0 0 0 5 */
     -fx-text-fill: -text-color;
 }
 .jdk-mon .check-box > .box {
@@ -388,14 +388,14 @@
     -fx-background-color : linear-gradient(to bottom, #696463 0%, #4B4544 6%, #453F3E 8%, #575151 75%, #615C5B 98%, #565150 100%);
     -fx-background-insets: 0;
     -fx-background-radius: 2.8px;
-    -fx-border-width     : 0px;
+    -fx-border-width     : 0;
     -fx-border           : 0;
-    -fx-border-radius    : 0px;
+    -fx-border-radius    : 0;
     -fx-border-color     : transparent;
     -fx-padding          : 4 4 4 4;
     -fx-alignment        : CENTER;
     -fx-content-display  : LEFT;
-    -fx-effect           : dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0.0 , 0, 0);
+    -fx-effect           : dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0 , 0, 0);
     -fx-font-family      : 'SF Pro';
 }
 .jdk-mon:dark .check-box:armed > .box,
@@ -408,7 +408,7 @@
     -fx-background-insets: 0;/*1 0 -1 0;*/
 }
 .jdk-mon:dark .check-box {
-    -fx-label-padding: 0.0em 0.0em 0.0em 0.416667em; /* 0 0 0 5 */
+    -fx-label-padding: 0 0 0 0.416667em; /* 0 0 0 5 */
     -fx-text-fill: -text-color;
 }
 .jdk-mon:dark .check-box > .box {
@@ -495,30 +495,22 @@
 .jdk-mon .dialog-pane {
     -fx-background-color: -light-main-background;
 }
-.jdk-mon .dialog-pane .header-panel {
-
-}
+.jdk-mon .dialog-pane .header-panel {}
 .jdk-mon .dialog-pane .header-panel .label {
     -fx-alignment  : CENTER;
     -fx-font-family: 'SF Pro';
     -fx-font-size  : 11;
     -fx-text-fill  : -dark-text-color;
 }
-.jdk-mon .dialog-pane .header-panel .graphic-container {
-
-}
-.jdk-mon .dialog-pane .header-panel .graphic-container .image-view {
-
-}
+.jdk-mon .dialog-pane .header-panel .graphic-container {}
+.jdk-mon .dialog-pane .header-panel .graphic-container .image-view {}
 .jdk-mon .dialog-pane > .content .label {
     -fx-alignment  : CENTER-LEFT;
     -fx-font-family: 'SF Pro';
     -fx-font-size  : 14;
     -fx-text-fill  : -dark-text-color;
 }
-.jdk-mon .dialog-pane > .button-bar {
-
-}
+.jdk-mon .dialog-pane > .button-bar {}
 .jdk-mon .dialog-pane .button {
     -fx-pref-height      : 15;
     -fx-background-color : -light-control-background;
@@ -549,30 +541,22 @@
 .jdk-mon:dark .dialog-pane {
     -fx-background-color: -dark-main-background;
 }
-.jdk-mon:dark .dialog-pane .header-panel {
-
-}
+.jdk-mon:dark .dialog-pane .header-panel {}
 .jdk-mon:dark .dialog-pane .header-panel .label {
     -fx-alignment  : CENTER;
     -fx-font-family: 'SF Pro';
     -fx-font-size  : 11;
     -fx-text-fill  : -dark-text-color;
 }
-.jdk-mon:dark .dialog-pane .header-panel .graphic-container {
-
-}
-.jdk-mon:dark .dialog-pane .header-panel .graphic-container .image-view {
-
-}
+.jdk-mon:dark .dialog-pane .header-panel .graphic-container {}
+.jdk-mon:dark .dialog-pane .header-panel .graphic-container .image-view {}
 .jdk-mon:dark .dialog-pane > .content .label {
     -fx-alignment  : CENTER-LEFT;
     -fx-font-family: 'SF Pro';
     -fx-font-size  : 14;
     -fx-text-fill  : -text-color;
 }
-.jdk-mon:dark .dialog-pane > .button-bar {
-
-}
+.jdk-mon:dark .dialog-pane > .button-bar {}
 .jdk-mon:dark .dialog-pane .button {
     -fx-pref-height      : 15;
     -fx-background-color : -dark-control-background;
@@ -683,7 +667,7 @@
     -fx-border-radius    : 5;
     -fx-border-insets    : -1;
     -fx-border-color     : #c0c0c0;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0.0 , 0 , 8 );
+    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
 }
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-background : -light-main-background;
@@ -772,7 +756,7 @@
 .jdk-mon:dark .combo-box-base:focused > .arrow-button,
 .jdk-mon:dark .combo-box-base:showing > .arrow-button {
     -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 15%), derive(-selection-color, -15%)), -selection-color;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0.0 , 0 , 0 );
+    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 0 );
 }
 .jdk-mon:dark .combo-box-base > .arrow-button > .arrow {
     -fx-background-insets: 0, 1.5;
@@ -810,7 +794,7 @@
     -fx-border-radius    : 5;
     -fx-border-insets    : -1;
     -fx-border-color     : #585858;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0.0 , 0 , 8 );
+    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
 }
 .jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-background : -dark-main-background;
