@@ -634,8 +634,8 @@
     -fx-padding    : 4 8 4 8;
 }
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
-    -fx-background       : #dedede
-    -fx-background-color : #dedede
+    -fx-background       : #dedede;
+    -fx-background-color : #dedede;
     -fx-background-radius: 0;
 }
 .jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
