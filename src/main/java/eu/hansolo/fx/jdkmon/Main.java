@@ -243,6 +243,7 @@ public class Main extends Application {
     private              ComboBox<Architecture>                                  downloadJDKArchitectureComboBox;
     private              ComboBox<ArchiveType>                                   downloadJDKArchiveTypeComboBox;
     private              Label                                                   downloadJDKFilenameLabel;
+    private              Label                                                   alreadyDownloadedLabel;
     private              Set<MajorVersion>                                       downloadJDKMaintainedVersions;
     private              List<MinimizedPkg>                                      downloadJDKSelectedPkgs;
     private              MinimizedPkg                                            downloadJDKSelectedPkg;
@@ -1235,8 +1236,9 @@ public class Main extends Application {
 
         distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
         distroLabel.setOnMousePressed(e -> {
-            if (e.isPrimaryButtonDown())
+            if (e.isPrimaryButtonDown()) {
                 openDistribution(distribution);
+            }
         });
 
         // Vulnerabilities
@@ -1426,6 +1428,7 @@ public class Main extends Application {
         popups.put(distroLabel.getText(), popup);
         // ********************************************************************
 
+        final String downloadFolder        = PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER);
         final String distributionApiString = distribution.getApiString();
         final SemVer availableJavaVersion  = firstPkg.getJavaVersion();
         if (distributionApiString.equals(nameToCheck)) {
@@ -1459,11 +1462,20 @@ public class Main extends Application {
 
         Collections.sort(pkgs, Comparator.comparing(Pkg::getArchiveType));
         pkgs.forEach(pkg -> {
-            ArchiveType archiveType      = pkg.getArchiveType();
-            Label       archiveTypeLabel = new Label(archiveType.getUiString());
+            boolean     alreadyDownloaded = false;
+            String      filename          = pkg.getFileName();
+            ArchiveType archiveType       = pkg.getArchiveType();
+            Label       archiveTypeLabel  = new Label(archiveType.getUiString());
             archiveTypeLabel.getStyleClass().add("tag-label");
+            if (null != downloadFolder && !downloadFolder.isEmpty()) {
+                alreadyDownloaded = new File(downloadFolder + File.separator + filename).exists();
+            }
             if (pkg.isDirectlyDownloadable()) {
-                archiveTypeLabel.setTooltip(new Tooltip(new StringBuilder().append("Download ").append(pkg.getFileName()).append(Verification.YES == pkg.getTckTested() ? " (TCK tested)" : "").toString()));
+                if (alreadyDownloaded) {
+                    archiveTypeLabel.setTooltip(new Tooltip(new StringBuilder().append("Already download ").append(filename).toString()));
+                } else {
+                    archiveTypeLabel.setTooltip(new Tooltip(new StringBuilder().append("Download ").append(filename).append(Verification.YES == pkg.getTckTested() ? " (TCK tested)" : "").toString()));
+                }
                 switch (archiveType) {
                     case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                     case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
@@ -1476,7 +1488,11 @@ public class Main extends Application {
             }
             archiveTypeLabel.disableProperty().bind(blocked);
             if (pkg.isDirectlyDownloadable()) {
-                archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); }});
+                if (alreadyDownloaded) {
+                    archiveTypeLabel.setOnMouseClicked(e -> { openFileLocation(new File(downloadFolder)); });
+                } else {
+                    archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadPkg(pkg); } });
+                }
             } else {
                 archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) {
                     if (Desktop.isDesktopSupported()) {
@@ -1562,8 +1578,12 @@ public class Main extends Application {
     }
 
     private void openDistribution(Distribution distribution) {
+        openFileLocation(new File(distribution.getLocation()));
+    }
+
+    private void openFileLocation(final File file) {
         try {
-            Desktop.getDesktop().open(new File(distribution.getLocation()));
+            Desktop.getDesktop().open(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1728,7 +1748,8 @@ public class Main extends Application {
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
-            final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
+            final boolean alreadyDownloaded = new File(downloadFolder + File.separator + pkg.getFileName()).exists();
+            final String  directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             if (null == directDownloadUri) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.initOwner(stage);
@@ -1767,14 +1788,16 @@ public class Main extends Application {
             });
             worker.progressProperty().addListener((o, ov, nv) -> progressBar.setProgress(nv.doubleValue() * 100.0));
 
-            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (alreadyDownloaded) {
+                openFileLocation(new File(downloadFolder.getAbsolutePath()));
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
                 info.initOwner(stage);
                 info.setTitle("JDKMon");
                 info.setHeaderText("JDKMon Download Info");
-                info.setContentText("Download will be started and update will be saved to " + downloadFolder);
+                info.setContentText("Download will be started and file will be saved to " + downloadFolder);
                 info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
                 info.show();
             }
@@ -2189,10 +2212,18 @@ public class Main extends Application {
 
         downloadJDKFilenameLabel = new Label("-");
         downloadJDKFilenameLabel.getStyleClass().add("small-label");
-        HBox.setMargin(downloadJDKFilenameLabel, new Insets(10, 0, 10, 0));
+        HBox.setMargin(downloadJDKFilenameLabel, new Insets(10, 0, 0, 0));
         HBox.setHgrow(downloadJDKFilenameLabel, Priority.ALWAYS);
         HBox downloadJDKFilenameBox = new HBox(downloadJDKFilenameLabel);
         downloadJDKFilenameBox.setAlignment(Pos.CENTER);
+
+        alreadyDownloadedLabel = new Label("(already dowloaded)");
+        alreadyDownloadedLabel.getStyleClass().add("small-label");
+        alreadyDownloadedLabel.setVisible(false);
+        HBox.setMargin(alreadyDownloadedLabel, new Insets(0, 0, 10, 0));
+        HBox.setHgrow(alreadyDownloadedLabel, Priority.ALWAYS);
+        HBox alreadyDownloadedBox = new HBox(alreadyDownloadedLabel);
+        alreadyDownloadedBox.setAlignment(Pos.CENTER);
 
         downloadJDKCancelButton = new Button("Cancel");
 
@@ -2304,7 +2335,7 @@ public class Main extends Application {
         VBox.setMargin(downloadJDKProgressBar, new Insets(0, 0, 5, 0));
 
         VBox downloadJDKVBox = new VBox(10, downloadJDKFxBox, downloadJDKMajorVersionBox, downloadJDKUpdateLevelBox, downloadJDKDistributionBox, downloadJDKOperatingSystemBox,
-                                        downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, downloadJDKProgressBar, downloadJDKButtonBox);
+                                        downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, alreadyDownloadedBox, downloadJDKProgressBar, downloadJDKButtonBox);
         downloadJDKVBox.setAlignment(Pos.CENTER);
 
         downloadJDKPane.getChildren().add(downloadJDKVBox);
@@ -2627,7 +2658,27 @@ public class Main extends Application {
                                                               .collect(Collectors.toList());
         if (selection.size() > 0) {
             downloadJDKSelectedPkg = selection.get(0);
+
+            final File    downloadFolder;
+            final boolean alreadyDownloaded;
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                if (!PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                    if (folder.isDirectory()) {
+                        downloadFolder = folder;
+                        alreadyDownloaded = new File(downloadFolder.getAbsolutePath() + File.separator + downloadJDKSelectedPkg.getFilename()).exists();
+                    } else {
+                        alreadyDownloaded = false;
+                    }
+                } else {
+                    alreadyDownloaded = false;
+                }
+            } else {
+                alreadyDownloaded = false;
+            }
+
             Platform.runLater(() -> {
+                alreadyDownloadedLabel.setVisible(alreadyDownloaded);
                 downloadJDKFilenameLabel.setText(null == downloadJDKSelectedPkg ? "-" : downloadJDKSelectedPkg.getFilename());
                 tckTestedTag.setVisible(Verification.YES == downloadJDKSelectedPkg.getTckTested());
                 tckTestedLink.setText(Verification.YES == downloadJDKSelectedPkg.getTckTested() ? downloadJDKSelectedPkg.getTckCertUri() : "");
@@ -2668,7 +2719,8 @@ public class Main extends Application {
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
-            final String directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
+            final boolean alreadyDownloaded = new File(downloadFolder + File.separator + pkg.getFilename()).exists();
+            final String  directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             if (null == directDownloadUri) {
                 new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
                 return;
@@ -2715,7 +2767,9 @@ public class Main extends Application {
             });
             worker.progressProperty().addListener((o, ov, nv) -> downloadJDKProgressBar.setProgress(nv.doubleValue() * 100.0));
 
-            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (alreadyDownloaded) {
+                openFileLocation(new File(downloadFolder.getAbsolutePath()));
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
