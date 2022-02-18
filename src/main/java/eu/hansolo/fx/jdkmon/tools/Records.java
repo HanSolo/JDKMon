@@ -16,18 +16,22 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.OutputFormat;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.OperatingMode;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.Severity;
+import eu.hansolo.jdktools.util.OutputFormat;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static io.foojay.api.discoclient.util.Constants.COLON;
-import static io.foojay.api.discoclient.util.Constants.COMMA;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
 
 
 public class Records {
@@ -64,4 +68,8 @@ public class Records {
 
         @Override public int compareTo(final CVE other) { return id.compareTo(other.id()); }
     }
+
+    public record SysInfo(OperatingSystem operatingSystem, Architecture architecture, OperatingMode operatingMode) {}
+
+    public record JdkInfo(String createdBy, String buildJdk) {}
 }

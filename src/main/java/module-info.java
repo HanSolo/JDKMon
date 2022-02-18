@@ -11,6 +11,7 @@ module eu.hansolo.fx.jdkmon {
 
     // 3rd Party
     requires transitive com.google.gson;
+    requires transitive eu.hansolo.jdktools;
     requires io.foojay.api.discoclient;
     requires eu.hansolo.cvescanner;
     requires FXTrayIcon;

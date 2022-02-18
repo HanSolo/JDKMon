@@ -44,8 +44,9 @@
     -YELLOW-AQUA              : rgb(255, 204, 0);
     -YELLOW-DARK              : rgb(255, 214, 10);
 
-    -check-mark-white         : url("./macos-checkmark.png");
-    -check-mark-black         : url("./macos-checkmark-blk.png");
+    -check-mark-empty         : url("controls/macos-checkmark-empty.png");
+    -check-mark-white         : url("controls/macos-checkmark-white.png");
+    -check-mark-black         : url("controls/macos-checkmark-black.png");
 
     -fx-background-radius     : 0 0 10 10;
     -dark-header-background   : #343535;
@@ -85,17 +86,19 @@
 
 .jdk-mon .header,
 .jdk-mon:dark .header {
-    -fx-background-radius: 10 10 10 10;
+    -fx-background-radius: 10 10 0 0;
 }
 
 
 .header .macos-window-button:disabled:close .circle {
-    -fx-fill  : #cecbca;
-    -fx-stroke: #bdbaba;
+    -fx-fill        : rgb(206, 203, 202);
+    -fx-stroke      : rgb(167, 165, 165);
+    -fx-stroke-width: 0.5px;
 }
 .header .macos-window-button:dark:disabled:close .circle {
-    -fx-fill  : #494d4d;
-    -fx-stroke: transparent;
+    -fx-fill        : rgb(83, 83, 83);
+    -fx-stroke      : transparent;
+    -fx-stroke-width: 0.5px;
 }
 
 
@@ -321,104 +324,87 @@
 }
 
 
-.jdk-mon .check-box .text {
-    -fx-fill       : -light-text-color;
-    -fx-font-family: 'SF Pro';
-    -fx-font-size  : 14;
+.jdk-mon .check-box,
+.jdk-mon .check-box:focused {
+    -box-fill        : -selection-color;
+    -fx-label-padding: 0 0 0 5;
+    -fx-text-fill    : black;
+    -fx-font-family  : 'SF Pro Regular';
+    -fx-font-size    : 13px;
 }
 .jdk-mon .check-box > .box,
-.jdk-mon .check-box:hover > .box {
-    -fx-min-width        : 14px;
-    -fx-min-height       : 14px;
-    -fx-max-width        : 14px;
-    -fx-max-height       : 14px;
-    -fx-pref-width       : 14px;
-    -fx-pref-height      : 14px;
+.jdk-mon .check-box:focused > .box {
+    -fx-border-insets    : 0;
+    -fx-border-width     : 1;
+    -fx-border-style     : solid;
+    -fx-border-radius    : 3;
+    -fx-border-color     : rgb(206, 206, 206);
+    -fx-background-radius: 3;
     -fx-background-color : white;
-    -fx-background-insets: 0;
-    -fx-background-radius: 2.8px;
-    -fx-border-width     : 1px;
-    -fx-border           : 1;
-    -fx-border-radius    : 2.8px;
-    -fx-border-color     : #cecece;
-    -fx-padding          : 4 4 4 4;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-    -fx-effect           : innershadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0 , 0, 2);
-    -fx-font-family      : 'SF Pro';
-}
-.jdk-mon .check-box:armed > .box,
-.jdk-mon .check-box:selected > .box {
-    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 30%) 0%, -selection-color 6%, -selection-color 100%);
-    -fx-border-width     : 0;
-    -fx-border           : 0;
-    -fx-border-radius    : 0;
-    -fx-border-color     : transparent;
-}
-.jdk-mon .check-box:selected > .box > .mark,
-.jdk-mon .check-box:indeterminate  > .box > .mark {
-    -fx-background-color : white;
-    -fx-background-insets: 0;/*1 0 -1 0;*/
-}
-.jdk-mon .check-box {
-    -fx-label-padding: 0 0 0 0.416667em; /* 0 0 0 5 */
-    -fx-text-fill: -text-color;
-}
-.jdk-mon .check-box > .box {
-    -fx-background-radius: 3, 2, 1;
-    -fx-padding          : 4 4 4 4;
+    -fx-padding          : 2 2 3 3;
 }
 .jdk-mon .check-box > .box > .mark {
     -fx-background-color: null;
-    -fx-padding         : 5 5 3 5;
+    -fx-padding         : 4 4 4 4;
+    -fx-shape           : "M-0.25,6.083c0.843-0.758,4.583,4.833,5.75,4.833S14.5-1.5,15.917-0.917c1.292,0.532-8.75,17.083-10.5,17.083C3,16.167-1.083,6.833-0.25,6.083z";
+}
+.jdk-mon .check-box:selected > .box {
+    -fx-border-color    : transparent;
+    -fx-background-color: -box-fill;
+}
+.jdk-mon .check-box:selected > .box > .mark {
+    -fx-background-color: white;
+    -fx-padding         : 4 4 4 4;
     -fx-shape           : "M23.895,35.297L31.077,24.09C31.818,22.935 33.357,22.598 34.512,23.338C35.668,24.079 36.005,25.618 35.264,26.773L26.297,40.767C25.8,41.542 24.944,41.949 24.085,41.909C23.383,41.902 22.689,41.6 22.203,41.02L16.809,34.583C15.927,33.532 16.066,31.962 17.118,31.081C18.169,30.199 19.739,30.337 20.62,31.389L23.895,35.297Z";
 }
 
-.jdk-mon:dark .check-box .text {
-    -fx-fill: -text-color;
+.jdk-mon:dark .check-box {
+    -box-fill         : -selection-color;
+    -fx-label-padding : 0 0 0 5;
+    -fx-text-fill     : white;
 }
 .jdk-mon:dark .check-box > .box,
-.jdk-mon:dark .check-box:hover > .box {
-    -fx-min-width        : 14px;
-    -fx-min-height       : 14px;
-    -fx-max-width        : 14px;
-    -fx-max-height       : 14px;
-    -fx-pref-width       : 14px;
-    -fx-pref-height      : 14px;
-    -fx-background-color : linear-gradient(to bottom, #696463 0%, #4B4544 6%, #453F3E 8%, #575151 75%, #615C5B 98%, #565150 100%);
-    -fx-background-insets: 0;
-    -fx-background-radius: 2.8px;
+.jdk-mon:dark .check-box:focused > .box {
+    -fx-border-insets    : 0;
     -fx-border-width     : 0;
-    -fx-border           : 0;
-    -fx-border-radius    : 0;
+    -fx-border-style     : none;
+    -fx-border-radius    : 3;
     -fx-border-color     : transparent;
-    -fx-padding          : 4 4 4 4;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-    -fx-effect           : dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 2, 0 , 0, 0);
-    -fx-font-family      : 'SF Pro';
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 3;
+    -fx-background-color : linear-gradient(to bottom, rgb(103, 99, 99) 0%, rgb(57, 51, 52) 3%, rgb(57, 51, 52) 97%, rgb(111, 106, 107) 100%),
+    linear-gradient(to bottom, rgb(82, 76, 76) 0%, rgb(109, 105, 105) 100%);
+    -fx-padding          : 2 2 3 3;
 }
-.jdk-mon:dark .check-box:armed > .box,
-.jdk-mon:dark .check-box:selected > .box {
-    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 30%) 0%, -selection-color 6%, -selection-color 100%);
-}
-.jdk-mon:dark .check-box:selected > .box > .mark,
-.jdk-mon:dark .check-box:indeterminate  > .box > .mark {
-    -fx-background-color : white;
-    -fx-background-insets: 0;/*1 0 -1 0;*/
-}
-.jdk-mon:dark .check-box {
-    -fx-label-padding: 0 0 0 0.416667em; /* 0 0 0 5 */
-    -fx-text-fill: -text-color;
-}
-.jdk-mon:dark .check-box > .box {
-    -fx-background-radius: 3, 2, 1;
-    -fx-padding          : 4 4 4 4;
+.jdk-mon:dark .check-box:pressed > .box {
+    -fx-border-insets    : 0;
+    -fx-border-width     : 0;
+    -fx-border-style     : none;
+    -fx-border-radius    : 3;
+    -fx-border-color     : transparent;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 3;
+    -fx-background-color : linear-gradient(to bottom, derive(rgb(103, 99, 99), 20%) 0%, derive(rgb(57, 51, 52), 20%) 3%, derive(rgb(57, 51, 52), 20%) 97%, derive(rgb(111, 106, 107), 20%) 100%),
+    linear-gradient(to bottom, derive(rgb(82, 76, 76), 20%) 0%, derive(rgb(109, 105, 105), 20%) 100%);
+    -fx-padding          : 2 2 3 3;
 }
 .jdk-mon:dark .check-box > .box > .mark {
     -fx-background-color: null;
-    -fx-padding         : 5 5 3 5;
-    -fx-shape           : "M23.895,35.297L31.077,24.09C31.818,22.935 33.357,22.598 34.512,23.338C35.668,24.079 36.005,25.618 35.264,26.773L26.297,40.767C25.8,41.542 24.944,41.949 24.085,41.909C23.383,41.902 22.689,41.6 22.203,41.02L16.809,34.583C15.927,33.532 16.066,31.962 17.118,31.081C18.169,30.199 19.739,30.337 20.62,31.389L23.895,35.297Z";
+    -fx-padding         : 5 5 5 5;
+    -fx-shape           : "M-0.25,6.083c0.843-0.758,4.583,4.833,5.75,4.833S14.5-1.5,15.917-0.917c1.292,0.532-8.75,17.083-10.5,17.083C3,16.167-1.083,6.833-0.25,6.083z";
+}
+.jdk-mon:dark .check-box:selected > .box {
+    -fx-background-color: -box-fill;
+    -fx-padding         : 3 3 4 4;
+}
+.jdk-mon:dark .check-box:selected:focused > .box {
+    -fx-background-color: -box-fill;
+}
+.jdk-mon:dark .check-box:selected > .box > .mark {
+    -fx-background-insets: 0, 0;
+    -fx-background-color : transparent, white;
+    -fx-padding          : 4 4 4 4;
+    -fx-shape            : "M23.895,35.297L31.077,24.09C31.818,22.935 33.357,22.598 34.512,23.338C35.668,24.079 36.005,25.618 35.264,26.773L26.297,40.767C25.8,41.542 24.944,41.949 24.085,41.909C23.383,41.902 22.689,41.6 22.203,41.02L16.809,34.583C15.927,33.532 16.066,31.962 17.118,31.081C18.169,30.199 19.739,30.337 20.62,31.389L23.895,35.297Z";
 }
 
 
@@ -601,260 +587,6 @@
 }
 
 
-.jdk-mon .combo-box-base {
-    -fx-background-color : linear-gradient(to bottom, #cac7c7, #b3b0b0), white;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 5, 5;
-    -fx-padding          : 0.166666em 0.166666em 0.166666em 0.666666em;
-    -fx-text-fill        : -text-color;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-    -fx-min-height       : 20px;
-    -fx-max-height       : 20px;
-    -fx-pref-height      : 20px;
-}
-.jdk-mon .combo-box-base > .arrow-button {
-    -fx-background-color : white, white;
-    -fx-background-insets: 0, 1.5;
-    -fx-background-radius: 5, 5;
-    -fx-border-radius    : 5, 5;
-    -fx-padding          : 0 4 0 5;
-    -fx-min-width        : 16;
-    -fx-max-width        : 16;
-    -fx-pref-width       : 16;
-    -fx-min-height       : 16;
-    -fx-max-height       : 16;
-    -fx-pref-height      : 16;
-}
-.jdk-mon .combo-box-base:focused > .arrow-button,
-.jdk-mon .combo-box-base:showing > .arrow-button {
-    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 15%), derive(-selection-color, -15%)), -selection-color;
-    -fx-effect           : none;
-}
-.jdk-mon .combo-box-base > .arrow-button > .arrow {
-    -fx-background-insets: 0, 1.5;
-    -fx-background-color : #292929, white;
-    -fx-padding          : 0.4em 0.3em 0.4em 0.3em;
-    -fx-shape            : "M 5 6 L 8 3.2 L 11 6 z M 11 10.2 L 8 13 5 10.2 z";
-}
-.jdk-mon .combo-box-base:focused > .arrow-button > .arrow,
-.jdk-mon .combo-box-base:showing > .arrow-button > .arrow {
-    -fx-background-insets: 0, 1;
-    -fx-background-color : rgb(255.0, 255.0, 255.0), -selection-color;
-}
-.jdk-mon .combo-box-base:disabled {
-    -fx-opacity: 1.0;
-}
-.jdk-mon .combo-box-base > .text-field:disabled,
-.jdk-mon .combo-box-base > .arrow-button:disabled,
-.jdk-mon .combo-box-base > .list-cell:disabled {
-    -fx-opacity: 0.5;
-}
-.jdk-mon .combo-box > .list-cell {
-    -fx-background      : transparent;
-    -fx-background-color: transparent;
-    -fx-font-family     : 'SF Pro';
-    -fx-font-size       : 13;
-    -fx-text-fill       : -dark-text-color;
-    -fx-padding         : 0;
-}
-.jdk-mon .combo-box-popup > .list-view {
-    -fx-background-color : -light-main-background;
-    -fx-background       : -light-main-background;
-    -fx-padding          : 1px;
-    -fx-background-insets: 0;
-    -fx-background-radius: 5;
-    -fx-border-radius    : 5;
-    -fx-border-insets    : -1;
-    -fx-border-color     : #c0c0c0;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
-}
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-background : -light-main-background;
-    -fx-min-height : 20px;
-    -fx-max-height : 20px;
-    -fx-pref-height: 20px;
-    -fx-padding    : 0 0 0 1.333333em;
-}
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
-    -fx-background       : -selection-color;
-    -fx-background-color : -selection-color;
-    -fx-background-radius: 5;
-    -fx-text-fill        : -text-color;
-}
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
-    -fx-background       : -light-main-background;
-    -fx-background-color : -light-main-background;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-text-fill        : -dark-text-color;
-}
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover > .label {
-    -fx-graphic    : -check-mark-black;
-    -fx-translate-x: -15px;
-}
-.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell > .label {
-    -fx-text-fill       : -dark-text-color;
-    -fx-graphic         : null;
-    -fx-graphic-text-gap: 5px;
-    -fx-content-display : left;
-    -fx-padding         : 0;
-}
-.jdk-mon .combo-box-popup > .list-view > .placeholder > .label {
-    -fx-text-fill: -dark-text-color;
-    -fx-padding  : 0;
-}
-
-.jdk-mon .combo-box-popup > .list-view .scroll-bar:horizontal {
-    -fx-background-color: transparent;
-    -fx-pref-height     : 8px;
-}
-.jdk-mon .combo-box-popup > .list-view .scroll-bar:vertical {
-    -fx-background-color: transparent;
-    -fx-pref-width      : 8px;
-}
-.jdk-mon .combo-box-popup > .list-view .increment-button,
-.jdk-mon .combo-box-popup > .list-view .decrement-button {
-    -fx-background-color: transparent;
-    -fx-padding         : 0;
-}
-.jdk-mon .combo-box-popup > .list-view .scroll-bar:horizontal .thumb,
-.jdk-mon .combo-box-popup > .list-view .scroll-bar:vertical .thumb {
-    -fx-background-color : derive(-light-main-background, -30%);
-    -fx-background-insets: 0;
-    -fx-background-radius: 2em;
-}
-
-
-.jdk-mon:dark .combo-box-base {
-    -fx-background-color : linear-gradient(to bottom, derive(rgb(101, 101, 101), 15%), derive(rgb(101, 101, 101),-15%)), rgb(101, 101, 101);
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 5, 5;
-    -fx-padding          : 0.166666em 0.166666em 0.166666em 0.666666em;
-    -fx-text-fill        : -text-color;
-    -fx-alignment        : CENTER;
-    -fx-content-display  : LEFT;
-    -fx-min-height       : 20px;
-    -fx-max-height       : 20px;
-    -fx-pref-height      : 20px;
-}
-.jdk-mon:dark .combo-box-base > .arrow-button {
-    -fx-background-color : rgb(101, 101, 101)m rgb(101, 101, 101);
-    -fx-background-insets: 0, 1.5;
-    -fx-background-radius: 5, 5;
-    -fx-border-radius    : 5, 5;
-    -fx-padding          : 0 4 0 5;
-    -fx-min-width        : 16;
-    -fx-max-width        : 16;
-    -fx-pref-width       : 16;
-    -fx-min-height       : 16;
-    -fx-max-height       : 16;
-    -fx-pref-height      : 16;
-}
-.jdk-mon:dark .combo-box-base:focused > .arrow-button,
-.jdk-mon:dark .combo-box-base:showing > .arrow-button {
-    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 15%), derive(-selection-color, -15%)), -selection-color;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 0 );
-}
-.jdk-mon:dark .combo-box-base > .arrow-button > .arrow {
-    -fx-background-insets: 0, 1.5;
-    -fx-background-color : rgb(255.0, 255.0, 255.0), rgb(101, 101, 101);
-    -fx-padding          : 0.4em 0.3em 0.4em 0.3em;
-    -fx-shape            : "M 5 6 L 8 3.2 L 11 6 z M 11 10.2 L 8 13 5 10.2 z";
-}
-.jdk-mon:dark .combo-box-base:focused > .arrow-button > .arrow,
-.jdk-mon:dark .combo-box-base:showing > .arrow-button > .arrow {
-    -fx-background-insets: 0, 1;
-    -fx-background-color : rgb(255.0, 255.0, 255.0), -selection-color;
-}
-.jdk-mon:dark .combo-box-base:disabled {
-    -fx-opacity: 1.0 ;
-}
-.jdk-mon:dark .combo-box-base > .text-field:disabled,
-.jdk-mon:dark .combo-box-base > .arrow-button:disabled,
-.jdk-mon:dark .combo-box-base > .list-cell:disabled {
-    -fx-opacity: 0.5;
-}
-.jdk-mon:dark .combo-box > .list-cell {
-    -fx-background      : transparent;
-    -fx-background-color: transparent;
-    -fx-font-family     : 'SF Pro';
-    -fx-font-size       : 13;
-    -fx-text-fill       : -text-color;
-    -fx-padding         : 0;
-}
-.jdk-mon:dark .combo-box-popup > .list-view {
-    -fx-background-color : -dark-main-background;
-    -fx-background       : -dark-main-background;
-    -fx-padding          : 1px;
-    -fx-background-insets: 0;
-    -fx-background-radius: 5;
-    -fx-border-radius    : 5;
-    -fx-border-insets    : -1;
-    -fx-border-color     : #585858;
-    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-background : -dark-main-background;
-    -fx-min-height : 20px;
-    -fx-max-height : 20px;
-    -fx-pref-height: 20px;
-    -fx-padding    : 0 0 0 1.333333em;
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
-    -fx-background       : -selection-color;
-    -fx-background-color : -selection-color;
-    -fx-background-radius: 5;
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
-    -fx-background       : -dark-main-background;
-    -fx-background-color : -dark-main-background;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-text-fill        : -text-color;
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected > .label,
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover > .label {
-    -fx-graphic    : -check-mark-white;
-    -fx-text-fill  : -text-color;
-    -fx-translate-x: -15px;
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell > .label {
-    -fx-text-fill       : -text-color;
-    -fx-graphic         : null;
-    -fx-graphic-text-gap: 5px;
-    -fx-content-display : left;
-    -fx-padding         : 0;
-}
-.jdk-mon:dark .combo-box-popup > .list-view > .placeholder > .label {
-    -fx-text-fill: -text-color;
-    -fx-padding  : 0;
-}
-.jdk-mon:dark .combo-box-popup > .list-view .scroll-bar:horizontal {
-    -fx-background-color: transparent;
-    -fx-pref-height     : 8px;
-}
-.jdk-mon:dark .combo-box-popup > .list-view .scroll-bar:vertical {
-    -fx-background-color: transparent;
-    -fx-pref-width      : 8px;
-}
-.jdk-mon:dark .combo-box-popup > .list-view .increment-button,
-.jdk-mon:dark .combo-box-popup > .list-view .decrement-button {
-    -fx-background-color: transparent;
-    -fx-padding         : 0;
-}
-.jdk-mon:dark .combo-box-popup > .list-view .scroll-bar:horizontal .thumb,
-.jdk-mon:dark .combo-box-popup > .list-view .scroll-bar:vertical .thumb {
-    -fx-background-color : derive(-dark-main-background, 30%);
-    -fx-background-insets: 0;
-    -fx-background-radius: 2em;
-}
-
-
 .cve-close-button {
     -fx-pref-height      : 15;
     -fx-background-color : -light-control-background;
@@ -1013,4 +745,222 @@
     -fx-border-color: transparent;
     -fx-border-style: none;
     -fx-border-width: 0;
+}
+
+
+.jdk-mon .combo-box-base,
+.jdk-mon .combo-box-base:focused {
+    -fx-background-color : linear-gradient(to bottom, #cac7c7, #b3b0b0), white;
+    -fx-background-insets: 0, 0.5;
+    -fx-background-radius: 5, 5;
+    -fx-padding          : 0.166666em 0.166666em 0.166666em 0.666666em;
+    -fx-text-fill        : black;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+    -fx-min-height       : 20px;
+    -fx-max-height       : 20px;
+    -fx-pref-height      : 20px;
+}
+.jdk-mon .combo-box-base > .arrow-button,
+.jdk-mon .combo-box-base:focused > .arrow-button,
+.jdk-mon .combo-box-base:showing > .arrow-button {
+    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 15%), derive(-selection-color, -15%)), -selection-color;
+    -fx-background-insets: 0, 0.5;
+    -fx-background-radius: 4, 4;
+    -fx-border-radius    : 4, 4;
+    -fx-padding          : 1 4.5 1 4.5;
+    -fx-min-width        : 16;
+    -fx-max-width        : 16;
+    -fx-pref-width       : 16;
+    -fx-min-height       : 16;
+    -fx-max-height       : 16;
+    -fx-pref-height      : 16;
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);
+}
+.jdk-mon .combo-box-base:window-focus-lost > .arrow-button {
+    -fx-background-color : transparent, transparent;
+    -fx-background-insets: 0, 0.5;
+    -fx-background-radius: 4, 4;
+    -fx-border-radius    : 4, 4;
+    -fx-padding          : 1 4.5 1 4.5;
+    -fx-min-width        : 16;
+    -fx-max-width        : 16;
+    -fx-pref-width       : 16;
+    -fx-min-height       : 16;
+    -fx-max-height       : 16;
+    -fx-pref-height      : 16;
+    -fx-effect           : none;
+}
+.jdk-mon .combo-box-base > .arrow-button > .arrow {
+    -fx-background-insets: -0.5, 1.25;
+    -fx-background-color : white, -selection-color;
+    -fx-padding          : 4.95 3.075 4.95 3.075;
+    -fx-shape            : "M 5 6.5 L 8 3.15 L 11 6.5 z M 11 9.65 L 8 13 5 9.65 z";
+}
+.jdk-mon .combo-box-base:window-focus-lost > .arrow-button > .arrow {
+    -fx-background-insets: -0.5, 1.25;
+    -fx-background-color : black, white;
+}
+.jdk-mon .combo-box-base:disabled {
+    -fx-opacity: 1.0;
+}
+.jdk-mon .combo-box-base > .text-field:disabled,
+.jdk-mon .combo-box-base > .arrow-button:disabled,
+.jdk-mon .combo-box-base > .list-cell:disabled {
+    -fx-opacity: 0.5;
+}
+
+.jdk-mon .combo-box > .list-cell {
+    -fx-font-family : 'SF Pro';
+    -fx-font-size   : 13;
+    -fx-text-fill   : black;
+    -fx-border-style: none;
+    -fx-border-color: transparent;
+    -fx-padding     : 0;
+}
+.jdk-mon .combo-box .macos-combo-box-cell {
+    -fx-font-family : 'SF Pro';
+    -fx-font-size   : 13;
+    -fx-text-fill   : black;
+}
+
+.jdk-mon .macos-combo-box-cell,
+.jdk-mon .macos-combo-box-cell:odd,
+.jdk-mon .macos-combo-box-cell:even {
+    -fx-background-color: derive(rgb(237, 236, 236), -5%);
+    -fx-text-fill       : black;
+    -fx-border-style    : none;
+    -fx-border-color    : transparent;
+}
+
+.jdk-mon .combo-box-popup > .list-view {
+    -fx-background-color : rgb(215, 215, 215);
+    -fx-padding          : 0px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius    : 5;
+    -fx-border-insets    : 0;
+    -fx-border-color     : rgb(215, 215, 215);
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 8);
+}
+.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : black;
+}
+.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+}
+
+
+.jdk-mon:dark .combo-box-popup > .list-view {
+    -fx-border-color: rgb(79, 78, 76);
+}
+.jdk-mon:dark .combo-box-base,
+.jdk-mon:dark .combo-box-base:focused {
+    -fx-background-color : linear-gradient(to bottom, derive(rgb(101, 101, 101), 15%), derive(rgb(101, 101, 101),-15%)), rgb(96, 93, 93);
+    -fx-background-insets: 0, 0.5;
+    -fx-background-radius: 5, 5;
+    -fx-padding          : 0.166666em 0.166666em 0.166666em 0.666666em;
+    -fx-text-fill        : white;
+    -fx-alignment        : CENTER;
+    -fx-content-display  : LEFT;
+    -fx-min-height       : 20px;
+    -fx-max-height       : 20px;
+    -fx-pref-height      : 20px;
+}
+.jdk-mon:dark .combo-box-base > .arrow-button,
+.jdk-mon:dark .combo-box-base:focused > .arrow-button,
+.jdk-mon:dark .combo-box-base:showing > .arrow-button {
+    -fx-background-color : linear-gradient(to bottom, derive(-selection-color, 20%), derive(-selection-color, -20%)), -selection-color;
+    -fx-background-insets: 0, 0.5;
+    -fx-background-radius: 4, 4;
+    -fx-border-radius    : 4, 4;
+    -fx-padding          : 1 4.5 1 4.5;
+    -fx-min-width        : 16;
+    -fx-max-width        : 16;
+    -fx-pref-width       : 16;
+    -fx-min-height       : 16;
+    -fx-max-height       : 16;
+    -fx-pref-height      : 16;
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);
+}
+.jdk-mon:dark .combo-box-base:window-focus-lost > .arrow-button {
+    -fx-background-color : transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-radius    : 3;
+    -fx-padding          : 1 4.5 1 4.5;
+    -fx-min-width        : 16;
+    -fx-max-width        : 16;
+    -fx-pref-width       : 16;
+    -fx-min-height       : 16;
+    -fx-max-height       : 16;
+    -fx-pref-height      : 16;
+}
+.jdk-mon:dark .combo-box-base > .arrow-button > .arrow,
+.jdk-mon:dark .combo-box-base:focused > .arrow-button > .arrow,
+.jdk-mon:dark .combo-box-base:showing > .arrow-button > .arrow {
+    -fx-background-insets: -0.5, 1.25;
+    -fx-background-color : white, -selection-color;
+    -fx-padding          : 4.95 3.075 4.95 3.075;
+    -fx-shape            : "M 5 6.5 L 8 3.15 L 11 6.5 z M 11 9.65 L 8 13 5 9.65 z";
+}
+.jdk-mon:dark .combo-box-base:disabled {
+    -fx-opacity: 1.0;
+}
+.jdk-mon:dark .combo-box-base > .text-field:disabled,
+.jdk-mon:dark .combo-box-base > .arrow-button:disabled,
+.jdk-mon:dark .combo-box-base > .list-cell:disabled {
+    -fx-opacity: 0.5;
+}
+
+.jdk-mon:dark .combo-box > .list-cell {
+    -fx-font-family: 'SF Pro';
+    -fx-font-size  : 13;
+    -fx-text-fill  : white;
+    -fx-padding    : 0;
+}
+.jdk-mon:dark .combo-box .macos-combo-box-cell {
+    -fx-font-family: 'SF Pro';
+    -fx-font-size  : 13;
+    -fx-text-fill  : white;
+}
+
+.jdk-mon:dark .macos-combo-box-cell,
+.jdk-mon:dark .macos-combo-box-cell:odd,
+.jdk-mon:dark .macos-combo-box-cell:even {
+    -fx-background-color: rgb(47, 46, 47);
+    -fx-text-fill       : white;
+    -fx-border-style    : none;
+    -fx-border-color    : transparent;
+}
+
+.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: rgb(47, 46, 47);
+}
+.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : white;
+}
+.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : rgb(47, 46, 47);
+}
+.jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
 }

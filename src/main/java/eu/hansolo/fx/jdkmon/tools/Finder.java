@@ -16,15 +16,18 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.fx.jdkmon.Main.SemVerUri;
+import eu.hansolo.fx.jdkmon.Main.SemverUri;
+import eu.hansolo.fx.jdkmon.tools.Records.JdkInfo;
+import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.LibCType;
+import eu.hansolo.jdktools.OperatingMode;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.util.OutputFormat;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.LibCType;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.OutputFormat;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -52,6 +55,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,6 +65,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,30 +76,31 @@ import java.util.stream.Stream;
 
 
 public class Finder {
-    public static final  String                                        MACOS_JAVA_INSTALL_PATH   = "/System/Volumes/Data/Library/Java/JavaVirtualMachines/";
-    public static final  String                                        WINDOWS_JAVA_INSTALL_PATH = "C:\\Program Files\\Java\\";
-    public static final  String                                        LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
-    private static final Pattern                                       GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
-    private static final Matcher                                       GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
-    private static final Pattern                                       ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
-    private static final Matcher                                       ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
-    private static final String[]                                      MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
-    private static final String[]                                      LINUX_JAVA_HOME_CMDS      = { "/usr/bin/sh", "-c", "echo $JAVA_HOME" };
-    private static final String[]                                      WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
-    private static final String[]                                      DETECT_ALPINE_CMDS        = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
-    private static final String[]                                      UX_DETECT_ARCH_CMDS       = { "/bin/sh", "-c", "uname -m" };
-    private static final String[]                                      WIN_DETECT_ARCH_CMDS      = { "cmd.exe", "/c", "SET Processor" };
-    private static final Pattern                                       ARCHITECTURE_PATTERN      = Pattern.compile("(PROCESSOR_ARCHITECTURE)=([a-zA-Z0-9_\\-]+)");
-    private static final Matcher                                       ARCHITECTURE_MATCHER      = ARCHITECTURE_PATTERN.matcher("");
-    private              ExecutorService                               service                   = Executors.newSingleThreadExecutor();
-    private              Properties                                    releaseProperties         = new Properties();
-    private              io.foojay.api.discoclient.pkg.OperatingSystem operatingSystem           = detectOperatingSystem();
-    private              Architecture                                  architecture              = detectArchitecture();
-    private              String                                        javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
-    private              String                                        javaHome                  = "";
-    private              String                                        javafxPropertiesFile      = "javafx.properties";
-    private              boolean                                       isAlpine                  = false;
-    private              DiscoClient                                   discoclient;
+    public static final  String          MACOS_JAVA_INSTALL_PATH   = "/System/Volumes/Data/Library/Java/JavaVirtualMachines/";
+    public static final  String          WINDOWS_JAVA_INSTALL_PATH = "C:\\Program Files\\Java\\";
+    public static final  String          LINUX_JAVA_INSTALL_PATH   = "/usr/lib/jvm";
+    private static final Pattern         GRAALVM_VERSION_PATTERN   = Pattern.compile("(.*graalvm\\s)(.*)(\\s\\(.*)");
+    private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
+    private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
+    private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
+    private static final String[]        MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/usr/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]        WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
+    private static final String[]        DETECT_ALPINE_CMDS        = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+    private static final String[]        UX_DETECT_ARCH_CMDS       = { "/bin/sh", "-c", "uname -m" };
+    private static final String[]        MAC_DETECT_ROSETTA2_CMDS  = { "/bin/sh", "-c", "sysctl -in sysctl.proc_translated" };
+    private static final String[]        WIN_DETECT_ARCH_CMDS      = { "cmd.exe", "/c", "SET Processor" };
+    private static final Pattern         ARCHITECTURE_PATTERN      = Pattern.compile("(PROCESSOR_ARCHITECTURE)=([a-zA-Z0-9_\\-]+)");
+    private static final Matcher         ARCHITECTURE_MATCHER      = ARCHITECTURE_PATTERN.matcher("");
+    private              ExecutorService service                   = Executors.newSingleThreadExecutor();
+    private              Properties      releaseProperties         = new Properties();
+    private              OperatingSystem operatingSystem           = detectOperatingSystem();
+    private              Architecture    architecture              = detectArchitecture();
+    private              String          javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
+    private              String          javaHome                  = "";
+    private              String          javafxPropertiesFile      = "javafx.properties";
+    private              boolean         isAlpine                  = false;
+    private              DiscoClient     discoclient;
 
 
     public Finder() {
@@ -105,8 +114,8 @@ public class Finder {
     }
 
 
-    public Set<Distribution> getDistributions(final List<String> searchPaths) {
-        Set<Distribution> distros = new HashSet<>();
+    public Set<Distro> getDistributions(final List<String> searchPaths) {
+        Set<Distro> distros = new HashSet<>();
         if (null == searchPaths || searchPaths.isEmpty()) { return distros; }
 
         if (service.isShutdown()) {
@@ -127,14 +136,14 @@ public class Finder {
         return distros;
     }
 
-    public Map<Distribution, List<Pkg>> getAvailableUpdates(final List<Distribution> distributions) {
-        Map<Distribution, List<Pkg>>  distrosToUpdate = new ConcurrentHashMap<>();
+    public Map<Distro, List<Pkg>> getAvailableUpdates(final List<Distro> distributions) {
+        Map<Distro, List<Pkg>> distrosToUpdate = new ConcurrentHashMap<>();
         //List<CompletableFuture<Void>> updateFutures   = Collections.synchronizedList(new ArrayList<>());
-        //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
+        //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         distributions.forEach(distribution -> {
-            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), SemVer.fromText(distribution.getVersion()).getSemVer1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
+            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
@@ -159,15 +168,15 @@ public class Finder {
                        .filter(entry -> !entry.getKey().getApiString().equals("liberica_native"))
                        .forEach(entry -> {
             if (entry.getValue().isEmpty()) {
-                Distribution distro = entry.getKey();
-                entry.setValue(discoclient.updateAvailableFor(null, SemVer.fromText(distro.getVersion()).getSemVer1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
+                Distro distro = entry.getKey();
+                entry.setValue(discoclient.updateAvailableFor(null, Semver.fromText(distro.getVersion()).getSemver1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
             }
         });
 
-        LinkedHashMap<Distribution, List < Pkg >> sorted = new LinkedHashMap<>();
+        LinkedHashMap<Distro, List < Pkg >> sorted = new LinkedHashMap<>();
         distrosToUpdate.entrySet()
                        .stream()
-                       .sorted(Map.Entry.comparingByKey(Comparator.comparing(Distribution::getName)))
+                       .sorted(Map.Entry.comparingByKey(Comparator.comparing(Distro::getName)))
                        .forEachOrdered(entry -> sorted.put(entry.getKey(), entry.getValue()));
 
         return sorted;
@@ -200,7 +209,7 @@ public class Finder {
         }
     }
 
-    public static Architecture detectArchitecture() {
+    public static final Architecture detectArchitecture() {
         final OperatingSystem operatingSystem = detectOperatingSystem();
         try {
             final ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_DETECT_ARCH_CMDS) : new ProcessBuilder(UX_DETECT_ARCH_CMDS);
@@ -218,7 +227,10 @@ public class Finder {
                         return Architecture.NOT_FOUND;
                     }
                 }
-                case MACOS, LINUX -> {
+                case MACOS -> {
+                    Architecture architecture = Architecture.fromText(result);
+                }
+                case LINUX -> {
                     return Architecture.fromText(result);
                 }
             }
@@ -240,6 +252,69 @@ public class Finder {
         }
     }
 
+    public static final SysInfo getOperaringSystemArchitectureOperatingMode() {
+        final OperatingSystem operatingSystem = detectOperatingSystem();
+        try {
+            final ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_DETECT_ARCH_CMDS) : new ProcessBuilder(UX_DETECT_ARCH_CMDS);
+            final Process        process        = processBuilder.start();
+            final String         result         = new BufferedReader(new InputStreamReader(process.getInputStream())).lines().collect(Collectors.joining("\n"));
+            switch(operatingSystem) {
+                case WINDOWS -> {
+                    ARCHITECTURE_MATCHER.reset(result);
+                    final List<MatchResult> results     = ARCHITECTURE_MATCHER.results().collect(Collectors.toList());
+                    final int               noOfResults = results.size();
+                    if (noOfResults > 0) {
+                        final MatchResult   res = results.get(0);
+                        return new SysInfo(operatingSystem, Architecture.fromText(res.group(2)), OperatingMode.NATIVE);
+                    } else {
+                        return new SysInfo(operatingSystem, Architecture.NOT_FOUND, OperatingMode.NOT_FOUND);
+                    }
+                }
+                case MACOS -> {
+                    Architecture architecture = Architecture.fromText(result);
+                    final ProcessBuilder processBuilder1 = new ProcessBuilder(MAC_DETECT_ROSETTA2_CMDS);
+                    final Process        process1        = processBuilder1.start();
+                    final String         result1         = new BufferedReader(new InputStreamReader(process1.getInputStream())).lines().collect(Collectors.joining("\n"));
+                    System.out.println(result1);
+                    return new SysInfo(operatingSystem, architecture, result1.equals("1") ? OperatingMode.EMULATED : OperatingMode.NATIVE);
+                }
+                case LINUX -> {
+                    return new SysInfo(operatingSystem, Architecture.fromText(result), OperatingMode.NATIVE);
+                }
+            }
+
+            // If not found yet try via system property
+            final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+            if (arch.contains("sparc"))                           { return new SysInfo(operatingSystem, Architecture.SPARC, OperatingMode.NATIVE); }
+            if (arch.contains("amd64") || arch.contains("86_64")) { return new SysInfo(operatingSystem, Architecture.AMD64, OperatingMode.NATIVE); }
+            if (arch.contains("86"))                              { return new SysInfo(operatingSystem, Architecture.X86, OperatingMode.NATIVE); }
+            if (arch.contains("s390x"))                           { return new SysInfo(operatingSystem, Architecture.S390X, OperatingMode.NATIVE); }
+            if (arch.contains("ppc64"))                           { return new SysInfo(operatingSystem, Architecture.PPC64, OperatingMode.NATIVE); }
+            if (arch.contains("arm") && arch.contains("64"))      { return new SysInfo(operatingSystem, Architecture.AARCH64, OperatingMode.NATIVE); }
+            if (arch.contains("arm"))                             { return new SysInfo(operatingSystem, Architecture.ARM, OperatingMode.NATIVE); }
+            if (arch.contains("aarch64"))                         { return new SysInfo(operatingSystem, Architecture.AARCH64, OperatingMode.NATIVE); }
+            return new SysInfo(operatingSystem, Architecture.NOT_FOUND, OperatingMode.NATIVE);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new SysInfo(operatingSystem, Architecture.NOT_FOUND, OperatingMode.NATIVE);
+        }
+    }
+
+    private JdkInfo getJDKFromJar(final String jarFileName) {
+        try {
+            final JarFile                        jarFile      = new JarFile(jarFileName);
+            final Manifest                       manifest     = jarFile.getManifest();
+            final Attributes                     attributes   = manifest.getMainAttributes();
+            final Optional<Entry<Object,Object>> optCreatedBy = attributes.entrySet().stream().filter(entry -> entry.getKey().toString().equalsIgnoreCase("Created-By")).findFirst();
+            final Optional<Entry<Object,Object>> optBuildJdk  = attributes.entrySet().stream().filter(entry -> entry.getKey().toString().equalsIgnoreCase("Build-Jdk")).findFirst();
+            final String                         createdBy    = optCreatedBy.isPresent() ? optCreatedBy.get().getValue().toString() : "";
+            final String                         buildJdk     = optBuildJdk.isPresent()  ? optBuildJdk.get().getValue().toString()  : "";
+            return new JdkInfo(createdBy, buildJdk);
+        } catch(IOException e) {
+            return new JdkInfo("", "");
+        }
+    }
+
     private List<Path> findByFileName(final Path path, final String fileName) {
         List<Path> result;
         try (Stream<Path> pathStream = Files.find(path, Integer.MAX_VALUE, (p, basicFileAttributes) -> {
@@ -255,7 +330,7 @@ public class Finder {
         return result;
     }
 
-    private void checkForDistribution(final String java, final Set<Distribution> distros) {
+    private void checkForDistribution(final String java, final Set<Distro> distros) {
         AtomicBoolean inUse = new AtomicBoolean(false);
 
         try {
@@ -465,7 +540,7 @@ public class Finder {
 
                 if (architecture.isEmpty()) { architecture = this.architecture.name().toLowerCase(); }
 
-                Distribution distributionFound = new Distribution(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath, feature);
+                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), operatingSystem, architecture, fxBundled, parentPath, feature);
                 if (inUse.get()) { distributionFound.setInUse(true); }
 
                 distros.add(distributionFound);
@@ -499,7 +574,7 @@ public class Finder {
         }
     }
 
-    public Map<SemVer, SemVerUri> checkForJavaFXUpdates(final List<String> javafxSearchPaths) {
+    public Map<Semver, SemverUri> checkForJavaFXUpdates(final List<String> javafxSearchPaths) {
         // Find the javafx sdk folders starting at the folder given by JAVAFX_SEARCH_PATH
         if (null == javafxSearchPaths || javafxSearchPaths.isEmpty()) { return new HashMap<>(); }
 
@@ -522,16 +597,16 @@ public class Finder {
         });
 
         // Check every update found for validity and only return the ones that are valid
-        Map<SemVer, SemVerUri> validUpdatesFound  = new HashMap<>();
-        Map<SemVer, String> javafxUpdatesFound = findJavaFX(searchPaths);
+        Map<Semver, SemverUri> validUpdatesFound  = new HashMap<>();
+        Map<Semver, String>    javafxUpdatesFound = findJavaFX(searchPaths);
         javafxUpdatesFound.entrySet().forEach(entry -> {
             validUpdatesFound.put(entry.getKey(), checkForJavaFXUpdate(entry.getKey()));
         });
         return validUpdatesFound;
     }
 
-    private Map<SemVer, String> findJavaFX(final Set<String> searchPaths) {
-        Map<SemVer, String> versionsFound = new HashMap<>();
+    private Map<Semver, String> findJavaFX(final Set<String> searchPaths) {
+        Map<Semver, String> versionsFound = new HashMap<>();
         searchPaths.forEach(searchPath -> {
             final String javafxPropertiesFilePath = new StringBuilder(searchPath).append(File.separator).append(javafxPropertiesFile).toString();
             Path path = Paths.get(javafxPropertiesFilePath);
@@ -542,7 +617,7 @@ public class Finder {
                 javafxPropertes.load(javafxPropertiesFileIS);
                 String runtimeVersion = javafxPropertes.getProperty(Constants.JAVAFX_RUNTIME_VERSION, "");
                 if (!runtimeVersion.isEmpty()) {
-                    SemVer versionFound = SemVer.fromText(runtimeVersion).getSemVer1();
+                    Semver versionFound = Semver.fromText(runtimeVersion).getSemver1();
                     versionsFound.put(versionFound, javafxPropertiesFilePath);
                 }
             } catch (IOException ex) {
@@ -552,15 +627,15 @@ public class Finder {
         return versionsFound;
     }
 
-    private SemVerUri checkForJavaFXUpdate(final SemVer versionToCheck) {
-       List<SemVer> openjfxVersions         = getAvailableOpenJfxVersions();
-       List<SemVer> filteredOpenjfxVersions = openjfxVersions.stream()
+    private SemverUri checkForJavaFXUpdate(final Semver versionToCheck) {
+       List<Semver> openjfxVersions         = getAvailableOpenJfxVersions();
+       List<Semver> filteredOpenjfxVersions = openjfxVersions.stream()
                                                              .filter(semver -> semver.getFeature() == versionToCheck.getFeature())
-                                                             .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
+                                                             .sorted(Comparator.comparing(Semver::getVersionNumber).reversed())
                                                              .collect(Collectors.toList());
 
        if (!filteredOpenjfxVersions.isEmpty()) {
-           SemVer latestVersion = filteredOpenjfxVersions.get(0);
+           Semver latestVersion = filteredOpenjfxVersions.get(0);
            OperatingSystem operatingSystem = getOperatingSystem();
            Architecture    architecture    = Detector.getArchitecture();
            if (latestVersion.greaterThan(versionToCheck)) {
@@ -589,7 +664,7 @@ public class Finder {
                    case WINDOWS -> linkBuilder.append("windows");
                    case LINUX   -> linkBuilder.append("linux");
                    case MACOS   -> linkBuilder.append("osx");
-                   default      -> { return new SemVerUri(latestVersion, ""); }
+                   default      -> { return new SemverUri(latestVersion, ""); }
                }
                linkBuilder.append("-");
                switch(architecture) {
@@ -597,21 +672,21 @@ public class Finder {
                    case X64, AMD64     -> linkBuilder.append("x64");
                    case AARCH64, ARM64 -> linkBuilder.append("aarch64");
                    case AARCH32, ARM   -> linkBuilder.append("arm32");
-                   default             -> { return new SemVerUri(latestVersion, ""); }
+                   default             -> { return new SemverUri(latestVersion, ""); }
                }
                linkBuilder.append("_bin-sdk.zip");
                final String uri = linkBuilder.toString();
-               return new SemVerUri(latestVersion, Helper.isUriValid(uri) ? uri : "");
+               return new SemverUri(latestVersion, Helper.isUriValid(uri) ? uri : "");
            } else {
-               return new SemVerUri(latestVersion, "");
+               return new SemverUri(latestVersion, "");
            }
        } else {
-           return new SemVerUri(versionToCheck, "");
+           return new SemverUri(versionToCheck, "");
        }
     }
 
-    public List<SemVer> getAvailableOpenJfxVersions() {
-        List<SemVer> availableOpenJfxVersions = new ArrayList<>();
+    public List<Semver> getAvailableOpenJfxVersions() {
+        List<Semver> availableOpenJfxVersions = new ArrayList<>();
         try {
             final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -621,7 +696,7 @@ public class Finder {
             final NodeList list = doc.getElementsByTagName("version");
             for (int i = 0; i < list.getLength(); i++) {
                 Node node = list.item(i);
-                availableOpenJfxVersions.add(SemVer.fromText(node.getTextContent()).getSemVer1());
+                availableOpenJfxVersions.add(Semver.fromText(node.getTextContent()).getSemver1());
             }
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();

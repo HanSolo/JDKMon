@@ -17,7 +17,8 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 
-import io.foojay.api.discoclient.pkg.VersionNumber;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 
 
 public class MajorVersion {

@@ -16,8 +16,8 @@
 
 package eu.hansolo.fx.jdkmon.notification;
 
+import eu.hansolo.jdktools.OperatingSystem;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;

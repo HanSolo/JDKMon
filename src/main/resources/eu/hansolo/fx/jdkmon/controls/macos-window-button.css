@@ -61,7 +61,7 @@
 .macos-window-button:disabled:minimize .circle,
 .macos-window-button:disabled:zoom .circle {
     -fx-fill  : -GRAY;
-    -fx-stroke: transparent;
+    -fx-stroke: rgb(167, 165, 165);
 }
 
 .macos-window-button:close .symbol,

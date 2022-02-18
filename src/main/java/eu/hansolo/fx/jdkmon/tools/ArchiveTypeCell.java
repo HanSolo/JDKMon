@@ -16,7 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import io.foojay.api.discoclient.pkg.ArchiveType;
+import eu.hansolo.jdktools.ArchiveType;
 import javafx.scene.control.ListCell;
 
 
@@ -37,4 +37,3 @@ public class ArchiveTypeCell extends ListCell<ArchiveType> {
         return getItem().getUiString();
     }
 }
-

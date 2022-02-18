@@ -16,8 +16,8 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.OperatingSystem;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;
@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
 
 
 public class Detector {
-    public enum OperatingSystem { WINDOWS, MACOS, LINUX, ALPINE_LINUX, SOLARIS, NOT_FOUND }
-    public enum MacOSSystemColor {
+    public enum MacosSystemColor {
         BLUE(Color.rgb(0, 122, 255), Color.rgb(10, 132, 255)),
         BROWN(Color.rgb(162, 132, 94), Color.rgb(172, 142, 104)),
         GRAY(Color.rgb(142, 142, 147), Color.rgb(152, 152, 157)),
@@ -52,7 +51,7 @@ public class Detector {
         final Color   colorDark;
 
 
-        MacOSSystemColor(final Color colorAqua, final Color colorDark) {
+        MacosSystemColor(final Color colorAqua, final Color colorDark) {
             this.colorAqua = colorAqua;
             this.colorDark = colorDark;
         }
@@ -65,18 +64,18 @@ public class Detector {
             return (colorAqua.equals(color) || colorDark.equals(color));
         }
 
-        public static final List<MacOSSystemColor> getAsList() { return Arrays.asList(values()); }
+        public static final List<MacosSystemColor> getAsList() { return Arrays.asList(values()); }
     }
-    public enum MacOSAccentColor {
-        MULTI_COLOR(null, MacOSSystemColor.BLUE.colorAqua, Color.web("#b3d7ff"), Color.web("#7daaf0"), MacOSSystemColor.BLUE.colorDark, Color.web("#3f638b"), Color.web("#296e99")),
-        GRAPHITE(-1, MacOSSystemColor.GRAY.colorAqua, Color.web("#e0e0e0"), Color.web("#c4c2c4"), MacOSSystemColor.GRAY.colorDark, Color.web("#696665"), Color.web("#7d7b7a")),
-        RED(0, MacOSSystemColor.RED.colorAqua, Color.web("#f5c3c5"), Color.web("#df878b"), MacOSSystemColor.RED.colorDark, Color.web("#8b5758"), Color.web("#99585a")),
-        ORANGE(1, MacOSSystemColor.ORANGE.colorAqua, Color.web("#fcd9bb"), Color.web("#ecae7d"), MacOSSystemColor.ORANGE.colorDark, Color.web("#886547"), Color.web("#9a7336")),
-        YELLOW(2, MacOSSystemColor.YELLOW.colorAqua, Color.web("#feeebe"), Color.web("#f1d283"), MacOSSystemColor.YELLOW.colorDark, Color.web("#8b7a40"), Color.web("#9b982b")),
-        GREEN(3, MacOSSystemColor.GREEN.colorAqua, Color.web("#d0eac7"), Color.web("#9dcb8f"), MacOSSystemColor.GREEN.colorDark, Color.web("#5c7653"), Color.web("#629450")),
-        BLUE(4, MacOSSystemColor.BLUE.colorAqua, Color.web("#b3d7ff"), Color.web("#7daaf0"), MacOSSystemColor.BLUE.colorDark, Color.web("#3f638b"), Color.web("#296e99")),
-        PURPLE(5, MacOSSystemColor.PURPLE.colorAqua, Color.web("#dfc5df"), Color.web("#b98ab8"), MacOSSystemColor.PURPLE.colorDark, Color.web("#6f566f"), Color.web("#895687")),
-        PINK(6, MacOSSystemColor.PINK.colorAqua, Color.web("#fccae2"), Color.web("#eb93bc"), MacOSSystemColor.PINK.colorDark, Color.web("#87566d"), Color.web("#995582"));
+    public enum MacosAccentColor {
+        MULTI_COLOR(null, MacosSystemColor.BLUE.colorAqua, Color.web("#b3d7ff"), Color.web("#7daaf0"), MacosSystemColor.BLUE.colorDark, Color.web("#3f638b"), Color.web("#296e99")),
+        GRAPHITE(-1, MacosSystemColor.GRAY.colorAqua, Color.web("#e0e0e0"), Color.web("#c4c2c4"), MacosSystemColor.GRAY.colorDark, Color.web("#696665"), Color.web("#7d7b7a")),
+        RED(0, MacosSystemColor.RED.colorAqua, Color.web("#f5c3c5"), Color.web("#df878b"), MacosSystemColor.RED.colorDark, Color.web("#8b5758"), Color.web("#99585a")),
+        ORANGE(1, MacosSystemColor.ORANGE.colorAqua, Color.web("#fcd9bb"), Color.web("#ecae7d"), MacosSystemColor.ORANGE.colorDark, Color.web("#886547"), Color.web("#9a7336")),
+        YELLOW(2, MacosSystemColor.YELLOW.colorAqua, Color.web("#feeebe"), Color.web("#f1d283"), MacosSystemColor.YELLOW.colorDark, Color.web("#8b7a40"), Color.web("#9b982b")),
+        GREEN(3, MacosSystemColor.GREEN.colorAqua, Color.web("#d0eac7"), Color.web("#9dcb8f"), MacosSystemColor.GREEN.colorDark, Color.web("#5c7653"), Color.web("#629450")),
+        BLUE(4, MacosSystemColor.BLUE.colorAqua, Color.web("#b3d7ff"), Color.web("#7daaf0"), MacosSystemColor.BLUE.colorDark, Color.web("#3f638b"), Color.web("#296e99")),
+        PURPLE(5, MacosSystemColor.PURPLE.colorAqua, Color.web("#dfc5df"), Color.web("#b98ab8"), MacosSystemColor.PURPLE.colorDark, Color.web("#6f566f"), Color.web("#895687")),
+        PINK(6, MacosSystemColor.PINK.colorAqua, Color.web("#fccae2"), Color.web("#eb93bc"), MacosSystemColor.PINK.colorDark, Color.web("#87566d"), Color.web("#995582"));
 
         final Integer key;
         final Color   colorAqua;
@@ -87,7 +86,7 @@ public class Detector {
         final Color   colorDarkFocus;
 
 
-        MacOSAccentColor(final Integer key,
+        MacosAccentColor(final Integer key,
                          final Color colorAqua, final Color colorAquaHighlight, final Color colorAquaFocus,
                          final Color colorDark, final Color colorDarkHighlight, final Color colorDarkFocus) {
             this.key                = key;
@@ -113,29 +112,39 @@ public class Detector {
 
         public Color getColorDarkFocus() { return colorDarkFocus; }
 
+        public String getAquaStyleClass() {
+            switch(this) {
+                case MULTI_COLOR -> { return "-BLUE-AQUA"; }
+                default          -> { return "-" + name() + "-AQUA"; }
+            }
+        }
+        public String getDarkStyleClass() {
+            switch(this) {
+                case MULTI_COLOR -> { return "-BLUE-DARK"; }
+                default          -> { return "-" + name() + "-DARK"; }
+            }
+        }
+
         public boolean isGivenColor(final Color color) {
             return (colorAqua.equals(color) || colorDark.equals(color));
         }
 
-        public static final List<MacOSAccentColor> getAsList() { return Arrays.asList(values()); }
+        public static final List<MacosAccentColor> getAsList() { return Arrays.asList(values()); }
     }
 
-    private static final String[] DETECT_ALPINE_CMDS = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
-
-    private static final String   REGQUERY_UTIL      = "reg query ";
-    private static final String   REGDWORD_TOKEN     = "REG_DWORD";
-    private static final String   DARK_THEME_CMD     = REGQUERY_UTIL + "\"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\"" + " /v AppsUseLightTheme";
-
-    public static final String                SDKMAN_FOLDER = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".sdkman").append(File.separator).append("candidates").append(File.separator).append("java").toString();
-
-    public static final Map<Integer, Color[]> MACOS_ACCENT_COLOR_MAP = Map.of(-1, new Color[] { MacOSSystemColor.GRAY.colorAqua, MacOSSystemColor.GRAY.colorDark },
-                                                                              0, new Color[] { MacOSSystemColor.RED.colorAqua, MacOSSystemColor.RED.colorDark },
-                                                                              1, new Color[] { MacOSSystemColor.ORANGE.colorAqua, MacOSSystemColor.ORANGE.colorDark },
-                                                                              2, new Color[] { MacOSSystemColor.YELLOW.colorAqua, MacOSSystemColor.YELLOW.colorDark },
-                                                                              3, new Color[] { MacOSSystemColor.GREEN.colorAqua, MacOSSystemColor.GREEN.colorDark },
-                                                                              4, new Color[] { MacOSSystemColor.BLUE.colorAqua, MacOSSystemColor.BLUE.colorDark },
-                                                                              5, new Color[] { MacOSSystemColor.PURPLE.colorAqua, MacOSSystemColor.PURPLE.colorDark },
-                                                                              6, new Color[] { MacOSSystemColor.PINK.colorAqua, MacOSSystemColor.PINK.colorDark });
+    private static final String[]              DETECT_ALPINE_CMDS     = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
+    private static final String                REGQUERY_UTIL          = "reg query ";
+    private static final String                REGDWORD_TOKEN         = "REG_DWORD";
+    private static final String                DARK_THEME_CMD         = REGQUERY_UTIL + "\"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\"" + " /v AppsUseLightTheme";
+    public  static final String                SDKMAN_FOLDER          = new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".sdkman").append(File.separator).append("candidates").append(File.separator).append("java").toString();
+    public  static final Map<Integer, Color[]> MACOS_ACCENT_COLOR_MAP = Map.of(-1, new Color[] { MacosSystemColor.GRAY.colorAqua, MacosSystemColor.GRAY.colorDark },
+                                                                               0, new Color[] { MacosSystemColor.RED.colorAqua, MacosSystemColor.RED.colorDark },
+                                                                               1, new Color[] { MacosSystemColor.ORANGE.colorAqua, MacosSystemColor.ORANGE.colorDark },
+                                                                               2, new Color[] { MacosSystemColor.YELLOW.colorAqua, MacosSystemColor.YELLOW.colorDark },
+                                                                               3, new Color[] { MacosSystemColor.GREEN.colorAqua, MacosSystemColor.GREEN.colorDark },
+                                                                               4, new Color[] { MacosSystemColor.BLUE.colorAqua, MacosSystemColor.BLUE.colorDark },
+                                                                               5, new Color[] { MacosSystemColor.PURPLE.colorAqua, MacosSystemColor.PURPLE.colorDark },
+                                                                               6, new Color[] { MacosSystemColor.PINK.colorAqua, MacosSystemColor.PINK.colorDark });
 
 
     public static final boolean isDarkMode() {
@@ -189,8 +198,8 @@ public class Detector {
         }
     }
 
-    public static MacOSAccentColor getMacOSAccentColor() {
-        if (OperatingSystem.MACOS != getOperatingSystem()) { return MacOSAccentColor.MULTI_COLOR; }
+    public static MacosAccentColor getMacosAccentColor() {
+        if (OperatingSystem.MACOS != getOperatingSystem()) { return MacosAccentColor.MULTI_COLOR; }
         final boolean isDarkMode = isMacOsDarkMode();
         try {
             Integer           colorKey    = null;
@@ -205,16 +214,16 @@ public class Detector {
             int rc = process.waitFor();  // Wait for the process to complete
             if (0 == rc) {
                 Integer key = colorKey;
-                return MacOSAccentColor.getAsList().stream().filter(macOSAccentColor -> macOSAccentColor.key == key).findFirst().orElse(MacOSAccentColor.MULTI_COLOR);
+                return MacosAccentColor.getAsList().stream().filter(macOSAccentColor -> macOSAccentColor.key == key).findFirst().orElse(MacosAccentColor.MULTI_COLOR);
             } else {
-                return MacOSAccentColor.MULTI_COLOR;
+                return MacosAccentColor.MULTI_COLOR;
             }
         } catch (IOException | InterruptedException e) {
-            return MacOSAccentColor.MULTI_COLOR;
+            return MacosAccentColor.MULTI_COLOR;
         }
     }
-    public static Color getMacOSAccentColorAsColor() {
-        if (OperatingSystem.MACOS != getOperatingSystem()) { return MacOSAccentColor.MULTI_COLOR.getColorAqua(); }
+    public static Color getMacosAccentColorAsColor() {
+        if (OperatingSystem.MACOS != getOperatingSystem()) { return MacosAccentColor.MULTI_COLOR.getColorAqua(); }
         final boolean isDarkMode = isMacOsDarkMode();
         try {
             Integer           colorKey    = null;

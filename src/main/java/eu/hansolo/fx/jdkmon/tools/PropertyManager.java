@@ -17,8 +17,8 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 import eu.hansolo.fx.jdkmon.Main;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.VersionNumber;
 
 import java.io.File;
 import java.io.FileInputStream;

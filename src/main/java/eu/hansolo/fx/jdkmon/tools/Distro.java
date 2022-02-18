@@ -16,7 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-public class Distribution {
+public class Distro {
     private final String  name;
     private final String  apiString;
     private final String  version;
@@ -28,7 +28,7 @@ public class Distribution {
     private       boolean inUse;
 
 
-    public Distribution(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature) {
+    public Distro(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
@@ -76,8 +76,8 @@ public class Distribution {
     }
 
     @Override public boolean equals(final Object obj) {
-        if (!(obj instanceof Distribution)) { return false; }
-        Distribution distribution = (Distribution) obj;
+        if (!(obj instanceof Distro)) { return false; }
+        Distro distribution = (Distro) obj;
         return (distribution.getApiString().equals(distribution.getApiString()) && distribution.getVersion().equals(getVersion()) && distribution.getFxBundled() == fxBundled);
     }
 

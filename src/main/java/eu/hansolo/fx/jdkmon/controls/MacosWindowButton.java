@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 
 
 @DefaultProperty("children")
-public class MacOSWindowButton extends Region implements WindowButton {
+public class MacosWindowButton extends Region implements WindowButton {
     private static final double                           MINIMUM_WIDTH          = WindowButtonSize.SMALL.px;
     private static final double                           MINIMUM_HEIGHT         = WindowButtonSize.SMALL.px;
     private static final double                           MAXIMUM_WIDTH          = WindowButtonSize.NORMAL.px;
@@ -59,13 +59,13 @@ public class MacOSWindowButton extends Region implements WindowButton {
 
 
     // ******************** Constructors **************************************
-    public MacOSWindowButton() {
+    public MacosWindowButton() {
         this(WindowButtonType.CLOSE);
     }
-    public MacOSWindowButton(final WindowButtonType type) {
+    public MacosWindowButton(final WindowButtonType type) {
         this(type, WindowButtonSize.NORMAL);
     }
-    public MacOSWindowButton(final WindowButtonType type, final WindowButtonSize size) {
+    public MacosWindowButton(final WindowButtonType type, final WindowButtonSize size) {
         this.type     = new ObjectPropertyBase<>(type) {
             @Override protected void invalidated() {
                 switch(get()) {
@@ -86,17 +86,17 @@ public class MacOSWindowButton extends Region implements WindowButton {
                     }
                 }
             }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return MacosWindowButton.this; }
             @Override public String getName() { return "type"; }
         };
         this.darkMode = new BooleanPropertyBase(false) {
             @Override protected void invalidated() { pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get()); }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return MacosWindowButton.this; }
             @Override public String getName() { return "darkMode"; }
         };
         this.hovered  = new BooleanPropertyBase() {
             @Override protected void invalidated() { pseudoClassStateChanged(HOVERED_PSEUDO_CLASS, get()); }
-            @Override public Object getBean() { return MacOSWindowButton.this; }
+            @Override public Object getBean() { return MacosWindowButton.this; }
             @Override public String getName() { return "hovered"; }
         };
         this.iconSize = size;
@@ -183,6 +183,7 @@ public class MacOSWindowButton extends Region implements WindowButton {
 
 
         if (width > 0 && height > 0) {
+            setMinSize(size, size);
             setMaxSize(size, size);
             setPrefSize(size, size);
 
@@ -196,7 +197,7 @@ public class MacOSWindowButton extends Region implements WindowButton {
     }
 
     @Override public String getUserAgentStylesheet() {
-        if (null == userAgentStyleSheet) { userAgentStyleSheet = MacOSWindowButton.class.getResource("macos-window-button.css").toExternalForm(); }
+        if (null == userAgentStyleSheet) { userAgentStyleSheet = MacosWindowButton.class.getResource("macos-window-button.css").toExternalForm(); }
         return userAgentStyleSheet;
     }
 }

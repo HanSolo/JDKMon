@@ -18,24 +18,24 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.LibCType;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
+import eu.hansolo.jdktools.Verification;
+import eu.hansolo.jdktools.versioning.Semver;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.ArchiveType;
 import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.ReleaseStatus;
-import io.foojay.api.discoclient.pkg.LibCType;
 import io.foojay.api.discoclient.pkg.MajorVersion;
-import io.foojay.api.discoclient.pkg.OperatingSystem;
-import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.Verification;
 
-import static io.foojay.api.discoclient.util.Constants.COLON;
-import static io.foojay.api.discoclient.util.Constants.COMMA;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_CLOSE;
-import static io.foojay.api.discoclient.util.Constants.CURLY_BRACKET_OPEN;
-import static io.foojay.api.discoclient.util.Constants.QUOTES;
+import static eu.hansolo.jdktools.Constants.COLON;
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
+import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
+import static eu.hansolo.jdktools.Constants.QUOTES;
 
 
 public class MinimizedPkg {
@@ -43,7 +43,7 @@ public class MinimizedPkg {
     private ArchiveType     archiveType;
     private Distribution    distribution;
     private MajorVersion    majorVersion;
-    private SemVer          javaVersion;
+    private Semver          javaVersion;
     private ReleaseStatus   releaseStatus;
     private OperatingSystem operatingSystem;
     private LibCType        libCType;
@@ -71,7 +71,7 @@ public class MinimizedPkg {
             throw new IllegalArgumentException("Distribution not found");
         }
         this.majorVersion          = new MajorVersion(json.get(Pkg.FIELD_MAJOR_VERSION).getAsInt());
-        this.javaVersion           = SemVer.fromText(json.get(Pkg.FIELD_JAVA_VERSION).getAsString()).getSemVer1();
+        this.javaVersion           = Semver.fromText(json.get(Pkg.FIELD_JAVA_VERSION).getAsString()).getSemver1();
         this.architecture          = Architecture.fromText(json.get(Pkg.FIELD_ARCHITECTURE).getAsString());
         this.operatingSystem       = OperatingSystem.fromText(json.get(Pkg.FIELD_OPERATING_SYSTEM).getAsString());
         this.libCType              = this.operatingSystem.getLibCType();
@@ -87,7 +87,7 @@ public class MinimizedPkg {
         this.aqavitCertified       = json.has(Pkg.FIELD_AQAVIT_CERTIFIED) ? Verification.fromText(json.get(Pkg.FIELD_AQAVIT_CERTIFIED).getAsString()) : Verification.UNKNOWN;
         this.aqavitCertUri         = json.has(Pkg.FIELD_AQAVIT_CERT_URI) ? json.get(Pkg.FIELD_AQAVIT_CERT_URI).getAsString() : "";
     }
-    public MinimizedPkg(final String id, final ArchiveType archiveType, final Distribution distribution, final MajorVersion majorVersion, final SemVer javaVersion,
+    public MinimizedPkg(final String id, final ArchiveType archiveType, final Distribution distribution, final MajorVersion majorVersion, final Semver javaVersion,
                         final ReleaseStatus releaseStatus, final OperatingSystem operatingSystem, final Architecture architecture, final PackageType packageType,
                         final boolean javafxBundled, final boolean directlyDownloadable, final String filename, final boolean freeToUseInProduction, final Verification tckTested,
                         final String tckCertUri, final Verification aqavitCertified, final String aqavitCertUri) {
@@ -119,7 +119,7 @@ public class MinimizedPkg {
 
     public MajorVersion getMajorVersion() { return majorVersion; }
 
-    public SemVer getJavaVersion() { return javaVersion; }
+    public Semver getJavaVersion() { return javaVersion; }
 
     public ReleaseStatus getReleaseStatus() { return releaseStatus; }
 

@@ -44,6 +44,10 @@
     -YELLOW-AQUA              : rgb(255, 204, 0);
     -YELLOW-DARK              : rgb(255, 214, 10);
 
+    -check-mark-empty         : url("controls/macos-checkmark-empty.png");
+    -check-mark-white         : url("controls/macos-checkmark-white.png");
+    -check-mark-black         : url("controls/macos-checkmark-black.png");
+
     -fx-background-radius     : 0;
     -dark-header-background   : #343535;
     -dark-main-background     : #1d1f20;

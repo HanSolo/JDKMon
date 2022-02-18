@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 17.0.1
+      - name: Set up JDK 17.0.2
         uses: foojayio/setup-java@disco
         with:
-          java-version: 17.0.1
+          java-version: 17.0.2
           architecture: x64
       - name: Build with Gradle
         run: .\gradlew.bat assemble
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: JDKMon Windows
-          path: '.\build\installer\JDKMon-17.0.21.msi'
+          path: '.\build\installer\JDKMon-17.0.22.msi'
 
 
 
@@ -31,10 +31,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 17.0.1
+      - name: Set up JDK 17.0.2
         uses: foojayio/setup-java@disco
         with:
-          java-version: 17.0.1
+          java-version: 17.0.2
           architecture: x64
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -48,9 +48,9 @@ jobs:
         with:
           name: JDKMon Mac
           path: |
-            ./build/installer/JDKMon-17.0.21.pkg
-            ./build/installer/JDKMon-17.0.21.pkg.sha256
-            ./build/libs/JDKMon-17.0.21.jar
+            ./build/installer/JDKMon-17.0.22.pkg
+            ./build/installer/JDKMon-17.0.22.pkg.sha256
+            ./build/libs/JDKMon-17.0.22.jar
 
   build-linux:
 
@@ -58,10 +58,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 17.0.1
+      - name: Set up JDK 17.0.2
         uses: foojayio/setup-java@disco
         with:
-          java-version: 17.0.1
+          java-version: 17.0.2
           architecture: x64
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -75,8 +75,8 @@ jobs:
         with:
           name: JDKMon Linux
           path: |
-            ./build/installer/jdkmon_17.0.21-1_amd64.deb
-            ./build/installer/jdkmon_17.0.21-1_amd64.deb.sha256
-            ./build/installer/jdkmon-17.0.21-1_x86_64.rpm
-            ./build/installer/jdkmon-17.0.21-1_x86_64.rpm.sha256
-            ./build/libs/JDKMon-17.0.21.jar
+            ./build/installer/jdkmon_17.0.22-1_amd64.deb
+            ./build/installer/jdkmon_17.0.22-1_amd64.deb.sha256
+            ./build/installer/jdkmon-17.0.22-1_x86_64.rpm
+            ./build/installer/jdkmon-17.0.22-1_x86_64.rpm.sha256
+            ./build/libs/JDKMon-17.0.22.jar

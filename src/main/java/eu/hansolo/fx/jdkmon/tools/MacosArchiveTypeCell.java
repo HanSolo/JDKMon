@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 by Gerrit Grunwald
+ * Copyright (c) 2022 by Gerrit Grunwald
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,25 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.jdktools.versioning.Semver;
-import javafx.scene.control.ListCell;
+import eu.hansolo.fx.jdkmon.controls.MacosComboBoxCell;
+import eu.hansolo.jdktools.ArchiveType;
 
 
-public class UpdateLevelCell extends ListCell<Semver> {
+public class MacosArchiveTypeCell extends MacosComboBoxCell<ArchiveType> {
 
-    @Override protected void updateItem(final Semver updateLevel, final boolean empty) {
-        super.updateItem(updateLevel, empty);
+    @Override protected void updateItem(final ArchiveType archiveType, final boolean empty) {
+        super.updateItem(archiveType, empty);
 
-        if (empty || null == updateLevel) {
+        if (empty || null == archiveType) {
             setText(null);
             setGraphic(null);
         } else {
-            setText(updateLevel.toString(true));
+            setText(archiveType.getUiString());
+            setGraphic(isSelected() ? (isDark() ? WHITE_CHECK_MARK : BLACK_CHECK_MARK) : EMPTY_CHECK_MARK);
         }
     }
 
     @Override public String toString() {
-        return getItem().toString(true);
+        return getItem().getUiString();
     }
 }

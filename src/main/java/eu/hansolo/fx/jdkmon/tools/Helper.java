@@ -20,9 +20,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
-import io.foojay.api.discoclient.pkg.Distribution;
-import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.BodyHandlerWrapper;
+import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import javafx.scene.paint.Color;
 
 import java.io.BufferedReader;

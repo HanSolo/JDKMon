@@ -22,7 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.CveScanner;
-import eu.hansolo.fx.jdkmon.controls.MacOSWindowButton;
+import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
 import eu.hansolo.fx.jdkmon.controls.WinProgress;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
@@ -35,31 +35,40 @@ import eu.hansolo.fx.jdkmon.tools.ArchitectureCell;
 import eu.hansolo.fx.jdkmon.tools.ArchiveTypeCell;
 import eu.hansolo.fx.jdkmon.tools.Constants;
 import eu.hansolo.fx.jdkmon.tools.Detector;
-import eu.hansolo.fx.jdkmon.tools.Detector.MacOSAccentColor;
-import eu.hansolo.fx.jdkmon.tools.Detector.OperatingSystem;
-import eu.hansolo.fx.jdkmon.tools.Distribution;
+import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
 import eu.hansolo.fx.jdkmon.tools.DistributionCell;
+import eu.hansolo.fx.jdkmon.tools.Distro;
 import eu.hansolo.fx.jdkmon.tools.Finder;
 import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
+import eu.hansolo.fx.jdkmon.tools.MacosArchitectureCell;
+import eu.hansolo.fx.jdkmon.tools.MacosArchiveTypeCell;
+import eu.hansolo.fx.jdkmon.tools.MacosDistributionCell;
+import eu.hansolo.fx.jdkmon.tools.MacosMajorVersionCell;
+import eu.hansolo.fx.jdkmon.tools.MacosOperatingSystemCell;
+import eu.hansolo.fx.jdkmon.tools.MacosUpdateLevelCell;
 import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
 import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
 import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
+import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
-import eu.hansolo.fx.jdkmon.tools.Severity;
 import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
+import eu.hansolo.jdktools.Architecture;
+import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.OperatingMode;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.Severity;
+import eu.hansolo.jdktools.Verification;
+import eu.hansolo.jdktools.util.OutputFormat;
+import eu.hansolo.jdktools.versioning.Semver;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
-import io.foojay.api.discoclient.pkg.Architecture;
-import io.foojay.api.discoclient.pkg.ArchiveType;
+import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.MajorVersion;
-import io.foojay.api.discoclient.pkg.PackageType;
 import io.foojay.api.discoclient.pkg.Pkg;
-import io.foojay.api.discoclient.pkg.SemVer;
-import io.foojay.api.discoclient.pkg.Verification;
-import io.foojay.api.discoclient.pkg.VersionNumber;
-import io.foojay.api.discoclient.util.OutputFormat;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -160,8 +169,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static io.foojay.api.discoclient.pkg.ReleaseStatus.EA;
-import static io.foojay.api.discoclient.pkg.ReleaseStatus.GA;
+import static eu.hansolo.jdktools.ReleaseStatus.EA;
+import static eu.hansolo.jdktools.ReleaseStatus.GA;
 
 
 /**
@@ -170,104 +179,104 @@ import static io.foojay.api.discoclient.pkg.ReleaseStatus.GA;
  * Time: 15:35
  */
 public class Main extends Application {
-    public static final  VersionNumber                                           VERSION                = PropertyManager.INSTANCE.getVersionNumber();
-    private static final PseudoClass                                             DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
-    private final        Image                                                   dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
-    private final        Image                                                   dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
-    private              io.foojay.api.discoclient.pkg.OperatingSystem           operatingSystem        = Finder.detectOperatingSystem();
-    private              Architecture                                            architecture           = Finder.detectArchitecture();
-    private              boolean                                                 isWindows              = io.foojay.api.discoclient.pkg.OperatingSystem.WINDOWS == operatingSystem;
-    private              CveScanner                                              cveScanner             = new CveScanner();
-    private              List<CVE>                                               cves                   = new CopyOnWriteArrayList<>();
-    private              String                                                  cssFile;
-    private              Notification.Notifier                                   notifier;
-    private              BooleanProperty                                         darkMode;
-    private              MacOSAccentColor                                        accentColor;
-    private              AnchorPane                                              headerPane;
-    private              MacOSWindowButton                                       closeMacWindowButton;
-    private              WinWindowButton                                         closeWinWindowButton;
-    private              Label                                                   windowTitle;
-    private              StackPane                                               pane;
-    private              BorderPane                                              mainPane;
-    private              ScheduledExecutorService                                executor;
-    private              boolean                                                 hideMenu;
-    private              Stage                                                   stage;
-    private              ObservableList<Distribution>                            distros;
-    private              Finder                                                  finder;
-    private              Label                                                   titleLabel;
-    private              Label                                                   searchPathLabel;
-    private              MacProgress                                             macProgressIndicator;
-    private              WinProgress                                             winProgressIndicator;
-    private              VBox                                                    titleBox;
-    private              Separator                                               separator;
-    private              VBox                                                    distroBox;
-    private              VBox                                                    vBox;
-    private              List<String>                                            searchPaths;
-    private              List<String>                                            javafxSearchPaths;
-    private              DirectoryChooser                                        directoryChooser;
-    private              ProgressBar                                             progressBar;
-    private              DiscoClient                                             discoclient;
-    private              BooleanProperty                                         blocked;
-    private              AtomicBoolean                                           checkingForUpdates;
-    private              boolean                                                 trayIconSupported;
-    private              ContextMenu                                             contextMenu;
-    private              Worker<Boolean>                                         worker;
-    private              Dialog                                                  aboutDialog;
-    private              Dialog                                                  downloadJDKDialog;
-    private              Dialog                                                  cveDialog;
-    private              ObservableList<Hyperlink>                               cveLinks;
-    private              Stage                                                   cveStage;
-    private              AnchorPane                                              cveHeaderPane;
-    private              Label                                                   cveWindowTitle;
-    private              MacOSWindowButton                                       cveCloseMacWindowButton;
-    private              WinWindowButton                                         cveCloseWinWindowButton;
-    private              StackPane                                               cvePane;
-    private              VBox                                                    cveBox;
-    private              Button                                                  cveCloseButton;
+    public static final  VersionNumber             VERSION                = PropertyManager.INSTANCE.getVersionNumber();
+    private static final PseudoClass               DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
+    private final        Image                     dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private final        Image                     dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
+    private              OperatingSystem           operatingSystem        = Finder.detectOperatingSystem();
+    private              Architecture              architecture           = Finder.detectArchitecture();
+    private              SysInfo                   sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
+    private              boolean                   isWindows              = OperatingSystem.WINDOWS == operatingSystem;
+    private              CveScanner                cveScanner             = new CveScanner();
+    private              List<CVE>                 cves                   = new CopyOnWriteArrayList<>();
+    private              String                    cssFile;
+    private              Notification.Notifier     notifier;
+    private              BooleanProperty           darkMode;
+    private              MacosAccentColor          accentColor;
+    private              AnchorPane                headerPane;
+    private              MacosWindowButton         closeMacWindowButton;
+    private              WinWindowButton           closeWinWindowButton;
+    private              Label                     windowTitle;
+    private              StackPane                 pane;
+    private              BorderPane                mainPane;
+    private              ScheduledExecutorService  executor;
+    private              boolean                   hideMenu;
+    private              Stage                     stage;
+    private              ObservableList<Distro>    distros;
+    private              Finder                    finder;
+    private              Label                     titleLabel;
+    private              Label                     searchPathLabel;
+    private              MacProgress               macProgressIndicator;
+    private              WinProgress               winProgressIndicator;
+    private              VBox                      titleBox;
+    private              Separator                 separator;
+    private              VBox                      distroBox;
+    private              VBox                      vBox;
+    private              List<String>              searchPaths;
+    private              List<String>              javafxSearchPaths;
+    private              DirectoryChooser          directoryChooser;
+    private              ProgressBar               progressBar;
+    private              DiscoClient               discoclient;
+    private              BooleanProperty           blocked;
+    private              AtomicBoolean             checkingForUpdates;
+    private              boolean                   trayIconSupported;
+    private              ContextMenu               contextMenu;
+    private              Worker<Boolean>           worker;
+    private              Dialog                    aboutDialog;
+    private              Dialog                    downloadJDKDialog;
+    private              Dialog                    cveDialog;
+    private              ObservableList<Hyperlink> cveLinks;
+    private              Stage                     cveStage;
+    private              AnchorPane                cveHeaderPane;
+    private              Label                     cveWindowTitle;
+    private              MacosWindowButton         cveCloseMacWindowButton;
+    private              WinWindowButton           cveCloseWinWindowButton;
+    private              StackPane                 cvePane;
+    private              VBox                      cveBox;
+    private              Button                    cveCloseButton;
+    private              Timeline                  timeline;
+    private              boolean                   isUpdateAvailable;
+    private              VersionNumber             latestVersion;
+    private              Map<String, Popup>        popups;
+    private              Stage                     downloadJDKStage;
+    private              AnchorPane                downloadJDKHeaderPane;
+    private              Label                     downloadJDKWindowTitle;
+    private              MacosWindowButton         downloadJDKCloseMacWindowButton;
+    private              WinWindowButton           downloadJDKCloseWinWindowButton;
+    private              StackPane                 downloadJDKPane;
+    private              CheckBox                  downloadJDKBundledWithFXCheckBox;
+    private              ComboBox<MajorVersion>    downloadJDKMajorVersionComboBox;
+    private              ComboBox<Semver>          downloadJDKUpdateLevelComboBox;
+    private              ComboBox<Distribution>    downloadJDKDistributionComboBox;
+    private              ComboBox<OperatingSystem> downloadJDKOperatingSystemComboBox;
+    private              ComboBox<Architecture>    downloadJDKArchitectureComboBox;
+    private              ComboBox<ArchiveType>     downloadJDKArchiveTypeComboBox;
+    private              Label                     downloadJDKFilenameLabel;
+    private              Label                     alreadyDownloadedLabel;
+    private              Set<MajorVersion>         downloadJDKMaintainedVersions;
+    private              List<MinimizedPkg>        downloadJDKSelectedPkgs;
+    private              MinimizedPkg              downloadJDKSelectedPkg;
+    private              List<MinimizedPkg>        downloadJDKSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>        downloadJDKMinimizedPkgs;
+    private              boolean                   downloadJDKJavafxBundled;
+    private              MajorVersion              downloadJDKSelectedMajorVersion;
+    private              Semver                    downloadJDKSelectedVersionNumber;
+    private              Distribution              downloadJDKSelectedDistribution;
+    private              OperatingSystem           downloadJDKSelectedOperatingSystem;
+    private              Architecture              downloadJDKSelectedArchitecture;
+    private              ArchiveType               downloadJDKSelectedArchiveType;
+    private              Set<OperatingSystem>      downloadJDKOperatingSystems;
+    private              Set<Architecture>         downloadJDKArchitectures;
+    private              Set<ArchiveType>          downloadJDKArchiveTypes;
+    private              ProgressBar               downloadJDKProgressBar;
+    private              ImageView                 tckTestedTag;
+    private              ImageView                 aqavitTestedTag;
+    private              Hyperlink                 tckTestedLink;
+    private              Hyperlink                 aqavitTestedLink;
+    private              Button                    downloadJDKCancelButton;
+    private              Button                    downloadJDKDownloadButton;
 
-    private              Timeline                                                timeline;
-    private              boolean                                                 isUpdateAvailable;
-    private              VersionNumber                                           latestVersion;
-    private              Map<String, Popup>                                      popups;
-    private              Stage                                                   downloadJDKStage;
-    private              AnchorPane                                              downloadJDKHeaderPane;
-    private              Label                                                   downloadJDKWindowTitle;
-    private              MacOSWindowButton                                       downloadJDKCloseMacWindowButton;
-    private              WinWindowButton                                         downloadJDKCloseWinWindowButton;
-    private              StackPane                                               downloadJDKPane;
-    private              CheckBox                                                downloadJDKBundledWithFXCheckBox;
-    private              ComboBox<MajorVersion>                                  downloadJDKMajorVersionComboBox;
-    private              ComboBox<SemVer>                                        downloadJDKUpdateLevelComboBox;
-    private              ComboBox<io.foojay.api.discoclient.pkg.Distribution>    downloadJDKDistributionComboBox;
-    private              ComboBox<io.foojay.api.discoclient.pkg.OperatingSystem> downloadJDKOperatingSystemComboBox;
-    private              ComboBox<Architecture>                                  downloadJDKArchitectureComboBox;
-    private              ComboBox<ArchiveType>                                   downloadJDKArchiveTypeComboBox;
-    private              Label                                                   downloadJDKFilenameLabel;
-    private              Label                                                   alreadyDownloadedLabel;
-    private              Set<MajorVersion>                                       downloadJDKMaintainedVersions;
-    private              List<MinimizedPkg>                                      downloadJDKSelectedPkgs;
-    private              MinimizedPkg                                            downloadJDKSelectedPkg;
-    private              List<MinimizedPkg>                                      downloadJDKSelectedPkgsForMajorVersion;
-    private              List<MinimizedPkg>                                      downloadJDKMinimizedPkgs;
-    private              boolean                                                 downloadJDKJavafxBundled;
-    private              MajorVersion                                            downloadJDKSelectedMajorVersion;
-    private              SemVer                                                  downloadJDKSelectedVersionNumber;
-    private              io.foojay.api.discoclient.pkg.Distribution              downloadJDKSelectedDistribution;
-    private              io.foojay.api.discoclient.pkg.OperatingSystem           downloadJDKSelectedOperatingSystem;
-    private              Architecture                                            downloadJDKSelectedArchitecture;
-    private              ArchiveType                                             downloadJDKSelectedArchiveType;
-    private              Set<io.foojay.api.discoclient.pkg.OperatingSystem>      downloadJDKOperatingSystems;
-    private              Set<Architecture>                                       downloadJDKArchitectures;
-    private              Set<ArchiveType>                                        downloadJDKArchiveTypes;
-    private              ProgressBar                                             downloadJDKProgressBar;
-    private              ImageView                                               tckTestedTag;
-    private              ImageView                                               aqavitTestedTag;
-    private              Hyperlink                                               tckTestedLink;
-    private              Hyperlink                                               aqavitTestedLink;
-    private              Button                                                  downloadJDKCancelButton;
-    private              Button                                                  downloadJDKDownloadButton;
-
-    public record SemVerUri(SemVer semver, String uri) {}
+    public record SemverUri(Semver semver, String uri) {}
 
 
     @Override public void init() {
@@ -309,7 +318,7 @@ public class Main extends Application {
         };
         darkMode.set(Detector.isDarkMode());
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
+        if (OperatingSystem.LINUX == operatingSystem) {
             if (PropertyManager.INSTANCE.hasKey(PropertyManager.DARK_MODE)) {
                 darkMode.set(PropertyManager.INSTANCE.getBoolean(PropertyManager.DARK_MODE));
             } else {
@@ -318,7 +327,7 @@ public class Main extends Application {
             }
         }
 
-        closeMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        closeMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
         closeMacWindowButton.setDarkMode(darkMode.get());
 
         closeWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
@@ -343,8 +352,8 @@ public class Main extends Application {
             windowTitle.setTextFill(darkMode.get() ? Color.web("#dddddd") : Color.web("#000000"));
             windowTitle.setAlignment(Pos.CENTER);
 
-            AnchorPane.setTopAnchor(closeMacWindowButton, 5d);
-            AnchorPane.setLeftAnchor(closeMacWindowButton, 5d);
+            AnchorPane.setTopAnchor(closeMacWindowButton, 7.125d);
+            AnchorPane.setLeftAnchor(closeMacWindowButton, 11d);
             AnchorPane.setTopAnchor(windowTitle, 0d);
             AnchorPane.setRightAnchor(windowTitle, 0d);
             AnchorPane.setBottomAnchor(windowTitle, 0d);
@@ -361,9 +370,9 @@ public class Main extends Application {
             headerPane.setPrefHeight(31);
             headerPane.getChildren().addAll(closeWinWindowButton, windowTitle);
         } else {
-            headerPane.setMinHeight(21);
-            headerPane.setMaxHeight(21);
-            headerPane.setPrefHeight(21);
+            headerPane.setMinHeight(28.75);
+            headerPane.setMaxHeight(28.75);
+            headerPane.setPrefHeight(28.75);
             headerPane.getChildren().addAll(closeMacWindowButton, windowTitle);
         }
 
@@ -380,7 +389,7 @@ public class Main extends Application {
         javafxSearchPaths  = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.JAVAFX_SEARCH_PATH).split(",")));
 
         // If on Linux or Mac add .sdkman/candidates/java folder to search paths if present
-        if (operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.LINUX || operatingSystem == io.foojay.api.discoclient.pkg.OperatingSystem.MACOS) {
+        if (operatingSystem == OperatingSystem.LINUX || operatingSystem == OperatingSystem.MACOS) {
             if (Detector.isSDKMANInstalled() && searchPaths.stream().filter(path -> path.equals(Detector.SDKMAN_FOLDER)).findFirst().isEmpty()) {
                 searchPaths.add(Detector.SDKMAN_FOLDER);
                 PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
@@ -480,8 +489,8 @@ public class Main extends Application {
         contextMenu.setAutoHide(true);
 
         // Adjustments related to accent color
-        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
-            accentColor = Detector.getMacOSAccentColor();
+        if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            accentColor = Detector.getMacosAccentColor();
             if (darkMode.get()) {
                 pane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
@@ -490,7 +499,7 @@ public class Main extends Application {
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
             }
         } else {
-            accentColor = MacOSAccentColor.MULTI_COLOR;
+            accentColor = MacosAccentColor.MULTI_COLOR;
         }
 
         // Adjustments related to dark/light mode
@@ -703,12 +712,12 @@ public class Main extends Application {
 
             boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
 
-            List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection = downloadJDKMinimizedPkgs.stream()
-                                                                                                           .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
-                                                                                                           .map(pkg -> pkg.getDistribution())
-                                                                                                           .distinct()
-                                                                                                           .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
-                                                                                                           .collect(Collectors.toList());
+            List<Distribution> distrosForSelection = downloadJDKMinimizedPkgs.stream()
+                                                                       .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                       .map(pkg -> pkg.getDistribution())
+                                                                       .distinct()
+                                                                       .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                       .collect(Collectors.toList());
 
             Platform.runLater(() -> {
                 downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
@@ -849,15 +858,15 @@ public class Main extends Application {
 
         this.stage = stage;
         this.stage.setMinWidth(402);
-        this.stage.setMinHeight(272);
+        this.stage.setMinHeight(312);
         this.trayIconSupported = FXTrayIcon.isSupported();
 
         if (trayIconSupported) {
             FXTrayIcon trayIcon;
-            if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
-                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_blk.png"), 24, 24);
+            if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_blk.png"), 16, 16);
             } else {
-                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"));
+                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"), 16, 16);
             }
 
             trayIcon.setTrayIconTooltip("JDKMon " + VERSION);
@@ -1050,7 +1059,7 @@ public class Main extends Application {
         }
 
         Scene scene;
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             scene = new Scene(mainPane);
         } else {
             StackPane glassPane = new StackPane(mainPane);
@@ -1132,8 +1141,8 @@ public class Main extends Application {
         cves.clear();
         cvesFound.forEach(cve -> {
             final String   id       = cve.id();
-            final double   score    = cve.score();
-            final Severity severity = Severity.fromText(cve.severity().getApiString());
+            final double              score            = cve.score();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
             final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
             cves.add(new CVE(id, score, severity, affectedVersions));
         });
@@ -1183,7 +1192,7 @@ public class Main extends Application {
                 macProgressIndicator.setVisible(true);
                 macProgressIndicator.setIndeterminate(true);
             }
-            Set<Distribution> distrosFound = finder.getDistributions(searchPaths);
+            Set<Distro> distrosFound = finder.getDistributions(searchPaths);
             distros.setAll(distrosFound);
             SwingUtilities.invokeLater(() -> checkForUpdates());
         });
@@ -1230,7 +1239,7 @@ public class Main extends Application {
         checkingForUpdates.set(false);
     }
 
-    private HBox getDistroEntry(final Distribution distribution, final List<Pkg> pkgs) {
+    private HBox getDistroEntry(final Distro distribution, final List<Pkg> pkgs) {
         final boolean isDistributionInUse = distribution.isInUse();
 
         List<CVE> vulnerabilities = Helper.getCVEsForVersion(cves, VersionNumber.fromText(distribution.getVersion()));
@@ -1271,7 +1280,7 @@ public class Main extends Application {
                         }
                     }
                 });
-                if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+                if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
                     if (isDarkMode) {
                         cveLink.setTextFill(accentColor.getColorDark());
                     } else {
@@ -1304,7 +1313,7 @@ public class Main extends Application {
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
-        for (Distribution distro : distros) {
+        for (Distro distro : distros) {
             if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck) {
                 return hBox;
             }
@@ -1336,7 +1345,7 @@ public class Main extends Application {
         Popup popup = new Popup();
 
         WinWindowButton   closePopupWinButton   = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
-        MacOSWindowButton closePopupMacOSButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        MacosWindowButton closePopupMacOSButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
 
         if (isWindows) {
             closePopupWinButton.setDarkMode(darkMode.get());
@@ -1436,7 +1445,7 @@ public class Main extends Application {
 
         final String downloadFolder        = PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER);
         final String distributionApiString = distribution.getApiString();
-        final SemVer availableJavaVersion  = firstPkg.getJavaVersion();
+        final Semver availableJavaVersion  = firstPkg.getJavaVersion();
         if (distributionApiString.equals(nameToCheck)) {
             Label versionLabel = new Label(availableJavaVersion.toString(true));
             versionLabel.setMinWidth(56);
@@ -1483,14 +1492,14 @@ public class Main extends Application {
                     archiveTypeLabel.setTooltip(new Tooltip(new StringBuilder().append("Download ").append(filename).append(Verification.YES == pkg.getTckTested() ? " (TCK tested)" : "").toString()));
                 }
                 switch (archiveType) {
-                    case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-                    case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-                    case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                    case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.GREEN.getColorDark() : MacosAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                    case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.ORANGE.getColorDark() : MacosAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                    case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.YELLOW.getColorDark() : MacosAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
                 }
             } else {
                 archiveTypeLabel.setTooltip(new Tooltip("Go to download page"));
                 archiveTypeLabel.setTextFill(Color.WHITE);
-                archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GRAPHITE.getColorDark() : MacOSAccentColor.GRAPHITE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+                archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.GRAPHITE.getColorDark() : MacosAccentColor.GRAPHITE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
             }
             archiveTypeLabel.disableProperty().bind(blocked);
             if (pkg.isDirectlyDownloadable()) {
@@ -1526,7 +1535,7 @@ public class Main extends Application {
         final String releaseDetailsUrl = discoclient.getReleaseDetailsUrl(availableJavaVersion);
         if (null != releaseDetailsUrl && !releaseDetailsUrl.isEmpty() && firstPkg.getReleaseStatus() != EA) {
             Label releaseDetailsLabel = new Label("?");
-            releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.BLUE.getColorDark() : MacOSAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
+            releaseDetailsLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.BLUE.getColorDark() : MacosAccentColor.BLUE.getColorAqua(), new CornerRadii(10), Insets.EMPTY)));
             releaseDetailsLabel.getStyleClass().add("release-details-label");
             releaseDetailsLabel.setTooltip(new Tooltip("Release Details"));
             releaseDetailsLabel.setOnMouseClicked(e -> { if (!blocked.get()) {
@@ -1544,7 +1553,7 @@ public class Main extends Application {
         return hBox;
     }
 
-    private HBox getJavaFXEntry(final SemVer existingSemver, final SemVerUri semverUri) {
+    private HBox getJavaFXEntry(final Semver existingSemver, final SemverUri semverUri) {
         final String uri = semverUri.uri();
 
         Label javafxSDKLabel = new Label(new StringBuilder("JavaFX SDK ").append(existingSemver.toString(true)).toString());
@@ -1573,9 +1582,9 @@ public class Main extends Application {
         archiveTypeLabel.getStyleClass().add("tag-label");
         archiveTypeLabel.setTooltip(new Tooltip("Download JavaFX SDK" + existingSemver.toString(true)));
         switch (archiveType) {
-            case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.GREEN.getColorDark() : MacOSAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-            case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.ORANGE.getColorDark() : MacOSAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
-            case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacOSAccentColor.YELLOW.getColorDark() : MacOSAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+            case APK, BIN, CAB, EXE, MSI, ZIP -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.GREEN.getColorDark() : MacosAccentColor.GREEN.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+            case DEB, TAR, TAR_GZ, TAR_Z, RPM -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.ORANGE.getColorDark() : MacosAccentColor.ORANGE.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
+            case PKG, DMG -> archiveTypeLabel.setBackground(new Background(new BackgroundFill(darkMode.get() ? MacosAccentColor.YELLOW.getColorDark() : MacosAccentColor.YELLOW.getColorAqua(), new CornerRadii(2.5), Insets.EMPTY)));
         }
         archiveTypeLabel.disableProperty().bind(blocked);
         archiveTypeLabel.setOnMouseClicked(e -> { if (!blocked.get()) { downloadJavaFXSDK(uri); }});
@@ -1583,7 +1592,7 @@ public class Main extends Application {
         return hBox;
     }
 
-    private void openDistribution(Distribution distribution) {
+    private void openDistribution(Distro distribution) {
         openFileLocation(new File(distribution.getLocation()));
     }
 
@@ -1619,8 +1628,14 @@ public class Main extends Application {
         Label versionLabel = new Label(VERSION.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
         versionLabel.setFont(isWindows ? Fonts.segoeUi(14) : Fonts.sfPro(14));
 
-        Label infrastructureLabel = new Label("(" + operatingSystem.getUiString() + ", " + architecture.getUiString() + ")");
-        infrastructureLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+        boolean rosetta2 = OperatingMode.EMULATED == sysInfo.operatingMode() && OperatingSystem.MACOS == sysInfo.operatingSystem();
+        String environment = new StringBuilder().append("(")
+                                                .append(sysInfo.operatingSystem().getUiString()).append(", ")
+                                                .append(sysInfo.architecture().getUiString())
+                                                .append(rosetta2 ? " (Rosetta2)" : "")
+                                                .append(")").toString();
+        Label environmentLabel = new Label(environment);
+        environmentLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
 
         Node updateNode;
         if (isUpdateAvailable) {
@@ -1636,7 +1651,7 @@ public class Main extends Application {
                     }
                 }
             });
-            if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
                 if (isDarkMode) {
                     updateLink.setTextFill(accentColor.getColorDark());
                 } else {
@@ -1663,16 +1678,16 @@ public class Main extends Application {
         Label descriptionLabel = new Label("JDKMon, your friendly JDK updater helps you keeping track of your installed OpenJDK distributions.");
         if (isWindows) {
             descriptionLabel.setFont(Fonts.segoeUi(11));
-        } else if (io.foojay.api.discoclient.pkg.OperatingSystem.MACOS == operatingSystem) {
+        } else if (OperatingSystem.MACOS == operatingSystem) {
             descriptionLabel.setFont(Fonts.sfPro(11));
-        } else if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem) {
+        } else if (OperatingSystem.LINUX == operatingSystem) {
             descriptionLabel.setFont(Fonts.sfPro(11));
         }
         descriptionLabel.setTextAlignment(TextAlignment.LEFT);
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);
 
-        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, infrastructureLabel, updateNode, descriptionLabel);
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, environmentLabel, updateNode, descriptionLabel);
 
         HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
         aboutBox.setAlignment(Pos.CENTER);
@@ -1682,7 +1697,7 @@ public class Main extends Application {
         aboutBox.setPrefSize(420, 200);
 
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             aboutDialog.getDialogPane().setContent(new StackPane(aboutBox));
         } else {
             StackPane glassPane = new StackPane(aboutBox);
@@ -1702,13 +1717,13 @@ public class Main extends Application {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#dddddd"));
                 versionLabel.setTextFill(Color.web("#dddddd"));
-                infrastructureLabel.setTextFill(Color.web("#dddddd"));
+                environmentLabel.setTextFill(Color.web("#dddddd"));
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#dddddd"));
                 versionLabel.setTextFill(Color.web("#dddddd"));
-                infrastructureLabel.setTextFill(Color.web("#dddddd"));
+                environmentLabel.setTextFill(Color.web("#dddddd"));
                 descriptionLabel.setTextFill(Color.web("#dddddd"));
             }
         } else {
@@ -1716,13 +1731,13 @@ public class Main extends Application {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#2a2a2a"));
                 versionLabel.setTextFill(Color.web("#2a2a2a"));
-                infrastructureLabel.setTextFill(Color.web("#2a2a2a"));
+                environmentLabel.setTextFill(Color.web("#2a2a2a"));
                 descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             } else {
                 aboutBox.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 10, 10, false), Insets.EMPTY)));
                 nameLabel.setTextFill(Color.web("#2a2a2a"));
                 versionLabel.setTextFill(Color.web("#2a2a2a"));
-                infrastructureLabel.setTextFill(Color.web("#2a2a2a"));
+                environmentLabel.setTextFill(Color.web("#2a2a2a"));
                 descriptionLabel.setTextFill(Color.web("#2a2a2a"));
             }
         }
@@ -1989,7 +2004,7 @@ public class Main extends Application {
         cveStage.getScene().setFill(Color.TRANSPARENT);
         cveStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
-        cveCloseMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        cveCloseMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
         cveCloseMacWindowButton.setDarkMode(isDarkMode);
 
         cveCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
@@ -2014,8 +2029,8 @@ public class Main extends Application {
             cveWindowTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
             cveWindowTitle.setAlignment(Pos.CENTER);
 
-            AnchorPane.setTopAnchor(cveCloseMacWindowButton, 5d);
-            AnchorPane.setLeftAnchor(cveCloseMacWindowButton, 5d);
+            AnchorPane.setTopAnchor(cveCloseMacWindowButton, 7.125d);
+            AnchorPane.setLeftAnchor(cveCloseMacWindowButton, 11d);
             AnchorPane.setTopAnchor(cveWindowTitle, 0d);
             AnchorPane.setRightAnchor(cveWindowTitle, 0d);
             AnchorPane.setBottomAnchor(cveWindowTitle, 0d);
@@ -2032,9 +2047,9 @@ public class Main extends Application {
             cveHeaderPane.setPrefHeight(31);
             cveHeaderPane.getChildren().addAll(cveCloseWinWindowButton, cveWindowTitle);
         } else {
-            cveHeaderPane.setMinHeight(21);
-            cveHeaderPane.setMaxHeight(21);
-            cveHeaderPane.setPrefHeight(21);
+            cveHeaderPane.setMinHeight(26.25);
+            cveHeaderPane.setMaxHeight(26.25);
+            cveHeaderPane.setPrefHeight(26.25);
             cveHeaderPane.getChildren().addAll(cveCloseMacWindowButton, cveWindowTitle);
         }
 
@@ -2054,7 +2069,7 @@ public class Main extends Application {
         cveMainPane.setTop(cveHeaderPane);
         cveMainPane.setCenter(cvePane);
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             cveMainPane.setOnMousePressed(press -> cveMainPane.setOnMouseDragged(drag -> {
                 cveDialog.setX(drag.getScreenX() - press.getSceneX());
                 cveDialog.setY(drag.getScreenY() - press.getSceneY());
@@ -2075,7 +2090,7 @@ public class Main extends Application {
         cveDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Adjustments related to dark/light mode
-        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+        if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
             if (isDarkMode) {
                 downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
@@ -2146,7 +2161,7 @@ public class Main extends Application {
         Region findlJDKMajorVersionSpacer = new Region();
         HBox.setHgrow(findlJDKMajorVersionSpacer, Priority.ALWAYS);
         downloadJDKMajorVersionComboBox = new ComboBox<>();
-        downloadJDKMajorVersionComboBox.setCellFactory(majorVersionListView -> new MajorVersionCell());
+        downloadJDKMajorVersionComboBox.setCellFactory(majorVersionListView -> isWindows ? new MajorVersionCell() : new MacosMajorVersionCell());
         downloadJDKMajorVersionComboBox.setMinWidth(150);
         downloadJDKMajorVersionComboBox.setMaxWidth(150);
         downloadJDKMajorVersionComboBox.setPrefWidth(150);
@@ -2157,7 +2172,7 @@ public class Main extends Application {
         Region downloadJDKUpdateLevelSpacer = new Region();
         HBox.setHgrow(downloadJDKUpdateLevelSpacer, Priority.ALWAYS);
         downloadJDKUpdateLevelComboBox = new ComboBox<>();
-        downloadJDKUpdateLevelComboBox.setCellFactory(updateLevelListView -> new UpdateLevelCell());
+        downloadJDKUpdateLevelComboBox.setCellFactory(updateLevelListView -> isWindows ? new UpdateLevelCell() : new MacosUpdateLevelCell());
         downloadJDKUpdateLevelComboBox.setMinWidth(150);
         downloadJDKUpdateLevelComboBox.setMaxWidth(150);
         downloadJDKUpdateLevelComboBox.setPrefWidth(150);
@@ -2168,12 +2183,10 @@ public class Main extends Application {
         Region downloadJDKDistributionSpacer = new Region();
         HBox.setHgrow(downloadJDKDistributionSpacer, Priority.ALWAYS);
         downloadJDKDistributionComboBox = new ComboBox<>();
-        downloadJDKDistributionComboBox.setCellFactory(distributionListView -> new DistributionCell());
+        downloadJDKDistributionComboBox.setCellFactory(distributionListView -> isWindows ? new DistributionCell() : new MacosDistributionCell());
         downloadJDKDistributionComboBox.setConverter(new StringConverter<>() {
-            @Override public String toString(final io.foojay.api.discoclient.pkg.Distribution distribution) {
-                return null == distribution ? null : distribution.getUiString();
-            }
-            @Override public io.foojay.api.discoclient.pkg.Distribution fromString(final String text) {
+            @Override public String toString(final Distribution distribution) { return null == distribution ? null : distribution.getUiString(); }
+            @Override public Distribution fromString(final String text) {
                 return DiscoClient.getDistributionFromText(text);
             }
         });
@@ -2187,7 +2200,11 @@ public class Main extends Application {
         Region findlJDKOperatingSystemSpacer = new Region();
         HBox.setHgrow(findlJDKOperatingSystemSpacer, Priority.ALWAYS);
         downloadJDKOperatingSystemComboBox = new ComboBox<>();
-        downloadJDKOperatingSystemComboBox.setCellFactory(operatingSystemListView -> new OperatingSystemCell());
+        downloadJDKOperatingSystemComboBox.setCellFactory(operatingSystemListView -> isWindows ? new OperatingSystemCell() : new MacosOperatingSystemCell());
+        downloadJDKOperatingSystemComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final OperatingSystem operatingSystem) { return null == operatingSystem ? null : operatingSystem.getUiString(); }
+            @Override public OperatingSystem fromString(final String text) { return OperatingSystem.fromText(text); }
+        });
         downloadJDKOperatingSystemComboBox.setMinWidth(150);
         downloadJDKOperatingSystemComboBox.setMaxWidth(150);
         downloadJDKOperatingSystemComboBox.setPrefWidth(150);
@@ -2198,7 +2215,11 @@ public class Main extends Application {
         Region downloadJDKArchitectureSpacer = new Region();
         HBox.setHgrow(downloadJDKArchitectureSpacer, Priority.ALWAYS);
         downloadJDKArchitectureComboBox = new ComboBox<>();
-        downloadJDKArchitectureComboBox.setCellFactory(architectureListView -> new ArchitectureCell());
+        downloadJDKArchitectureComboBox.setCellFactory(architectureListView -> isWindows ? new ArchitectureCell() : new MacosArchitectureCell());
+        downloadJDKArchitectureComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final Architecture architecture) { return null == architecture ? null : architecture.getUiString(); }
+            @Override public Architecture fromString(final String text) { return Architecture.fromText(text); }
+        });
         downloadJDKArchitectureComboBox.setMinWidth(150);
         downloadJDKArchitectureComboBox.setMaxWidth(150);
         downloadJDKArchitectureComboBox.setPrefWidth(150);
@@ -2209,7 +2230,11 @@ public class Main extends Application {
         Region downloadJDKArchiveTypeSpacer = new Region();
         HBox.setHgrow(downloadJDKArchiveTypeSpacer, Priority.ALWAYS);
         downloadJDKArchiveTypeComboBox = new ComboBox<>();
-        downloadJDKArchiveTypeComboBox.setCellFactory(archiveTypeListView -> new ArchiveTypeCell());
+        downloadJDKArchiveTypeComboBox.setCellFactory(archiveTypeListView -> isWindows ? new ArchiveTypeCell() : new MacosArchiveTypeCell());
+        downloadJDKArchiveTypeComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final ArchiveType archiveType) { return null == archiveType ? null : archiveType.getUiString(); }
+            @Override public ArchiveType fromString(final String text) { return ArchiveType.fromText(text); }
+        });
         downloadJDKArchiveTypeComboBox.setMinWidth(150);
         downloadJDKArchiveTypeComboBox.setMaxWidth(150);
         downloadJDKArchiveTypeComboBox.setPrefWidth(150);
@@ -2287,7 +2312,7 @@ public class Main extends Application {
         HBox downloadJDKButtonBox = new HBox(5, downloadJDKCancelButton, spacerLeft, tckTestedTag, spacerCenter, aqavitTestedTag, spacerRight, downloadJDKDownloadButton);
         downloadJDKButtonBox.setAlignment(Pos.CENTER);
 
-        downloadJDKCloseMacWindowButton = new MacOSWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        downloadJDKCloseMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
         downloadJDKCloseMacWindowButton.setDarkMode(isDarkMode);
 
         downloadJDKCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
@@ -2312,8 +2337,8 @@ public class Main extends Application {
             downloadJDKWindowTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
             downloadJDKWindowTitle.setAlignment(Pos.CENTER);
 
-            AnchorPane.setTopAnchor(downloadJDKCloseMacWindowButton, 5d);
-            AnchorPane.setLeftAnchor(downloadJDKCloseMacWindowButton, 5d);
+            AnchorPane.setTopAnchor(downloadJDKCloseMacWindowButton, 7.125d);
+            AnchorPane.setLeftAnchor(downloadJDKCloseMacWindowButton, 11d);
             AnchorPane.setTopAnchor(downloadJDKWindowTitle, 0d);
             AnchorPane.setRightAnchor(downloadJDKWindowTitle, 0d);
             AnchorPane.setBottomAnchor(downloadJDKWindowTitle, 0d);
@@ -2330,9 +2355,9 @@ public class Main extends Application {
             downloadJDKHeaderPane.setPrefHeight(31);
             downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseWinWindowButton, downloadJDKWindowTitle);
         } else {
-            downloadJDKHeaderPane.setMinHeight(21);
-            downloadJDKHeaderPane.setMaxHeight(21);
-            downloadJDKHeaderPane.setPrefHeight(21);
+            downloadJDKHeaderPane.setMinHeight(26.25);
+            downloadJDKHeaderPane.setMaxHeight(26.25);
+            downloadJDKHeaderPane.setPrefHeight(26.25);
             downloadJDKHeaderPane.getChildren().addAll(downloadJDKCloseMacWindowButton, downloadJDKWindowTitle);
         }
 
@@ -2354,7 +2379,7 @@ public class Main extends Application {
 
         downloadJDKProgressBar.prefWidthProperty().bind(downloadJDKMainPane.widthProperty());
 
-        if (io.foojay.api.discoclient.pkg.OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture ||Architecture.ARM64 == architecture)) {
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             downloadJDKMainPane.setOnMousePressed(press -> downloadJDKMainPane.setOnMouseDragged(drag -> {
                 downloadJDKStage.setX(drag.getScreenX() - press.getSceneX());
                 downloadJDKStage.setY(drag.getScreenY() - press.getSceneY());
@@ -2377,7 +2402,7 @@ public class Main extends Application {
         downloadJDKDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
 
         // Adjustments related to dark/light mode
-        if (Detector.OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+        if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
             if (isDarkMode) {
                 downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
@@ -2485,12 +2510,12 @@ public class Main extends Application {
         downloadJDKSelectedPkgsForMajorVersion.addAll(pkgs);
 
         Platform.runLater(() -> downloadJDKBundledWithFXCheckBox.setDisable(false));
-        List<SemVer> versionList = downloadJDKSelectedMajorVersion.getVersions()
+        List<Semver> versionList = downloadJDKSelectedMajorVersion.getVersions()
                                                                   .stream()
-                                                                  .filter(semVer -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semVer.getReleaseStatus() == EA) : (semVer.getReleaseStatus() == GA))
-                                                                  .sorted(Comparator.comparing(SemVer::getVersionNumber).reversed())
+                                                                  .filter(semver -> downloadJDKSelectedMajorVersion.isEarlyAccessOnly() ? (semver.getReleaseStatus() == EA) : (semver.getReleaseStatus() == GA))
+                                                                  .sorted(Comparator.comparing(Semver::getVersionNumber).reversed())
                                                                   .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
-                                                                  .distinct().map(versionString -> SemVer.fromText(versionString).getSemVer1())
+                                                                  .distinct().map(versionString -> Semver.fromText(versionString).getSemver1())
                                                                   .collect(Collectors.toList());
         Platform.runLater(() -> {
             downloadJDKUpdateLevelComboBox.getItems().setAll(versionList);
@@ -2627,8 +2652,6 @@ public class Main extends Application {
                 downloadJDKArchitectureComboBox.getSelectionModel().select(selectIndex);
             }
         });
-
-
     }
 
     private void selectArchitecture() {

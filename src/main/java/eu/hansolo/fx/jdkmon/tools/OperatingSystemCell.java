@@ -16,7 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import io.foojay.api.discoclient.pkg.OperatingSystem;
+import eu.hansolo.jdktools.OperatingSystem;
 import javafx.scene.control.ListCell;
 
 
@@ -37,4 +37,3 @@ public class OperatingSystemCell extends ListCell<OperatingSystem> {
         return getItem().getUiString();
     }
 }
-

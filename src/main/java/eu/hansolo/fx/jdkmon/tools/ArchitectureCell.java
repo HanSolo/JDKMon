@@ -16,7 +16,7 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import io.foojay.api.discoclient.pkg.Architecture;
+import eu.hansolo.jdktools.Architecture;
 import javafx.scene.control.ListCell;
 
 
@@ -37,4 +37,3 @@ public class ArchitectureCell extends ListCell<Architecture> {
         return getItem().getUiString();
     }
 }
-
