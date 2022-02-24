@@ -9,6 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
+        classpath 'org.javamodularity:moduleplugin:1.8.10'
         classpath 'org.beryx:badass-jlink-plugin:2.24.4'
     }
 }
@@ -16,10 +17,10 @@ buildscript {
 plugins {
     id 'java-library'
     id 'application'
-    id 'com.google.osdetector'    version '1.7.0'
-    id 'org.beryx.jlink'          version '2.24.4'
-    id 'net.nemerosa.versioning'  version '2.15.1'
-    id 'org.openjfx.javafxplugin' version '0.0.12'
+    id 'com.google.osdetector'           version '1.7.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.10'
+    id 'org.beryx.jlink'                 version '2.24.4'
+    id 'net.nemerosa.versioning'         version '2.15.1'
 }
 
 normalization {
@@ -51,16 +52,15 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'io.foojay.api:discoclient:2.0.19'
+    implementation 'io.foojay.api:discoclient:2.0.20'
     implementation 'eu.hansolo:jdktools:17.0.4'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
+    implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
 }
 
-javafx {
-    version = '17.0.2'
-    modules = [ 'javafx.base', 'javafx.graphics', 'javafx.controls' ]
-}
 
 mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
 ext.moduleName = 'eu.hansolo.fx.jdkmon'
@@ -99,12 +99,36 @@ jar {
     }
 }
 
+/*
+tasks.register('uberJar', Jar) {
+    archiveClassifier = 'uber'
+
+    from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+}
+*/
+
 jlink {
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
     launcher {
         name = 'eu.hansolo.fx.jdkmon'
     }
 }
+/*
+tasks.withType(JavaCompile) {
+    options.compilerArgs += "--enable-preview"
+}
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
+tasks.withType(JavaExec) {
+    jvmArgs += "--enable-preview"
+}
+*/
 
 // start the from gradle
 task Main(type: JavaExec) {
