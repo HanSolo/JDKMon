@@ -19,6 +19,7 @@ package eu.hansolo.fx.jdkmon.tools;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import eu.hansolo.fx.jdkmon.Main;
+import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.versioning.VersionNumber;
@@ -151,6 +152,19 @@ public class Helper {
 
     public static final List<CVE> getCVEsForVersion(final List<CVE> cves, final VersionNumber versionNumber) {
         return cves.stream().filter(cve -> cve.affectedVersions().contains(versionNumber)).collect(Collectors.toList());
+    }
+
+    public static final Color getColorForCVE(final CVE cve, final boolean darkMode) {
+        final double score = cve.score();
+        if (score >= 9.0) {
+            return darkMode ? MacosAccentColor.RED.colorDark : MacosAccentColor.RED.colorAqua;
+        } else if (score >= 7.0) {
+            return darkMode ? MacosAccentColor.ORANGE.colorDark : MacosAccentColor.ORANGE.colorAqua;
+        } else if (score >= 4.0) {
+            return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
+        } else {
+            return darkMode ? MacosAccentColor.GREEN.colorDark : MacosAccentColor.GREEN.colorAqua;
+        }
     }
 
 

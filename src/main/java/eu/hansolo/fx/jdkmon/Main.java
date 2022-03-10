@@ -1280,15 +1280,7 @@ public class Main extends Application {
                         }
                     }
                 });
-                if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
-                    if (isDarkMode) {
-                        cveLink.setTextFill(accentColor.getColorDark());
-                    } else {
-                        cveLink.setTextFill(accentColor.getColorAqua());
-                    }
-                } else {
-                    cveLink.setTextFill(accentColor.getColorAqua());
-                }
+                cveLink.setTextFill(Helper.getColorForCVE(cve, isDarkMode));
                 cveLinksFound.add(cveLink);
             });
             attentionLabel.setVisible(true);
