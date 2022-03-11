@@ -153,7 +153,7 @@ affected by the CVE's found in NVD but you at least get the info that there are 
 When you click on the yellow circle a window will open which shows the CVE's found. 
 You can click on each CVE to open it in a browser with more detailled information.
 
-![vulnerability](https://i.ibb.co/jGVFVh2/vulnerabitlities.png")
+![vulnerability](https://i.ibb.co/jGVFVh2/vulnerabitlities.png)
 
 How it looks on MacOS and Linux (light/dark mode):
 ![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
