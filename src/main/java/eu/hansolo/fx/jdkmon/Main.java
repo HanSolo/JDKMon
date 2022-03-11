@@ -22,8 +22,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.CveScanner;
-import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
+import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WinProgress;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -1280,7 +1280,8 @@ public class Main extends Application {
                         }
                     }
                 });
-                cveLink.setTextFill(Helper.getColorForCVE(cve, isDarkMode));
+                cveLink.setTextFill(Color.BLACK);
+                cveLink.setBackground(new Background(new BackgroundFill(Helper.getColorForCVE(cve, isDarkMode), new CornerRadii(5), Insets.EMPTY)));
                 cveLinksFound.add(cveLink);
             });
             attentionLabel.setVisible(true);
@@ -1294,7 +1295,6 @@ public class Main extends Application {
         HBox distroBox = new HBox(3, distroLabel, attentionLabel);
         distroBox.setAlignment(Pos.CENTER);
 
-        //HBox hBox = new HBox(5, distroLabel);
         HBox hBox = new HBox(5, distroBox);
         hBox.setMinWidth(360);
 
@@ -1401,8 +1401,8 @@ public class Main extends Application {
 
         BorderPane popupPane = new BorderPane();
         popupPane.getStyleClass().add("popup");
-        popupPane.setTop(popupHeader);
         popupPane.setCenter(popupContent);
+        popupPane.setTop(popupHeader);
 
         // Adjustments related to dark/light mode
         if (darkMode.get()) {
@@ -1553,7 +1553,13 @@ public class Main extends Application {
         javafxSDKLabel.setAlignment(Pos.CENTER_LEFT);
         javafxSDKLabel.setMaxWidth(Double.MAX_VALUE);
 
-        HBox hBox = new HBox(5, javafxSDKLabel);
+        Label spacerLabel = new Label("!");
+        spacerLabel.setBackground(new Background(new BackgroundFill(Color.rgb(255, 214, 10), new CornerRadii(10), Insets.EMPTY)));
+        spacerLabel.getStyleClass().add("attention-label");
+        spacerLabel.setTooltip(new Tooltip(""));
+        spacerLabel.setVisible(false);
+
+        HBox hBox = new HBox(3, javafxSDKLabel, spacerLabel);
         hBox.setMinWidth(360);
 
         if (uri.isEmpty()) { return hBox; }
@@ -2058,8 +2064,8 @@ public class Main extends Application {
         cvePane.setPadding(new Insets(10));
 
         BorderPane cveMainPane = new BorderPane();
-        cveMainPane.setTop(cveHeaderPane);
         cveMainPane.setCenter(cvePane);
+        cveMainPane.setTop(cveHeaderPane);
 
         if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
             cveMainPane.setOnMousePressed(press -> cveMainPane.setOnMouseDragged(drag -> {
@@ -2094,12 +2100,12 @@ public class Main extends Application {
         if (isDarkMode) {
             if (isWindows) {
                 cveWindowTitle.setTextFill(Color.web("#969696"));
-                cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 cveHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
-                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cveMainPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cveMainPane.setBorder(new Border(new BorderStroke(Color.web("#333333"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cveMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cveMainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
             } else {
                 cveWindowTitle.setTextFill(Color.web("#dddddd"));
                 cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
@@ -2111,17 +2117,17 @@ public class Main extends Application {
         } else {
             if (isWindows) {
                 cveWindowTitle.setTextFill(Color.web("#000000"));
-                cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
                 cveHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
-                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cveMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cveMainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cveMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cveMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
             } else {
                 cveWindowTitle.setTextFill(Color.web("#000000"));
                 cveHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), CornerRadii.EMPTY, Insets.EMPTY)));
-                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                cveVBox.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                cvePane.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
                 cveMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
                 cveMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
             }
