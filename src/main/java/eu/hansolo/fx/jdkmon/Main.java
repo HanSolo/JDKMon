@@ -62,6 +62,7 @@ import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
 import eu.hansolo.jdktools.Severity;
 import eu.hansolo.jdktools.Verification;
+import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
@@ -1244,7 +1245,14 @@ public class Main extends Application {
 
         List<CVE> vulnerabilities = Helper.getCVEsForVersion(cves, VersionNumber.fromText(distribution.getVersion()));
 
-        Label distroLabel = new Label(new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")").append(distribution.getFxBundled() ? " (FX)" : "").append("  ").append(distribution.getVersion()).append(isDistributionInUse ? "*" : "").toString());
+        StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")")
+                                                                                    .append(distribution.getFxBundled() ? " (FX)" : "")
+                                                                                    .append("  ")
+                                                                                    .append(distribution.getVersion())
+                                                                                    .append(BuildScope.BUILD_OF_GRAALVM == distribution.getBuildScope() ? " (JDK" + distribution.getJdkMajorVersion() + ")" : "")
+                                                                                    .append(isDistributionInUse ? "*" : "");
+
+        Label distroLabel = new Label(distroLabelBuilder.toString());
         distroLabel.setMinWidth(180);
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);

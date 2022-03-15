@@ -16,27 +16,34 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import eu.hansolo.jdktools.scopes.BuildScope;
+
+
 public class Distro {
-    private final String  name;
-    private final String  apiString;
-    private final String  version;
-    private final String  operatingSystem;
-    private final String  architecture;
-    private final Boolean fxBundled;
-    private final String  location;
-    private final String  feature;
-    private       boolean inUse;
+    private final String     name;
+    private final String     apiString;
+    private final String     version;
+    private final String     jdkMajorVersion;
+    private final String     operatingSystem;
+    private final String     architecture;
+    private final Boolean    fxBundled;
+    private final String     location;
+    private final String     feature;
+    private final BuildScope buildScope;
+    private       boolean    inUse;
 
 
-    public Distro(final String name, final String apiString, final String version, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature) {
+    public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature, final BuildScope buildScope) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
+        this.jdkMajorVersion = jdkMajorVersion;
         this.operatingSystem = operatingSystem;
         this.architecture    = architecture;
         this.fxBundled       = fxBundled;
         this.location        = location;
         this.feature         = feature;
+        this.buildScope      = buildScope;
         this.inUse           = false;
     }
 
@@ -47,6 +54,8 @@ public class Distro {
 
     public String getVersion() { return version; }
 
+    public String getJdkMajorVersion() { return jdkMajorVersion; }
+
     public String getOperatingSystem() { return operatingSystem; }
 
     public String getArchitecture() { return architecture; }
@@ -56,6 +65,8 @@ public class Distro {
     public String getLocation() { return location; }
 
     public String getFeature() { return feature; }
+
+    public BuildScope getBuildScope() { return buildScope; }
 
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }
@@ -78,7 +89,9 @@ public class Distro {
     @Override public boolean equals(final Object obj) {
         if (!(obj instanceof Distro)) { return false; }
         Distro distribution = (Distro) obj;
-        return (distribution.getApiString().equals(distribution.getApiString()) && distribution.getVersion().equals(getVersion()) && distribution.getFxBundled() == fxBundled);
+        return (distribution.getApiString().equals(distribution.getApiString()) &&
+                distribution.getVersion().equals(getVersion()) &&
+                distribution.getFxBundled() == fxBundled);
     }
 
     @Override public int hashCode() {
