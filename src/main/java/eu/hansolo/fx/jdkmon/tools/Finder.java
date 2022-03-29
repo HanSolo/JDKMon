@@ -436,7 +436,7 @@ public class Finder {
                                 case "Bisheng"           : name = "Bisheng";        apiString = "bisheng";        break;
                                 case "Debian"            : name = "Debian";         apiString = "debian";         break;
                                 case "Ubuntu"            : name = "Ubuntu";         apiString = "ubuntu";         break;
-                                case "N/A"               : /* GraalVM */ break;
+                                case "N/A"               : /* Unknown */ break;
                             }
                         }
                         if (releaseProperties.containsKey("OS_ARCH")) {
