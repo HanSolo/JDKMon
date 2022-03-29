@@ -28,6 +28,7 @@ At the moment the following distributions will be identified:
 - Corretto
 - Debian (pkgs not downloadable)
 - Dragonwell
+- Gluon GraalVM
 - Graalvm CE8
 - Graalvm CE11
 - Graalvm CE16
