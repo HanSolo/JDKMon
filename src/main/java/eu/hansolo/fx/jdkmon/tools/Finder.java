@@ -435,6 +435,7 @@ public class Finder {
                                 case "Tencent"           : name = "Kona";           apiString = "kona";           break;
                                 case "Bisheng"           : name = "Bisheng";        apiString = "bisheng";        break;
                                 case "Debian"            : name = "Debian";         apiString = "debian";         break;
+                                case "Ubuntu"            : name = "Ubuntu";         apiString = "ubuntu";         break;
                                 case "N/A"               : /* GraalVM */ break;
                             }
                         }
