@@ -1554,7 +1554,7 @@ public class Main extends Application {
         final String uri = semverUri.uri();
 
         Label javafxSDKLabel = new Label(new StringBuilder("JavaFX SDK ").append(existingSemver.toString(true)).toString());
-        javafxSDKLabel.setMinWidth(180);
+        javafxSDKLabel.setMinWidth(220);
         javafxSDKLabel.setAlignment(Pos.CENTER_LEFT);
         javafxSDKLabel.setMaxWidth(Double.MAX_VALUE);
 
