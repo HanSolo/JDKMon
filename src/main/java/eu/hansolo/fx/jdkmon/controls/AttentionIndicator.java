@@ -19,6 +19,7 @@ package eu.hansolo.fx.jdkmon.controls;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.geometry.Insets;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -28,20 +29,22 @@ import javafx.scene.shape.SVGPath;
 
 
 public class AttentionIndicator extends Region {
-    public  static final Color                 RED              = Color.rgb(171, 41, 59);
-    public  static final Color                 ORANGE           = Color.rgb(247, 137, 5);
-    private static final double                PREFERRED_WIDTH  = 20;
-    private static final double                PREFERRED_HEIGHT = 20;
-    private static final double                MINIMUM_WIDTH    = 20;
-    private static final double                MINIMUM_HEIGHT   = 20;
-    private static final double                MAXIMUM_WIDTH    = 20;
-    private static final double                MAXIMUM_HEIGHT   = 20;
-    private static final CornerRadii           CORNER_RADII     = new CornerRadii(5);
-    private              Color                 _backgroundColor = RED;
-    private              Color                 _iconColor       = Color.WHITE;
-    private              SVGPath               icon;
-    private              ObjectProperty<Color> backgroundColor;
-    private              ObjectProperty<Color> iconColor;
+    public static final  Color                   RED              = Color.rgb(171, 41, 59);
+    public static final  Color                   ORANGE           = Color.rgb(247, 137, 5);
+    private static final double                  PREFERRED_WIDTH  = 18;
+    private static final double                  PREFERRED_HEIGHT = 18;
+    private static final double                  MINIMUM_WIDTH    = 18;
+    private static final double                  MINIMUM_HEIGHT   = 18;
+    private static final double                  MAXIMUM_WIDTH    = 18;
+    private static final double                  MAXIMUM_HEIGHT   = 18;
+    private static final CornerRadii             CORNER_RADII     = new CornerRadii(3);
+    private              Color                   _backgroundColor = ORANGE;
+    private              Color                   _iconColor       = Color.WHITE;
+    private              Tooltip                 _tooltip         = null;
+    private              SVGPath                 icon;
+    private              ObjectProperty<Color>   backgroundColor;
+    private              ObjectProperty<Color>   iconColor;
+    private              ObjectProperty<Tooltip> tooltip;
 
 
     // ******************** Constructors **************************************
@@ -63,7 +66,7 @@ public class AttentionIndicator extends Region {
         icon.setFill(Color.WHITE);
         icon.setScaleX(0.5);
         icon.setScaleY(0.5);
-        icon.setLayoutX(-4);
+        icon.setLayoutX(-5);
         icon.setLayoutY(-5);
 
         getChildren().setAll(icon);
@@ -111,5 +114,26 @@ public class AttentionIndicator extends Region {
             _iconColor = null;
         }
         return iconColor;
+    }
+
+    public Tooltip getTooltip() { return null == tooltip ? _tooltip : tooltip.get(); }
+    public void setTooltip(final Tooltip tooltip) {
+        if (null == this.tooltip) {
+            _tooltip = tooltip;
+            Tooltip.install(AttentionIndicator.this, _tooltip);
+        } else {
+            this.tooltip.set(tooltip);
+        }
+    }
+    public ObjectProperty<Tooltip> tooltipProperty() {
+        if (null == tooltip) {
+            tooltip = new ObjectPropertyBase<>(_tooltip) {
+                @Override protected void invalidated() { Tooltip.install(AttentionIndicator.this, get()); }
+                @Override public Object getBean() { return AttentionIndicator.this; }
+                @Override public String getName() { return "tooltip"; }
+            };
+            _tooltip = null;
+        }
+        return tooltip;
     }
 }

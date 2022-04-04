@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.CveScanner;
+import eu.hansolo.fx.jdkmon.controls.AttentionIndicator;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
 import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WinProgress;
@@ -1265,12 +1266,10 @@ public class Main extends Application {
         });
 
         // Vulnerabilities
-        Label attentionLabel = new Label("!");
-        attentionLabel.setBackground(new Background(new BackgroundFill(Color.rgb(255, 214, 10), new CornerRadii(10), Insets.EMPTY)));
-        attentionLabel.getStyleClass().add("attention-label");
-        attentionLabel.setTooltip(new Tooltip("Possible vulnerabilities found"));
+        AttentionIndicator attentionIndicator = new AttentionIndicator();
+        attentionIndicator.setTooltip(new Tooltip("Possible vulnerabilities found"));
         if (vulnerabilities.isEmpty()) {
-            attentionLabel.setVisible(false);
+            attentionIndicator.setVisible(false);
         } else {
             final boolean isDarkMode = darkMode.get();
             List<Hyperlink> cveLinksFound = new ArrayList<>();
@@ -1292,15 +1291,15 @@ public class Main extends Application {
                 cveLink.setBackground(new Background(new BackgroundFill(Helper.getColorForCVE(cve, isDarkMode), new CornerRadii(5), Insets.EMPTY)));
                 cveLinksFound.add(cveLink);
             });
-            attentionLabel.setVisible(true);
-            attentionLabel.setOnMousePressed(e -> {
+            attentionIndicator.setVisible(true);
+            attentionIndicator.setOnMousePressed(e -> {
                 cveLinks.setAll(cveLinksFound);
                 cveBox.getChildren().setAll(cveLinks);
                 cveDialog.showAndWait();
             });
         }
 
-        HBox distroBox = new HBox(3, distroLabel, attentionLabel);
+        HBox distroBox = new HBox(3, distroLabel, attentionIndicator);
         distroBox.setAlignment(Pos.CENTER);
 
         HBox hBox = new HBox(5, distroBox);
