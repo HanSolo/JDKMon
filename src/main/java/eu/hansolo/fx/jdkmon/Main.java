@@ -943,7 +943,7 @@ public class Main extends Application {
             menuBar.setUseSystemMenuBar(true);
             menuBar.setTranslateX(16);
 
-            Menu menu = new Menu("JDK Mon");
+            Menu menu = new Menu("JDKMon");
             menu.setText("Menu");
             menu.setOnShowing(e -> hideMenu = false);
             menu.setOnHidden(e -> {
@@ -1057,7 +1057,8 @@ public class Main extends Application {
 
             menuBar.getMenus().add(menu);
 
-            mainPane.getChildren().add(menuBar);
+            titleBox.getChildren().add(0, menuBar);
+            //mainPane.getChildren().add(menuBar);
         }
 
         Scene scene;
