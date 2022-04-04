@@ -1252,7 +1252,7 @@ public class Main extends Application {
                                                                                     .append(isDistributionInUse ? "*" : "");
 
         Label distroLabel = new Label(distroLabelBuilder.toString());
-        distroLabel.setMinWidth(180);
+        distroLabel.setMinWidth(220);
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);
 
