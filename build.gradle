@@ -10,7 +10,7 @@ buildscript {
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
         classpath 'org.javamodularity:moduleplugin:1.8.10'
-        classpath 'org.beryx:badass-jlink-plugin:2.24.4'
+        classpath 'org.beryx:badass-jlink-plugin:2.25.0'
     }
 }
 
@@ -19,7 +19,7 @@ plugins {
     id 'application'
     id 'com.google.osdetector'           version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.10'
-    id 'org.beryx.jlink'                 version '2.24.4'
+    id 'org.beryx.jlink'                 version '2.25.0'
     id 'net.nemerosa.versioning'         version '2.15.1'
 }
 
@@ -52,7 +52,7 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'io.foojay.api:discoclient:2.0.21'
+    implementation 'io.foojay.api:discoclient:2.0.23'
     implementation 'eu.hansolo:jdktools:17.0.12'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
