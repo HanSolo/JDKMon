@@ -974,17 +974,15 @@
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
     -fx-background-radius: 0, 0 ;
 }
-
 .jdk-mon .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
     -fx-background-color : transparent;
     -fx-background-insets: 0;
 }
-
 .jdk-mon .menu-bar > .container > .menu-button > .label {
-    -fx-padding: 0;
+    -fx-text-fill: -dark-text-color;
+    -fx-padding  : 0;
 }
-
 .jdk-mon .menu-bar > .container > .menu-button > .arrow-button > .arrow {
     -fx-padding         : 0.167em 0 0.250em 0; /* 2 0 3 0 */
     -fx-background-color: transparent;
@@ -1005,6 +1003,42 @@
     -fx-text-fill: -fx-text-background-color;
 }
 
+.jdk-mon:dark .menu-bar {
+    -fx-padding          : 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
+    -fx-spacing          : 0.166667em; /* 2 */
+    -fx-background-color : -dark-content-background;
+    -fx-background-insets: 0 0 0 0, 1 0 1 0;
+    -fx-background-radius: 0, 0 ;
+}
+.jdk-mon:dark .menu-bar > .container > .menu-button {
+    -fx-background-radius: 0;
+    -fx-background-color : transparent;
+    -fx-background-insets: 0;
+}
+.jdk-mon:dark .menu-bar > .container > .menu-button > .label {
+    -fx-text-fill: -text-color;
+    -fx-padding  : 0;
+}
+.jdk-mon:dark .menu-bar > .container > .menu-button > .arrow-button > .arrow {
+    -fx-padding         : 0.167em 0 0.250em 0; /* 2 0 3 0 */
+    -fx-background-color: transparent;
+    -fx-shape           : null;
+}
+.jdk-mon:dark .menu-bar > .container > .menu > .arrow-button {
+    -fx-padding: 0.500em 0 0.500em 0; /* 6 0 6 0 */
+}
+.jdk-mon:dark .menu-bar > .container > .menu-button:hover,
+.jdk-mon:dark .menu-bar > .container > .menu-button:focused,
+.jdk-mon:dark .menu-bar > .container > .menu-button:showing {
+    -fx-background      : -fx-selection-bar;
+    -fx-background-color: -fx-background;
+}
+.jdk-mon:dark .menu-bar > .container > .menu-button:hover > .label,
+.jdk-mon:dark .menu-bar > .container > .menu-button:focused > .label,
+.jdk-mon:dark .menu-bar > .container > .menu-button:showing  > .label {
+    -fx-text-fill: -fx-text-background-color;
+}
+
 
 .jdk-mon .menu-item {
     -fx-background-color: transparent;
@@ -1018,7 +1052,7 @@
 }
 .jdk-mon .menu-item >.label {
     -fx-padding  : 0em 0.5em 0em 0em;
-    -fx-text-fill: -darl-text-color;
+    -fx-text-fill: -dark-text-color;
 }
 .jdk-mon .menu-item:focused {
     -fx-background      : -fx-selection-bar;
@@ -1045,5 +1079,47 @@
     -fx-scale-shape: false;
 }
 .jdk-mon .check-menu-item:focused:checked > .left-container > .check {
+    -fx-background-color: -fx-focused-mark-color;
+}
+
+.jdk-mon:dark .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding         : 0.333333em 0.41777em 0.333333em 0.41777em;  /* 4 5 4 5 */
+}
+.jdk-mon:dark .menu-item > .left-container {
+    -fx-padding: 0.458em 0.791em 0.458em 0.458em;
+}
+.jdk-mon:dark .menu-item > .graphic-container {
+    -fx-padding: 0em 0.333em 0em 0em;
+}
+.jdk-mon:dark .menu-item >.label {
+    -fx-padding  : 0em 0.5em 0em 0em;
+    -fx-text-fill: -text-color;
+}
+.jdk-mon:dark .menu-item:focused {
+    -fx-background      : -fx-selection-bar;
+    -fx-background-color: -fx-background;
+    -fx-text-fill       : -fx-text-background-color;
+}
+.jdk-mon:dark .menu-item:focused > .label {
+    -fx-text-fill: -fx-focused-text-base-color;
+}
+.jdk-mon:dark .menu-item > .right-container {
+    -fx-padding: 0em 0em 0em 0.5em;
+}
+.jdk-mon:dark .radio-menu-item:checked > .left-container > .radio {
+    -fx-background-color: -fx-mark-color;
+    -fx-shape           : "M0,5H2L4,8L8,0H10L5,10H3Z";
+    -fx-scale-shape     : false;
+}
+.jdk-mon:dark .radio-menu-item:focused:checked > .left-container > .radio {
+    -fx-background-color: -fx-focused-mark-color;
+}
+.jdk-mon:dark .check-menu-item:checked > .left-container > .check {
+    -fx-background-color: -fx-mark-color;
+    -fx-shape      : "M0,5H2L4,8L8,0H10L5,10H3Z";
+    -fx-scale-shape: false;
+}
+.jdk-mon:dark .check-menu-item:focused:checked > .left-container > .check {
     -fx-background-color: -fx-focused-mark-color;
 }
