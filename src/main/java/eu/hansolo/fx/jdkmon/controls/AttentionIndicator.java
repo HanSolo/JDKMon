@@ -38,7 +38,7 @@ public class AttentionIndicator extends Region {
     private static final double                  MAXIMUM_WIDTH    = 18;
     private static final double                  MAXIMUM_HEIGHT   = 18;
     private static final CornerRadii             CORNER_RADII     = new CornerRadii(3);
-    private              Color                   _backgroundColor = ORANGE;
+    private              Color                   _backgroundColor = RED;
     private              Color                   _iconColor       = Color.WHITE;
     private              Tooltip                 _tooltip         = null;
     private              SVGPath                 icon;
