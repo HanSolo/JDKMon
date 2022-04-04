@@ -994,8 +994,8 @@
 .jdk-mon .menu-bar > .container > .menu-button:hover,
 .jdk-mon .menu-bar > .container > .menu-button:focused,
 .jdk-mon .menu-bar > .container > .menu-button:showing {
-    -fx-background       : derive(-light-main-background -20%);
-    -fx-background-color : derive(-light-main-background -20%);
+    -fx-background       : derive(-light-main-background, -20%);
+    -fx-background-color : derive(-light-main-background, -20%);
     -fx-background-radius: 1em;
 }
 .jdk-mon .menu-bar > .container > .menu-button:hover > .label,
@@ -1031,8 +1031,8 @@
 .jdk-mon:dark .menu-bar > .container > .menu-button:hover,
 .jdk-mon:dark .menu-bar > .container > .menu-button:focused,
 .jdk-mon:dark .menu-bar > .container > .menu-button:showing {
-    -fx-background       : derive(-dark-main-background 20%);
-    -fx-background-color : derive(-dark-main-background 20%);
+    -fx-background       : derive(-dark-main-background, 20%);
+    -fx-background-color : derive(-dark-main-background, 20%);
     -fx-background-radius: 1em;
 }
 .jdk-mon:dark .menu-bar > .container > .menu-button:hover > .label,
