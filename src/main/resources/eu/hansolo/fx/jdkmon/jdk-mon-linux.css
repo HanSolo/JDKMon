@@ -968,14 +968,12 @@
 
 
 .jdk-mon .menu-bar {
-    -fx-padding          : 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
-    -fx-spacing          : 0.166667em; /* 2 */
+    -fx-padding          : 0.0em;
+    -fx-spacing          : 0.166667em;
     -fx-background-color : -light-main-background;
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
     -fx-background-radius: 0, 0 ;
-}
-.jdk-mon .menu-bar > .container {
-    -fx-background-color: -light-main-background;
+    -fx-pref-height      : 20;
 }
 .jdk-mon .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
@@ -1008,14 +1006,12 @@
 }
 
 .jdk-mon:dark .menu-bar {
-    -fx-padding          : 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
-    -fx-spacing          : 0.166667em; /* 2 */
+    -fx-padding          : 0.0em ;
+    -fx-spacing          : 0.166667em;
     -fx-background-color : -dark-main-background;
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
     -fx-background-radius: 0, 0 ;
-}
-.jdk-mon:dark .menu-bar > .container {
-    -fx-background-color: -dark-main-background;
+    -fx-pref-height      : 20;
 }
 .jdk-mon:dark .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
@@ -1059,8 +1055,9 @@
     -fx-padding: 0em 0.333em 0em 0em;
 }
 .jdk-mon .menu-item >.label {
-    -fx-padding  : 0em 0.5em 0em 0em;
-    -fx-text-fill: -dark-text-color;
+    -fx-background-color: transparent;
+    -fx-padding         : 0em 0.5em 0em 0em;
+    -fx-text-fill       : -dark-text-color;
 }
 .jdk-mon .menu-item:focused {
     -fx-background      : -fx-selection-bar;
@@ -1082,12 +1079,12 @@
     -fx-background-color: -fx-focused-mark-color;
 }
 .jdk-mon .check-menu-item:checked > .left-container > .check {
-    -fx-background-color: -fx-mark-color;
-    -fx-shape      : "M0,5H2L4,8L8,0H10L5,10H3Z";
-    -fx-scale-shape: false;
+    -fx-background-color: -dark-text-color;
+    -fx-shape           : "M0,5H2L4,8L8,0H10L5,10H3Z";
+    -fx-scale-shape     : false;
 }
 .jdk-mon .check-menu-item:focused:checked > .left-container > .check {
-    -fx-background-color: -fx-focused-mark-color;
+    -fx-background-color: -dark-text-color;
 }
 
 .jdk-mon:dark .menu-item {
@@ -1101,8 +1098,9 @@
     -fx-padding: 0em 0.333em 0em 0em;
 }
 .jdk-mon:dark .menu-item >.label {
-    -fx-padding  : 0em 0.5em 0em 0em;
-    -fx-text-fill: -text-color;
+    -fx-background-color: transparent;
+    -fx-padding         : 0em 0.5em 0em 0em;
+    -fx-text-fill       : -text-color;
 }
 .jdk-mon:dark .menu-item:focused {
     -fx-background      : -fx-selection-bar;
@@ -1115,19 +1113,22 @@
 .jdk-mon:dark .menu-item > .right-container {
     -fx-padding: 0em 0em 0em 0.5em;
 }
-.jdk-mon:dark .radio-menu-item:checked > .left-container > .radio {
-    -fx-background-color: -fx-mark-color;
+.jdk-mon:dark .check-menu-item:checked > .left-container > .check {
+    -fx-background-color: -text-color;
     -fx-shape           : "M0,5H2L4,8L8,0H10L5,10H3Z";
     -fx-scale-shape     : false;
 }
-.jdk-mon:dark .radio-menu-item:focused:checked > .left-container > .radio {
-    -fx-background-color: -fx-focused-mark-color;
-}
-.jdk-mon:dark .check-menu-item:checked > .left-container > .check {
-    -fx-background-color: -fx-mark-color;
-    -fx-shape      : "M0,5H2L4,8L8,0H10L5,10H3Z";
-    -fx-scale-shape: false;
-}
 .jdk-mon:dark .check-menu-item:focused:checked > .left-container > .check {
-    -fx-background-color: -fx-focused-mark-color;
+    -fx-background-color: -text-color;
+}
+
+
+.jdk-mon .separator:horizontal .line {
+    -fx-border-color : -light-main-color transparent transparent transparent, -dark-text-color transparent transparent transparent;
+    -fx-border-insets: 0, 1 0 0 0;
+}
+
+.jdk-mon:dark .separator:horizontal .line {
+    -fx-border-color : -dark-main-color transparent transparent transparent, text-color transparent transparent transparent;
+    -fx-border-insets: 0, 1 0 0 0;
 }
