@@ -995,8 +995,8 @@
 .jdk-mon .menu-bar > .container > .menu-button:hover,
 .jdk-mon .menu-bar > .container > .menu-button:focused,
 .jdk-mon .menu-bar > .container > .menu-button:showing {
-    -fx-background       : derive(-light-main-background, -20%);
-    -fx-background-color : derive(-light-main-background, -20%);
+    -fx-background       : derive(-light-main-background, -10%);
+    -fx-background-color : derive(-light-main-background, -10%);
     -fx-background-radius: 1em;
 }
 .jdk-mon .menu-bar > .container > .menu-button:hover > .label,
@@ -1060,12 +1060,13 @@
     -fx-text-fill       : -dark-text-color;
 }
 .jdk-mon .menu-item:focused {
-    -fx-background      : -fx-selection-bar;
-    -fx-background-color: -fx-background;
-    -fx-text-fill       : -fx-text-background-color;
+    -fx-background-radius: 0.4em;
+    -fx-background       : derive(-light-content-background, -10%);
+    -fx-background-color : derive(-light-content-background, -10%);
+    -fx-text-fill        : -dark-text-color;
 }
 .jdk-mon .menu-item:focused > .label {
-    -fx-text-fill: -fx-focused-text-base-color;
+    -fx-text-fill: -dark-text-color;
 }
 .jdk-mon .menu-item > .right-container {
     -fx-padding: 0em 0em 0em 0.5em;
@@ -1103,12 +1104,13 @@
     -fx-text-fill       : -text-color;
 }
 .jdk-mon:dark .menu-item:focused {
-    -fx-background      : -fx-selection-bar;
-    -fx-background-color: -fx-background;
-    -fx-text-fill       : -fx-text-background-color;
+    -fx-background-radius: 0.4em;
+    -fx-background       : derive(-dark-content-background, 20%);
+    -fx-background-color : derive(-dark-content-background, 20%);
+    -fx-text-fill        : -text-color;
 }
 .jdk-mon:dark .menu-item:focused > .label {
-    -fx-text-fill: -fx-focused-text-base-color;
+    -fx-text-fill: -text-color;
 }
 .jdk-mon:dark .menu-item > .right-container {
     -fx-padding: 0em 0em 0em 0.5em;
@@ -1123,12 +1125,30 @@
 }
 
 
-.jdk-mon .separator:horizontal .line {
-    -fx-border-color : -light-main-color transparent transparent transparent, -dark-text-color transparent transparent transparent;
-    -fx-border-insets: 0, 1 0 0 0;
+.jdk-mon .context-menu {
+    -fx-background-color : -light-content-background;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10, 10;
+    -fx-padding          : 5;
+    -fx-effect           : none;
+    -fx-border-color     : -light-border-color;
+    -fx-border-radius    : 10;
+}
+.jdk-mon .context-menu .separator:horizontal .line {
+    -fx-border-color : lightgray transparent transparent transparent;
+    -fx-border-insets: 1 0 0 0;
 }
 
-.jdk-mon:dark .separator:horizontal .line {
-    -fx-border-color : -dark-main-color transparent transparent transparent, text-color transparent transparent transparent;
-    -fx-border-insets: 0, 1 0 0 0;
+.jdk-mon:dark .context-menu {
+    -fx-background-color : -dark-content-background;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10, 10;
+    -fx-padding          : 5;
+    -fx-effect           : none;
+    -fx-border-color     : -dark-border-color;
+    -fx-border-radius    : 10;
+}
+.jdk-mon:dark .context-menu .separator:horizontal .line {
+    -fx-border-color : gray transparent transparent transparent;
+    -fx-border-insets: 1 0 0 0;
 }
