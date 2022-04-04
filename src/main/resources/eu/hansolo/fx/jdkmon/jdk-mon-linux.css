@@ -974,6 +974,9 @@
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
     -fx-background-radius: 0, 0 ;
 }
+.jdk-mon .menu-bar > .container {
+    -fx-background-color: -light-main-background;
+}
 .jdk-mon .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
     -fx-background-color : transparent;
@@ -1010,6 +1013,9 @@
     -fx-background-color : -dark-main-background;
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
     -fx-background-radius: 0, 0 ;
+}
+.jdk-mon:dark .menu-bar > .container {
+    -fx-background-color: -dark-main-background;
 }
 .jdk-mon:dark .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
