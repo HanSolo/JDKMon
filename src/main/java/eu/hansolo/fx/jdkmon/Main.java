@@ -939,10 +939,6 @@ public class Main extends Application {
 
             trayIcon.show();
         } else {
-            MenuBar menuBar = new MenuBar();
-            menuBar.setUseSystemMenuBar(true);
-            menuBar.setTranslateX(16);
-
             Menu menu = new Menu("JDKMon");
             menu.setText("Menu");
             menu.setOnShowing(e -> hideMenu = false);
@@ -1055,10 +1051,11 @@ public class Main extends Application {
             exitItem.setOnAction(e -> stop());
             menu.getItems().add(exitItem);
 
+            MenuBar menuBar = new MenuBar();
+            menuBar.setUseSystemMenuBar(true);
             menuBar.getMenus().add(menu);
 
             titleBox.getChildren().add(0, menuBar);
-            //mainPane.getChildren().add(menuBar);
         }
 
         Scene scene;
