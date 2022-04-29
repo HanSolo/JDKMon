@@ -61,6 +61,7 @@ import eu.hansolo.jdktools.ArchiveType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
 import eu.hansolo.jdktools.Severity;
 import eu.hansolo.jdktools.Verification;
 import eu.hansolo.jdktools.scopes.BuildScope;
@@ -1306,7 +1307,16 @@ public class Main extends Application {
         if (pkgs.isEmpty()) { return hBox; }
         Collections.sort(pkgs, Comparator.comparing(Pkg::getDistributionName).reversed());
 
-        Pkg     firstPkg         = pkgs.get(0);
+        Optional<Pkg> optFirstPkg = pkgs.stream()
+                                        .filter(pkg -> !pkg.getDistribution().getApiString().toLowerCase().startsWith("graal"))
+                                        .filter(pkg -> !pkg.getDistribution().getApiString().equalsIgnoreCase("liberica_native"))
+                                        .filter(pkg -> !pkg.getDistribution().getApiString().equalsIgnoreCase("mandrel"))
+                                        .filter(pkg -> !pkg.getDistribution().getApiString().toLowerCase().startsWith("gluon"))
+                                        .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
+                                        .findFirst();
+        if (optFirstPkg.isEmpty()) { return hBox; }
+        
+        Pkg     firstPkg         = optFirstPkg.get();
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
@@ -1333,6 +1343,9 @@ public class Main extends Application {
                                             .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
                                             .filter(pkg -> pkg.getDistribution().getApiString().equals("oracle_open_jdk"))
                                             .findFirst();
+
+        // TODO: Check if that works before next release
+        //if (optionalZulu.isEmpty() && optionalOpenJDK.isEmpty()) { return hBox; }
 
         Label  arrowLabel   = new Label(" -> ");
         hBox.getChildren().add(arrowLabel);

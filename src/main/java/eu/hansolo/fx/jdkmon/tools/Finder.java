@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -143,7 +144,7 @@ public class Finder {
         //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
-        distributions.forEach(distribution -> {
+        distributions.stream().filter(Objects::nonNull).filter(distro -> !distro.getName().equals("Unknown build of OpenJDK")).forEach(distribution -> {
             List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
@@ -229,7 +230,7 @@ public class Finder {
                     }
                 }
                 case MACOS -> {
-                    Architecture architecture = Architecture.fromText(result);
+                    return Architecture.fromText(result);
                 }
                 case LINUX -> {
                     return Architecture.fromText(result);

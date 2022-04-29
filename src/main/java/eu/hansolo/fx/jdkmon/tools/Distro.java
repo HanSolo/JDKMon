@@ -17,26 +17,29 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 import eu.hansolo.jdktools.scopes.BuildScope;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 
 
 public class Distro {
-    private final String     name;
-    private final String     apiString;
-    private final String     version;
-    private final String     jdkMajorVersion;
-    private final String     operatingSystem;
-    private final String     architecture;
-    private final Boolean    fxBundled;
-    private final String     location;
-    private final String     feature;
-    private final BuildScope buildScope;
-    private       boolean    inUse;
+    private final String        name;
+    private final String        apiString;
+    private final String        version;
+    private final VersionNumber versionNumber;
+    private final String        jdkMajorVersion;
+    private final String        operatingSystem;
+    private final String        architecture;
+    private final Boolean       fxBundled;
+    private final String        location;
+    private final String        feature;
+    private final BuildScope    buildScope;
+    private       boolean       inUse;
 
 
     public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature, final BuildScope buildScope) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
+        this.versionNumber   = VersionNumber.fromText(version);
         this.jdkMajorVersion = jdkMajorVersion;
         this.operatingSystem = operatingSystem;
         this.architecture    = architecture;
@@ -67,6 +70,8 @@ public class Distro {
     public String getFeature() { return feature; }
 
     public BuildScope getBuildScope() { return buildScope; }
+
+    public VersionNumber getVersionNumber() { return versionNumber; }
 
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }

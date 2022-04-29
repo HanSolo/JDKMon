@@ -69,7 +69,7 @@ This can be opened by selecting ```About``` from the menu. If there is a new ver
 you will find a link in the About window that will open the page with the latest release in your default
 browser.
 
-![About](https://i.ibb.co/S5gGPQT/JDKMon-About.png)
+![About](https://i.ibb.co/QNqBLcG/About.png)
 
 You could also always get the latest version [here](https://github.com/HanSolo/JDKMon/releases).
 
@@ -142,14 +142,14 @@ the release details over at [foojay.io](https://foojay.io)
 
 JDKMon will not only help you to keep your installed OpenJDK distributions up to date but will also check
 the NVD for known vulnerabilities (CVE) related to their version number. If you have for example installed
-an OpenJDK distribution with the version 16.0.1, JDKMon will check the NVD for known vulnerabilities of OpenJDK
-with the version number 16.0.1. In case JDKMon will find vulnerabilities, it will indicate this with a yellow
-circle with an exclamation mark behind the version number. Meaning to say if you have for example Zulu 16.0.1 
-and Liberica 16.0.1 installed ony your machine, JDKMon will show you the vulnerabilties, it found for
-OpenJDK 16.0.1 for both distributions. So there is no guarantee that your installed distribution is really
-affected by the CVE's found in NVD but you at least get the info that there are vulnerabilities for 16.0.1.
+an OpenJDK distribution with the version 11.0.13, JDKMon will check the NVD for known vulnerabilities of OpenJDK
+with the version number 11.0.13. In case JDKMon will find vulnerabilities, it will indicate this with a red
+square with an exclamation mark behind the version number. Meaning to say if you have for example Zulu 11.0.13 
+and Liberica 11.0.13 installed ony your machine, JDKMon will show you the vulnerabilties, it found for
+OpenJDK 11.0.13 for both distributions. So there is no guarantee that your installed distribution is really
+affected by the CVE's found in NVD but you at least get the info that there are vulnerabilities for 11.0.13.
 
-![vulnerability](https://i.ibb.co/LZkshY8/Vulnerability.png)
+![vulnerability](https://i.ibb.co/JRTjp7R/JDKMon.png)
 
 When you click on the yellow circle a window will open which shows the CVE's found. 
 You can click on each CVE to open it in a browser with more detailled information.
