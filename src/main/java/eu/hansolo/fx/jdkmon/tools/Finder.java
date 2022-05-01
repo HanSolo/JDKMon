@@ -534,8 +534,21 @@ public class Finder {
                         }
                     } else {
                         if (line3.contains("graalvm")) {
-                            name       = "GraalVM";
-                            apiString  = graalVersion.getMajorVersion().getAsInt() >= 8 ? "graalvm_ce" + graalVersion.getMajorVersion().getAsInt() : "";
+                            name = "GraalVM CE";
+                            String distroPreFix = "graalvm_ce";
+                            if (releaseProperties.containsKey("IMPLEMENTOR")) {
+                                switch(releaseProperties.getProperty("IMPLEMENTOR").replaceAll("\"", "")) {
+                                    case "GraalVM Community"  -> {
+                                        name         = "GraalVM CE";
+                                        distroPreFix = "graalvm_ce";
+                                    }
+                                    case "GraalVM Enterprise" -> {
+                                        name         = "GraalVM";
+                                        distroPreFix = "graalvm";
+                                    }
+                                }
+                            }
+                            apiString  = graalVersion.getMajorVersion().getAsInt() >= 8 ? distroPreFix + graalVersion.getMajorVersion().getAsInt() : "";
                             buildScope = BuildScope.BUILD_OF_GRAALVM;
 
                             GRAALVM_VERSION_MATCHER.reset(line3);
@@ -548,7 +561,7 @@ public class Finder {
                             if (releaseProperties.containsKey("VENDOR")) {
                                 final String vendor = releaseProperties.getProperty("VENDOR").toLowerCase().replaceAll("\"", "");
                                 if (vendor.equalsIgnoreCase("Gluon")) {
-                                    name      = "Gluon GraalVM";
+                                    name      = "Gluon GraalVM CE";
                                     apiString = "gluon_graalvm";
                                 }
                             }
