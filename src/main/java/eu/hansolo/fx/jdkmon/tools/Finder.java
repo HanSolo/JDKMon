@@ -355,7 +355,7 @@ public class Finder {
                 String       feature          = "";
                 Boolean      fxBundled        = Boolean.FALSE;
                 //FPU          fpu              = FPU.UNKNOWN;
-
+                
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
                     inUse.set(true);
                 }
@@ -411,6 +411,7 @@ public class Finder {
                 if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
                 VersionNumber graalVersion = version;
 
+                releaseProperties.clear();
                 if (releaseFile.exists()) {
                     try (FileInputStream propFile = new FileInputStream(releaseFile)) {
                         releaseProperties.load(propFile);
