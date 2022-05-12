@@ -169,11 +169,11 @@ public class Finder {
                        .filter(entry -> !entry.getKey().getApiString().equals("mandrel"))
                        .filter(entry -> !entry.getKey().getApiString().equals("liberica_native"))
                        .forEach(entry -> {
-            if (entry.getValue().isEmpty()) {
-                Distro distro = entry.getKey();
-                entry.setValue(discoclient.updateAvailableFor(null, Semver.fromText(distro.getVersion()).getSemver1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
-            }
-        });
+                            if (entry.getValue().isEmpty()) {
+                                Distro distro = entry.getKey();
+                                entry.setValue(discoclient.updateAvailableFor(null, Semver.fromText(distro.getVersion()).getSemver1(), Architecture.fromText(distro.getArchitecture()), distro.getFxBundled()));
+                            }
+                       });
 
         LinkedHashMap<Distro, List < Pkg >> sorted = new LinkedHashMap<>();
         distrosToUpdate.entrySet()

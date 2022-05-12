@@ -279,6 +279,8 @@ public class Main extends Application {
     private              Button                    downloadJDKCancelButton;
     private              Button                    downloadJDKDownloadButton;
 
+    private              AtomicBoolean             online;
+
     public record SemverUri(Semver semver, String uri) {}
 
 
@@ -286,6 +288,7 @@ public class Main extends Application {
         isUpdateAvailable = false;
         latestVersion     = VERSION;
         popups            = new HashMap<>();
+        online            = new AtomicBoolean(false);
 
         checkForLatestVersion();
 
@@ -384,6 +387,7 @@ public class Main extends Application {
         executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_HOURS, Constants.RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -716,11 +720,11 @@ public class Main extends Application {
             boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
 
             List<Distribution> distrosForSelection = downloadJDKMinimizedPkgs.stream()
-                                                                       .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
-                                                                       .map(pkg -> pkg.getDistribution())
-                                                                       .distinct()
-                                                                       .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
-                                                                       .collect(Collectors.toList());
+                                                                             .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadJDKSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                             .map(pkg -> pkg.getDistribution())
+                                                                             .distinct()
+                                                                             .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                             .collect(Collectors.toList());
 
             Platform.runLater(() -> {
                 downloadJDKDistributionComboBox.getItems().setAll(distrosForSelection);
@@ -1135,6 +1139,19 @@ public class Main extends Application {
         System.exit(0);
     }
 
+
+    private final void isOnline() {
+        if (online.get()) { return; }
+        try {
+            URL           url        = new URL(Constants.TEST_CONNECTIVITY_URL);
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            online.set(true);
+            updateDownloadPkgs();
+        } catch (IOException e) {
+            online.set(false);
+        }
+    }
 
     private void updateCves() {
         List<CveScanner.CVE> cvesFound = cveScanner.getCves();

@@ -28,9 +28,15 @@ public class Constants {
     public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES        = 360;
     public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES = 30;
     public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES       = 60;
+
+    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 10;
+
+    public static final long    CHECK_INTERVAL_IN_SECONDS             = 30;
     public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");
     public static final String  HOME_FOLDER                           = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
     public static final String  OPENJFX_MAVEN_METADATA                = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
     public static final String  JAVAFX_RUNTIME_VERSION                = "javafx.runtime.version";
     public static final String  ALL_PKGS_MINIMIZED_URI                = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
+
+    public static final String  TEST_CONNECTIVITY_URL                 = "https://api.foojay.io";
 }
