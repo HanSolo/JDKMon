@@ -31,7 +31,7 @@ public class Constants {
 
     public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 10;
 
-    public static final long    CHECK_INTERVAL_IN_SECONDS             = 30;
+    public static final long    CHECK_INTERVAL_IN_SECONDS             = 60;
     public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");
     public static final String  HOME_FOLDER                           = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
     public static final String  OPENJFX_MAVEN_METADATA                = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
