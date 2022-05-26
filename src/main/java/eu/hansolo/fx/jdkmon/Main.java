@@ -1141,14 +1141,14 @@ public class Main extends Application {
 
 
     private final void isOnline() {
-        if (online.get() && !downloadJDKMinimizedPkgs.isEmpty() && !distros.isEmpty()) { return; }
+        if (online.get() && (!downloadJDKMinimizedPkgs.isEmpty() || !distros.isEmpty())) { return; }
         try {
             URL           url        = new URL(Constants.TEST_CONNECTIVITY_URL);
             URLConnection connection = url.openConnection();
             connection.connect();
             online.set(true);
-            rescan();
-            updateDownloadPkgs();
+            if (downloadJDKMinimizedPkgs.isEmpty()) { updateDownloadPkgs(); }
+            if (distros.isEmpty()) { rescan(); }
         } catch (IOException e) {
             online.set(false);
         }
