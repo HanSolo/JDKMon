@@ -56,6 +56,8 @@ dependencies {
     implementation 'eu.hansolo:jdktools:17.0.13'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
+    implementation 'io.github.1tchy.java9modular.org.apache.commons:commons-compress:1.21.0'
+    implementation 'org.tukaani:xz:1.9'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"

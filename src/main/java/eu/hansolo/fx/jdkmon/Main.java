@@ -61,7 +61,6 @@ import eu.hansolo.jdktools.ArchiveType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
-import eu.hansolo.jdktools.ReleaseStatus;
 import eu.hansolo.jdktools.Severity;
 import eu.hansolo.jdktools.Verification;
 import eu.hansolo.jdktools.scopes.BuildScope;
@@ -248,6 +247,7 @@ public class Main extends Application {
     private              WinWindowButton           downloadJDKCloseWinWindowButton;
     private              StackPane                 downloadJDKPane;
     private              CheckBox                  downloadJDKBundledWithFXCheckBox;
+    private              Label                     downloadAutoExtractLabel;
     private              ComboBox<MajorVersion>    downloadJDKMajorVersionComboBox;
     private              ComboBox<Semver>          downloadJDKUpdateLevelComboBox;
     private              ComboBox<Distribution>    downloadJDKDistributionComboBox;
@@ -784,6 +784,13 @@ public class Main extends Application {
         downloadJDKArchiveTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == nv) { return; }
             selectArchiveType();
+
+            final boolean downloadAndExtract = PropertyManager.INSTANCE.getBoolean(PropertyManager.AUTO_EXTRACT);
+            if (downloadAndExtract && (ArchiveType.TAR_GZ == downloadJDKSelectedPkg.getArchiveType() || ArchiveType.ZIP == downloadJDKSelectedPkg.getArchiveType())) {
+                downloadAutoExtractLabel.setVisible(true);
+            } else {
+                downloadAutoExtractLabel.setVisible(false);
+            }
         });
 
         downloadJDKCancelButton.setOnAction(e -> {
@@ -1202,9 +1209,9 @@ public class Main extends Application {
     }
 
     private void rescan() {
-
         Platform.runLater(() -> {
             if (checkingForUpdates.get()) { return; }
+            updateDownloadPkgs();
             if (isWindows) {
                 winProgressIndicator.setVisible(true);
                 winProgressIndicator.setIndeterminate(true);
@@ -2190,7 +2197,14 @@ public class Main extends Application {
         downloadJDKBundledWithFXCheckBox = new CheckBox("Bundled with FX");
         downloadJDKBundledWithFXCheckBox.setFont(isWindows ? Fonts.segoeUi(13) : Fonts.sfPro(13));
         downloadJDKBundledWithFXCheckBox.setTextFill(isWindows ? Color.web("#dddddd") : Color.web("#2a2a2a"));
-        HBox downloadJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        downloadAutoExtractLabel = new Label("(auto extract)");
+        downloadAutoExtractLabel.setFont(isWindows ? Fonts.segoeUi(13) : Fonts.sfPro(13));
+        downloadAutoExtractLabel.setVisible(false);
+        HBox downloadJDKFxBox = new HBox(downloadJDKBundledWithFXCheckBox, spacer, downloadAutoExtractLabel);
 
         Label downloadJDKMajorVersionLabel = new Label("Major version");
         Region findlJDKMajorVersionSpacer = new Region();
@@ -2820,6 +2834,14 @@ public class Main extends Application {
                     downloadJDKProgressBar.setVisible(false);
                     downloadJDKDownloadButton.setDisable(false);
                     downloadJDKCancelButton.setDisable(false);
+
+                    if (downloadAutoExtractLabel.isVisible()) {
+                        switch(pkg.getArchiveType()) {
+                            case TAR_GZ -> Helper.untar(target, downloadFolder.getAbsolutePath());
+                            case ZIP    -> Helper.unzip(target, downloadFolder.getAbsolutePath());
+                        }
+                    }
+
                     downloadJDKDialog.setResult(Boolean.TRUE);
                     downloadJDKDialog.close();
                 } else if (nv.equals(State.SCHEDULED)) {

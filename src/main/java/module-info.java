@@ -15,6 +15,8 @@ module eu.hansolo.fx.jdkmon {
     requires io.foojay.api.discoclient;
     requires eu.hansolo.cvescanner;
     requires FXTrayIcon;
+    requires org.apache.commons.compress;
+    requires org.tukaani.xz;
 
     exports eu.hansolo.fx.jdkmon;
     exports eu.hansolo.fx.jdkmon.tools;

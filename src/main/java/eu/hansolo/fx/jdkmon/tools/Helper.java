@@ -24,9 +24,20 @@ import eu.hansolo.fx.jdkmon.tools.Records.CVE;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import javafx.scene.paint.Color;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -37,8 +48,11 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -82,7 +96,7 @@ public class Helper {
     }
 
     public static boolean isMTS(final int featureVersion) {
-        if (featureVersion < 13) { return false; }
+        if (featureVersion < 13 && featureVersion > 15) { return false; }
         return (!isLTS(featureVersion)) && featureVersion % 2 != 0;
     }
 
@@ -165,6 +179,99 @@ public class Helper {
         } else {
             return darkMode ? MacosAccentColor.GREEN.colorDark : MacosAccentColor.GREEN.colorAqua;
         }
+    }
+
+    public static void untar(final String compressedFilename, final String targetFolder) {
+        if (!compressedFilename.toLowerCase().endsWith("tar.gz")) { System.out.println("File must be zip format"); return; }
+        if (!new File(compressedFilename).exists() || new File(compressedFilename).isDirectory()) { System.out.println("Given file either doesn't exist or is folder"); return; }
+        try (GzipCompressorInputStream archive = new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(compressedFilename)))) {
+            OutputStream out = Files.newOutputStream(Paths.get("un-gzipped.tar"));
+            IOUtils.copy(archive, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        /*
+         * Untar extracted TAR file
+         */
+        try (TarArchiveInputStream archive = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream("un-gzipped.tar")))) {
+            TarArchiveEntry entry;
+            while ((entry = archive.getNextTarEntry()) != null) {
+                String name = entry.getName();
+                if (name.startsWith("./")) {
+                    name = name.substring(2);
+                }
+                File file = new File(targetFolder + File.separator + name);
+                if (entry.isDirectory()) {
+                    Files.createDirectories(file.toPath());
+                } else {
+                    final int                      mode        = entry.getMode();
+                    final Set<PosixFilePermission> permissions = parsePerms(mode);
+                    IOUtils.copy(archive, new FileOutputStream(file));
+                    try {
+                        Files.setPosixFilePermissions(file.toPath(), permissions);
+                        file.setExecutable(true);
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+            // Remove extracted TAR file
+            File ungzipped = new File("un-gzipped.tar");
+            if (ungzipped.exists()) {
+                ungzipped.delete();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void unzip(final String compressedFilename, final String targetFolder) {
+        if (!compressedFilename.toLowerCase().endsWith("zip")) { System.out.println("File must be zip format"); return; }
+        if (!new File(compressedFilename).exists() || new File(compressedFilename).isDirectory()) { System.out.println("Given file either doesn't exist or is folder"); return; }
+        // Create zip file stream.
+        try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(compressedFilename)))) {
+            ZipArchiveEntry entry;
+            while ((entry = archive.getNextZipEntry()) != null) {
+                String name = entry.getName();
+                if (name.startsWith("./")) {
+                    name = name.substring(2);
+                }
+                File file = new File(targetFolder + File.separator + name);
+                if (entry.isDirectory()) {
+                    Files.createDirectories(file.toPath());
+                } else {
+                    IOUtils.copy(archive, new FileOutputStream(file));
+                    file.setExecutable(true);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Set<PosixFilePermission> parsePerms(int perms) {
+        final char[] ds = Integer.toString(perms).toCharArray();
+        final char[] ss = {'-','-','-','-','-','-','-','-','-'};
+        for (int i = ds.length-1; i >= 0; i--) {
+            int n = ds[i] - '0';
+            if (i == ds.length-1) {
+                if ((n & 1) != 0) ss[8] = 'x';
+                if ((n & 2) != 0) ss[7] = 'w';
+                if ((n & 4) != 0) ss[6] = 'r';
+            } else if (i == ds.length-2) {
+                if ((n & 1) != 0) ss[5] = 'x';
+                if ((n & 2) != 0) ss[4] = 'w';
+                if ((n & 4) != 0) ss[3] = 'r';
+            } else if (i == ds.length-3) {
+                if ((n & 1) != 0) ss[2] = 'x';
+                if ((n & 2) != 0) ss[1] = 'w';
+                if ((n & 4) != 0) ss[0] = 'r';
+            }
+        }
+        String sperms = new String(ss);
+        //System.out.printf("%d -> %s\n", perms, sperms);
+        return PosixFilePermissions.fromString(sperms);
     }
 
 
