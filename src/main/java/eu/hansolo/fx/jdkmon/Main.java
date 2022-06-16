@@ -384,7 +384,7 @@ public class Main extends Application {
 
         // Scheduled jobs
         executor = Executors.newScheduledThreadPool(2);
-        executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_HOURS, Constants.RESCAN_INTERVAL_IN_HOURS, TimeUnit.HOURS);
+        executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_MINUTES, Constants.RESCAN_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
@@ -1211,7 +1211,6 @@ public class Main extends Application {
     private void rescan() {
         Platform.runLater(() -> {
             if (checkingForUpdates.get()) { return; }
-            updateDownloadPkgs();
             if (isWindows) {
                 winProgressIndicator.setVisible(true);
                 winProgressIndicator.setIndeterminate(true);
