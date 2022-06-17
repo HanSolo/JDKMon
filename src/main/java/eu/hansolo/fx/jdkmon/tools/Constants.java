@@ -22,14 +22,14 @@ import java.util.regex.Pattern;
 
 public class Constants {
     public static final String  RELEASES_URI                          = "https://github.com/HanSolo/JDKMon/releases/latest";
-    public static final long    INITIAL_DELAY_IN_MINUTES              = 5;
-    public static final long    RESCAN_INTERVAL_IN_MINUTES            = 60;
-    public static final long    INITIAL_CVE_DELAY_IN_MINUTES          = 5;
-    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES        = 360;
+    public static final long    INITIAL_DELAY_IN_SECONDS              = 30;
+    public static final long    RESCAN_INTERVAL_IN_SECONDS            = 3600;
+    public static final long    INITIAL_CVE_DELAY_IN_MINUTES          = 2;
+    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES        = 60;
     public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES = 5;
     public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES       = 60;
 
-    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 20;
+    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 5;
 
     public static final long    CHECK_INTERVAL_IN_SECONDS             = 60;
     public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");

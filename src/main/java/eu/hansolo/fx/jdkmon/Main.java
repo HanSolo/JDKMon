@@ -290,8 +290,6 @@ public class Main extends Application {
         popups            = new HashMap<>();
         online            = new AtomicBoolean(false);
 
-        checkForLatestVersion();
-
         switch (operatingSystem) {
             case WINDOWS -> cssFile = "jdk-mon-win.css";
             case LINUX   -> cssFile = "jdk-mon-linux.css";
@@ -384,7 +382,7 @@ public class Main extends Application {
 
         // Scheduled jobs
         executor = Executors.newScheduledThreadPool(2);
-        executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_MINUTES, Constants.RESCAN_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
@@ -1225,6 +1223,7 @@ public class Main extends Application {
 
     private void rescan() {
         Platform.runLater(() -> {
+            checkForLatestJDKMonVersion();
             if (checkingForUpdates.get()) { return; }
             if (isWindows) {
                 winProgressIndicator.setVisible(true);
@@ -1263,8 +1262,7 @@ public class Main extends Application {
         Platform.runLater(() -> {
             int numberOfDistros = distroBox.getChildren().size();
             distroBox.getChildren().setAll(distroEntries);
-            double delta = (distroEntries.size() - numberOfDistros) * 28;
-            stage.setHeight(stage.getHeight() + delta);
+            stage.sizeToScene();
             if (isWindows) {
                 winProgressIndicator.setVisible(false);
                 winProgressIndicator.setIndeterminate(false);
@@ -2030,7 +2028,8 @@ public class Main extends Application {
         rescan();
     }
 
-    private void checkForLatestVersion() {
+    private void checkForLatestJDKMonVersion() {
+        if (!online.get()) { return; }
         Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
             if (null == response || null == response.body() || response.body().isEmpty()) {
                 isUpdateAvailable = false;
