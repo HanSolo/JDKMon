@@ -29,7 +29,7 @@ public class Constants {
     public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES = 5;
     public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES       = 60;
 
-    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 10;
+    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 20;
 
     public static final long    CHECK_INTERVAL_IN_SECONDS             = 60;
     public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");

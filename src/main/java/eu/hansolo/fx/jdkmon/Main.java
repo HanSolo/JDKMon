@@ -439,11 +439,13 @@ public class Main extends Application {
         List<HBox> distroEntries = new ArrayList<>();
 
         try {
-            // Find JDK distribution updates
-            finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
+            if (online.get()) {
+                // Find JDK distribution updates
+                finder.getAvailableUpdates(distros).entrySet().forEach(entry -> distroEntries.add(getDistroEntry(entry.getKey(), entry.getValue())));
 
-            // Find JavaFX SDK updates
-            finder.checkForJavaFXUpdates(javafxSearchPaths).entrySet().forEach(entry -> distroEntries.add(getJavaFXEntry(entry.getKey(), entry.getValue())));
+                // Find JavaFX SDK updates
+                finder.checkForJavaFXUpdates(javafxSearchPaths).entrySet().forEach(entry -> distroEntries.add(getJavaFXEntry(entry.getKey(), entry.getValue())));
+            }
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }
@@ -715,6 +717,7 @@ public class Main extends Application {
         }
 
         downloadJDKBundledWithFXCheckBox.selectedProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKSelectedMajorVersion) { return; }
             downloadJDKJavafxBundled = nv;
 
             boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
@@ -854,16 +857,17 @@ public class Main extends Application {
         cveDialog         = createCveDialog();
 
         registerListeners();
+        if (online.get()) {
+            discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
+                downloadJDKMaintainedVersions.addAll(uv);
+                downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+                if (downloadJDKMaintainedVersions.size() > 0) {
+                    downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+                }
+            });
 
-        discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
-            downloadJDKMaintainedVersions.addAll(uv);
-            downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
-            if (downloadJDKMaintainedVersions.size() > 0) {
-                downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
-            }
-        });
-
-        updateCves();
+            updateCves();
+        }
     }
 
 
@@ -1154,9 +1158,9 @@ public class Main extends Application {
                 URLConnection connection = url.openConnection();
                 connection.connect();
                 online.set(true);
+                updateDownloadPkgs();
+                rescan();
             }
-            if (downloadJDKMinimizedPkgs.isEmpty() && online.get()) { updateDownloadPkgs(); }
-            if (distros.isEmpty() && online.get()) { rescan(); }
         } catch (IOException e) {
             online.set(false);
         }
@@ -1197,9 +1201,20 @@ public class Main extends Application {
                     }
                 }
                 if (!pkgs.isEmpty()) {
-                    downloadJDKMinimizedPkgs.clear();
-                    downloadJDKMinimizedPkgs.addAll(pkgs);
                     Platform.runLater(() -> {
+                        downloadJDKMinimizedPkgs.clear();
+                        downloadJDKMinimizedPkgs.addAll(pkgs);
+
+                        // Major Versions
+                        discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
+                            downloadJDKMaintainedVersions.addAll(uv);
+                            downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+                            if (downloadJDKMaintainedVersions.size() > 0) {
+                                downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+                                downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
+                            }
+                        });
+
                         downloadJDKPane.setDisable(false);
                         selectMajorVersion();
                     });
@@ -1225,6 +1240,7 @@ public class Main extends Application {
     }
 
     private void checkForUpdates() {
+        if (!online.get()) { return; }
         checkingForUpdates.set(true);
         AtomicBoolean updatesAvailable = new AtomicBoolean(false);
         StringBuilder msgBuilder       = new StringBuilder();
@@ -1892,9 +1908,6 @@ public class Main extends Application {
         if (null != downloadFolder) {
             final String filename = uri.substring(uri.lastIndexOf("/"));
             final String target = downloadFolder.getAbsolutePath() + File.separator + filename;
-
-            System.out.println(filename);
-
             worker = createWorker(uri, target);
             worker.stateProperty().addListener((o, ov, nv) -> {
                 if (nv.equals(State.READY)) {
@@ -2527,6 +2540,7 @@ public class Main extends Application {
     }
 
     private void selectMajorVersion() {
+        if (null == downloadJDKSelectedMajorVersion) { return; }
         downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
         final boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
         downloadJDKBundledWithFXCheckBox.setDisable(true);

@@ -144,7 +144,10 @@ public class Finder {
         //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
-        distributions.stream().filter(Objects::nonNull).filter(distro -> !distro.getName().equals("Unknown build of OpenJDK")).forEach(distribution -> {
+        distributions.stream()
+                     .filter(Objects::nonNull)
+                     .filter(distro -> !distro.getName().equals("Unknown build of OpenJDK"))
+                     .forEach(distribution -> {
             List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
