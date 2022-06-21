@@ -181,7 +181,7 @@ import static eu.hansolo.jdktools.ReleaseStatus.GA;
  * Time: 15:35
  */
 public class Main extends Application {
-    public static final  VersionNumber             VERSION                = PropertyManager.INSTANCE.getVersionNumber();
+    public  static final VersionNumber             VERSION                = PropertyManager.INSTANCE.getVersionNumber();
     private static final PseudoClass               DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
     private final        Image                     dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
     private final        Image                     dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
@@ -1181,44 +1181,44 @@ public class Main extends Application {
     private void updateDownloadPkgs() {
         downloadJDKPane.setDisable(true);
         Helper.getAsync(Constants.ALL_PKGS_MINIMIZED_URI).thenAccept(response -> {
-            if (null == response) { return; }
-            final String bodyText = response.body();
-            if (null == bodyText || bodyText.isEmpty()) { return; }
-            final Gson        gson    = new Gson();
-            final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
-            if (element instanceof JsonObject) {
-                final List<MinimizedPkg> pkgs       = new ArrayList<>();
-                final JsonObject         jsonObject = element.getAsJsonObject();
-                final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    try {
-                        final JsonObject json = jsonArray.get(i).getAsJsonObject();
-                        pkgs.add(new MinimizedPkg(json.toString()));
-                    } catch (Exception e) {
-                        System.out.println(e);
+                if (null == response) { return; }
+                final String bodyText = response.body();
+                if (null == bodyText || bodyText.isEmpty()) { return; }
+                final Gson        gson    = new Gson();
+                final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+                if (element instanceof JsonObject) {
+                    final List<MinimizedPkg> pkgs       = new ArrayList<>();
+                    final JsonObject         jsonObject = element.getAsJsonObject();
+                    final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
+                    for (int i = 0; i < jsonArray.size(); i++) {
+                        try {
+                            final JsonObject json = jsonArray.get(i).getAsJsonObject();
+                            pkgs.add(new MinimizedPkg(json.toString()));
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+                    if (!pkgs.isEmpty()) {
+                        Platform.runLater(() -> {
+                            downloadJDKMinimizedPkgs.clear();
+                            downloadJDKMinimizedPkgs.addAll(pkgs);
+
+                            // Major Versions
+                            discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
+                                downloadJDKMaintainedVersions.addAll(uv);
+                                downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+                                if (downloadJDKMaintainedVersions.size() > 0) {
+                                    downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+                                    downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
+                                }
+                            });
+
+                            downloadJDKPane.setDisable(false);
+                            selectMajorVersion();
+                        });
                     }
                 }
-                if (!pkgs.isEmpty()) {
-                    Platform.runLater(() -> {
-                        downloadJDKMinimizedPkgs.clear();
-                        downloadJDKMinimizedPkgs.addAll(pkgs);
-
-                        // Major Versions
-                        discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
-                            downloadJDKMaintainedVersions.addAll(uv);
-                            downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
-                            if (downloadJDKMaintainedVersions.size() > 0) {
-                                downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
-                                downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
-                            }
-                        });
-
-                        downloadJDKPane.setDisable(false);
-                        selectMajorVersion();
-                    });
-                }
-            }
-        });
+            });
     }
 
     private void rescan() {
@@ -1249,7 +1249,7 @@ public class Main extends Application {
             HBox distroEntry = getDistroEntry(entry.getKey(), entry.getValue());
             distroEntries.add(distroEntry);
             if (distroEntry.getChildren().size() > 1 && distroEntry.getChildren().get(2) instanceof Label) {
-                msgBuilder.append(entry.getKey().getName()).append(" ").append(((Label)distroEntry.getChildren().get(2)).getText()).append("\n");
+                msgBuilder.append(entry.getKey().getName()).append(" ").append(((Label) distroEntry.getChildren().get(2)).getText()).append("\n");
                 updatesAvailable.set(true);
             }
         });
