@@ -159,7 +159,7 @@ public class Finder {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() != LibCType.MUSL).collect(Collectors.toList());
             }
             if (Architecture.NOT_FOUND != architecture) {
-                availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getArchitecture() == architecture).collect(Collectors.toList());
+                availableUpdates = availableUpdates.stream().filter(pkg -> architecture.getSynonyms().contains(pkg.getArchitecture())).collect(Collectors.toList());
             }
 
             distrosToUpdate.put(distribution, availableUpdates);
@@ -183,7 +183,6 @@ public class Finder {
                        .stream()
                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Distro::getName)))
                        .forEachOrdered(entry -> sorted.put(entry.getKey(), entry.getValue()));
-
         return sorted;
     }
 
