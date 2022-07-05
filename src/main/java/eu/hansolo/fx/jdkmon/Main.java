@@ -1616,7 +1616,7 @@ public class Main extends Application {
         spacerLabel.setTooltip(new Tooltip(""));
         spacerLabel.setVisible(false);
 
-        HBox hBox = new HBox(3, javafxSDKLabel, spacerLabel);
+        HBox hBox = new HBox(5, javafxSDKLabel, spacerLabel);
         hBox.setMinWidth(360);
 
         if (uri.isEmpty()) { return hBox; }
