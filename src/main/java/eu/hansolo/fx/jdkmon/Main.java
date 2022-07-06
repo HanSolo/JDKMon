@@ -1825,7 +1825,6 @@ public class Main extends Application {
 
         if (null != downloadFolder) {
             final boolean alreadyDownloaded = new File(downloadFolder + File.separator + pkg.getFileName()).exists();
-            System.out.println(pkg);
             final String  directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
             if (null == directDownloadUri) {
                 Alert alert = new Alert(AlertType.ERROR);
