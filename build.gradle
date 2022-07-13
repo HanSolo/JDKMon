@@ -52,8 +52,8 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'io.foojay.api:discoclient:2.0.28'
-    implementation 'eu.hansolo:jdktools:17.0.13'
+    implementation 'io.foojay.api:discoclient:2.0.29'
+    implementation 'eu.hansolo:jdktools:17.0.17'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.2.0'
     implementation 'io.github.1tchy.java9modular.org.apache.commons:commons-compress:1.21.0'
