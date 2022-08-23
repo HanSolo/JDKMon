@@ -10,7 +10,7 @@ buildscript {
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
         classpath 'org.javamodularity:moduleplugin:1.8.12'
-        classpath 'org.beryx:badass-jlink-plugin:2.25.0'
+        //classpath 'org.beryx:badass-jlink-plugin:2.25.0'
     }
 }
 
@@ -19,7 +19,7 @@ plugins {
     id 'application'
     id 'com.google.osdetector'           version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.12'
-    id 'org.beryx.jlink'                 version '2.25.0'
+    //id 'org.beryx.jlink'                 version '2.25.0'
     id 'net.nemerosa.versioning'         version '3.0.0'
 }
 
@@ -114,12 +114,16 @@ tasks.register('uberJar', Jar) {
 }
 */
 
+
+/*
 jlink {
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
     launcher {
         name = 'eu.hansolo.fx.jdkmon'
     }
 }
+*/
+
 /*
 tasks.withType(JavaCompile) {
     options.compilerArgs += "--enable-preview"
