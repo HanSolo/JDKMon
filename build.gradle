@@ -10,7 +10,6 @@ buildscript {
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
         classpath 'org.javamodularity:moduleplugin:1.8.12'
-        //classpath 'org.beryx:badass-jlink-plugin:2.25.0'
     }
 }
 
@@ -19,7 +18,6 @@ plugins {
     id 'application'
     id 'com.google.osdetector'           version '1.7.0'
     id 'org.javamodularity.moduleplugin' version '1.8.12'
-    //id 'org.beryx.jlink'                 version '2.25.0'
     id 'net.nemerosa.versioning'         version '3.0.0'
 }
 
@@ -101,40 +99,6 @@ jar {
     }
 }
 
-/*
-tasks.register('uberJar', Jar) {
-    archiveClassifier = 'uber'
-
-    from sourceSets.main.output
-
-    dependsOn configurations.runtimeClasspath
-    from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
-    }
-}
-*/
-
-
-/*
-jlink {
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
-    launcher {
-        name = 'eu.hansolo.fx.jdkmon'
-    }
-}
-*/
-
-/*
-tasks.withType(JavaCompile) {
-    options.compilerArgs += "--enable-preview"
-}
-tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
-}
-tasks.withType(JavaExec) {
-    jvmArgs += "--enable-preview"
-}
-*/
 
 // start the from gradle
 task Main(type: JavaExec) {
