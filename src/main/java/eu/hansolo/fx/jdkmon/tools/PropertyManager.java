@@ -90,11 +90,7 @@ public enum PropertyManager {
     public Object get(final String KEY) { return properties.getOrDefault(KEY, ""); }
     public void set(final String KEY, final String VALUE) {
         properties.setProperty(KEY, VALUE);
-        try {
-            properties.store(new FileOutputStream(String.join(File.separator, System.getProperty("user.dir"), JDKMON_PROPERTIES)), null);
-        } catch (IOException exception) {
-            System.out.println("Error writing properties file: " + exception);
-        }
+        storeProperties();
     }
 
     public String getString(final String key) { return properties.getOrDefault(key, "").toString(); }

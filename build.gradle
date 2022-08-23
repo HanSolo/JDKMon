@@ -64,10 +64,10 @@ dependencies {
 }
 
 
-mainClassName = '$moduleName/eu.hansolo.fx.jdkmon.Launcher'
-ext.moduleName = 'eu.hansolo.fx.jdkmon'
-mainClassName  = 'eu.hansolo.fx.jdkmon.Launcher'
-description    = 'JDKMon is a little tool written in JavaFX that will help you to keep track of updates for your installed distributions of OpenJDK'
+application.mainModule = 'eu.hansolo.fx.jdkmon'
+mainClassName          = 'eu.hansolo.fx.jdkmon.Launcher'
+description            = 'JDKMon is a little tool written in JavaFX that will help you to keep track of updates for your installed distributions of OpenJDK'
+
 
 jar {
 
