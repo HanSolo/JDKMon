@@ -1248,7 +1248,7 @@ public class Main extends Application {
         finder.getAvailableUpdates(distros).entrySet().forEach(entry -> {
             HBox distroEntry = getDistroEntry(entry.getKey(), entry.getValue());
             distroEntries.add(distroEntry);
-            if (distroEntry.getChildren().size() > 1 && distroEntry.getChildren().get(2) instanceof Label) {
+            if (distroEntry.getChildren().size() > 2 && distroEntry.getChildren().get(2) instanceof Label) {
                 msgBuilder.append(entry.getKey().getName()).append(" ").append(((Label) distroEntry.getChildren().get(2)).getText()).append("\n");
                 updatesAvailable.set(true);
             }
