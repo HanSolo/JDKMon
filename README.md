@@ -167,3 +167,19 @@ How it looks on Windows (light/dark mode):
 ![Updates](https://i.ibb.co/w6d9bV4/update-win.png)
 
 ![Download](https://i.ibb.co/HF5F8ff/download-win.png)
+
+
+### Additional properties
+In your user home folder (e.g. /Users/YOUR_USERNAME or /home/YOUR_USERNAME) you will find
+a file named ```jdkmon.properties```. This file contains the following settings:
+```
+searchpath=THE PATHS THAT WILL SCANNED FOR JDK'S (default depends on operating system)
+remember_download_folder=TRUE/FALSE (default is FALSE)
+download_folder=THE FOLDER WHERE DOWNLOADS WILL BE STORED (default is empty)
+dark_mode=TRUE/FALSE (default is FALSE)
+javafx_searchpath=PATH THAT WILL BE SCANNED FOR JAVAFX SDK'S (default is the user home folder)
+features=loom,panama,metropolis,valhalla,lanai,kona_fiber (list of features to look for) EXPERIMENTAL!
+autoextract=TRUE/FALSE Will directly extract downloaded JDK's (default is FALSE) EXPERIMENTAL!
+show_unknown_builds=TRUE/FALSE Will show unknown builds of OpenJDK (default is FALSE) EXPERIMENTAL!
+```
+
