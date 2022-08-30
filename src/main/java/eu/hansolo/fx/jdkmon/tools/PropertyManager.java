@@ -43,6 +43,7 @@ public enum PropertyManager {
     public  static final String     DARK_MODE                = "dark_mode";
     public  static final String     FEATURES                 = "features";
     public  static final String     AUTO_EXTRACT             = "autoextract";
+    public  static final String     SHOW_UNKNOWN_BUILDS      = "show_unknown_builds";
     public  static final String     VERSION                  = "version";
     private              Properties properties;
     private              Properties versionProperties;
@@ -180,6 +181,7 @@ public enum PropertyManager {
             properties.put(DARK_MODE, "FALSE");
             properties.put(FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber"); // comma separated list of available features
             properties.put(AUTO_EXTRACT, "FALSE");
+            properties.put(SHOW_UNKNOWN_BUILDS, "FALSE");
             properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();

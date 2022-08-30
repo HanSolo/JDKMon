@@ -144,9 +144,11 @@ public class Finder {
         //distributions.forEach(distribution -> updateFutures.add(discoclient.updateAvailableForAsync(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null).thenAccept(pkgs -> distrosToUpdate.put(distribution, pkgs))));
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
+        // Show unknown builds of OpenJDK
+        final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.SHOW_UNKNOWN_BUILDS, false);
         distributions.stream()
                      .filter(Objects::nonNull)
-                     .filter(distro -> !distro.getName().equals("Unknown build of OpenJDK"))
+                     .filter(distro ->  showUnknownBuildsOfOpenJDK ? distro.getName() != null : !distro.getName().equals(Constants.UNKNOWN_BUILD_OF_OPENJDK))
                      .forEach(distribution -> {
             List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
             if (null != availableUpdates) {
@@ -433,7 +435,7 @@ public class Finder {
                         System.out.println("Error reading release properties file. " + ex);
                     }
                     if (!releaseProperties.isEmpty()) {
-                        if (releaseProperties.containsKey("IMPLEMENTOR") && name.equals("Unknown build of OpenJDK")) {
+                        if (releaseProperties.containsKey("IMPLEMENTOR") && name.equals(Constants.UNKNOWN_BUILD_OF_OPENJDK)) {
                             switch(releaseProperties.getProperty("IMPLEMENTOR").replaceAll("\"", "")) {
                                 case "AdoptOpenJDK"      -> { name = "Adopt OpenJDK";  apiString = "aoj"; }
                                 case "Alibaba"           -> { name = "Dragonwell";     apiString = "dragonwell"; }
@@ -529,7 +531,7 @@ public class Finder {
                     }
                 }
 
-                if (name.equals("Unknown build of OpenJDK") && lines.length > 2) {
+                if (name.equals(Constants.UNKNOWN_BUILD_OF_OPENJDK) && lines.length > 2) {
                     String line3      = lines[2].toLowerCase();
                     File   readmeFile = new File(parentPath + "readme.txt");
                     if (readmeFile.exists()) {
@@ -610,6 +612,12 @@ public class Finder {
                 if (null == jdkVersion) { jdkVersion = version; }
 
                 if (architecture.isEmpty()) { architecture = this.architecture.name().toLowerCase(); }
+
+                // @ToDo: Assuming an unknown build of OpenJDK is a build of Oracle OpenJDK
+                final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.SHOW_UNKNOWN_BUILDS, false);
+                if (showUnknownBuildsOfOpenJDK && name.equals(Constants.UNKNOWN_BUILD_OF_OPENJDK) && apiString.isEmpty()) {
+                    apiString = "oracle_open_jdk";
+                }
 
                 Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope);
                 if (inUse.get()) { distributionFound.setInUse(true); }

@@ -39,4 +39,6 @@ public class Constants {
     public static final String  ALL_PKGS_MINIMIZED_URI                = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
 
     public static final String  TEST_CONNECTIVITY_URL                 = "https://api.foojay.io";
+
+    public static final String  UNKNOWN_BUILD_OF_OPENJDK              = "Unknown build of OpenJDK";
 }
