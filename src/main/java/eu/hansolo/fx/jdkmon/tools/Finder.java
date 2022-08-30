@@ -395,8 +395,8 @@ public class Finder {
                         version = VersionNumber.fromText(result.group(2));
                     }
                 } else if(line2.contains("Zing") || line2.contains("Prime")) {
-                    name      = "Prime";
-                    apiString = "prime";
+                    name      = "ZuluPrime";
+                    apiString = "zulu_prime";
                     final List<MatchResult> results = ZULU_BUILD_MATCHER.results().collect(Collectors.toList());
                     if (!results.isEmpty()) {
                         MatchResult result = results.get(0);
@@ -418,7 +418,6 @@ public class Finder {
                     apiString = "bisheng";
                 }
 
-                //if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
                 if (null == version) {
                     final String versionNumberText = withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""));
                     final Semver semver            = Semver.fromText(versionNumberText).getSemver1();
@@ -446,8 +445,8 @@ public class Finder {
                                             name      = "Zulu";
                                             apiString = "zulu";
                                         } else if (implementorVersion.startsWith("Zing") || implementorVersion.startsWith("Prime")) {
-                                            name      = "Prime";
-                                            apiString = "prime";
+                                            name      = "ZuluPrime";
+                                            apiString = "zulu_prime";
                                         }
                                     }
                                 }
