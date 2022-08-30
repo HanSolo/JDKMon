@@ -418,7 +418,12 @@ public class Finder {
                     apiString = "bisheng";
                 }
 
-                if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
+                //if (null == version) { version = VersionNumber.fromText(withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""))); }
+                if (null == version) {
+                    final String versionNumberText = withoutPrefix.substring(withoutPrefix.indexOf("\"") + 1, withoutPrefix.lastIndexOf("\""));
+                    final Semver semver            = Semver.fromText(versionNumberText).getSemver1();
+                    version = VersionNumber.fromText(semver.toString(true));
+                }
                 VersionNumber graalVersion = version;
 
                 releaseProperties.clear();
@@ -479,9 +484,9 @@ public class Finder {
                         }
                         if (releaseProperties.containsKey("OS_NAME")) {
                             switch(releaseProperties.getProperty("OS_NAME").toLowerCase().replaceAll("\"", "")) {
-                                case "darwin" : operatingSystem = "macos"; break;
-                                case "linux"  : operatingSystem = "linux"; break;
-                                case "windows": operatingSystem = "windows"; break;
+                                case "darwin"  -> operatingSystem = "macos";
+                                case "linux"   -> operatingSystem = "linux";
+                                case "windows" -> operatingSystem = "windows";
                             }
                         }
                         if (releaseProperties.containsKey("MODULES") && !fxBundled) {
