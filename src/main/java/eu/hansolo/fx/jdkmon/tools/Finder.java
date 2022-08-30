@@ -394,6 +394,14 @@ public class Finder {
                         MatchResult result = results.get(0);
                         version = VersionNumber.fromText(result.group(2));
                     }
+                } else if(line2.contains("Zing") || line2.contains("Prime")) {
+                    name      = "Prime";
+                    apiString = "prime";
+                    final List<MatchResult> results = ZULU_BUILD_MATCHER.results().collect(Collectors.toList());
+                    if (!results.isEmpty()) {
+                        MatchResult result = results.get(0);
+                        version = VersionNumber.fromText(result.group(2));
+                    }
                 } else if (line2.contains("Semeru")) {
                     if (line2.contains("Certified")) {
                         name      = "Semeru certified";
@@ -423,24 +431,35 @@ public class Finder {
                     if (!releaseProperties.isEmpty()) {
                         if (releaseProperties.containsKey("IMPLEMENTOR") && name.equals("Unknown build of OpenJDK")) {
                             switch(releaseProperties.getProperty("IMPLEMENTOR").replaceAll("\"", "")) {
-                                case "AdoptOpenJDK"      : name = "Adopt OpenJDK";  apiString = "aoj";            break;
-                                case "Alibaba"           : name = "Dragonwell";     apiString = "dragonwell";     break;
-                                case "Amazon.com Inc."   : name = "Corretto";       apiString = "corretto";       break;
-                                case "Azul Systems, Inc.": name = "Zulu";           apiString = "zulu";           break;
-                                case "mandrel"           : name = "Mandrel";        apiString = "mandrel";        break;
-                                case "Microsoft"         : name = "Microsoft";      apiString = "microsoft";      break;
-                                case "ojdkbuild"         : name = "OJDK Build";     apiString = "ojdk_build";     break;
-                                case "Oracle Corporation": name = "Oracle OpenJDK"; apiString = "oracle_openjdk"; break;
-                                case "Red Hat, Inc."     : name = "Red Hat";        apiString = "redhat";         break;
-                                case "SAP SE"            : name = "SAP Machine";    apiString = "sap_machine";    break;
-                                case "OpenLogic"         : name = "OpenLogic";      apiString = "openlogic";      break;
-                                case "JetBrains s.r.o."  : name = "JetBrains";      apiString = "jetbrains";      break;
-                                case "Eclipse Foundation": name = "Temurin";        apiString = "temurin";        break;
-                                case "Tencent"           : name = "Kona";           apiString = "kona";           break;
-                                case "Bisheng"           : name = "Bisheng";        apiString = "bisheng";        break;
-                                case "Debian"            : name = "Debian";         apiString = "debian";         break;
-                                case "Ubuntu"            : name = "Ubuntu";         apiString = "ubuntu";         break;
-                                case "N/A"               : /* Unknown */ break;
+                                case "AdoptOpenJDK"      -> { name = "Adopt OpenJDK";  apiString = "aoj"; }
+                                case "Alibaba"           -> { name = "Dragonwell";     apiString = "dragonwell"; }
+                                case "Amazon.com Inc."   -> { name = "Corretto";       apiString = "corretto"; }
+                                case "Azul Systems, Inc."-> {
+                                    if (releaseProperties.containsKey("IMPLEMENTOR_VERSION")) {
+                                        final String implementorVersion = releaseProperties.getProperty("IMPLEMENTOR_VERSION");
+                                        if (implementorVersion.startsWith("Zulu")) {
+                                            name      = "Zulu";
+                                            apiString = "zulu";
+                                        } else if (implementorVersion.startsWith("Zing") || implementorVersion.startsWith("Prime")) {
+                                            name      = "Prime";
+                                            apiString = "prime";
+                                        }
+                                    }
+                                }
+                                case "mandrel"           -> { name = "Mandrel";        apiString = "mandrel"; }
+                                case "Microsoft"         -> { name = "Microsoft";      apiString = "microsoft"; }
+                                case "ojdkbuild"         -> { name = "OJDK Build";     apiString = "ojdk_build"; }
+                                case "Oracle Corporation"-> { name = "Oracle OpenJDK"; apiString = "oracle_openjdk"; }
+                                case "Red Hat, Inc."     -> { name = "Red Hat";        apiString = "redhat"; }
+                                case "SAP SE"            -> { name = "SAP Machine";    apiString = "sap_machine"; }
+                                case "OpenLogic"         -> { name = "OpenLogic";      apiString = "openlogic"; }
+                                case "JetBrains s.r.o."  -> { name = "JetBrains";      apiString = "jetbrains"; }
+                                case "Eclipse Foundation"-> { name = "Temurin";        apiString = "temurin"; }
+                                case "Tencent"           -> { name = "Kona";           apiString = "kona"; }
+                                case "Bisheng"           -> { name = "Bisheng";        apiString = "bisheng"; }
+                                case "Debian"            -> { name = "Debian";         apiString = "debian"; }
+                                case "Ubuntu"            -> { name = "Ubuntu";         apiString = "ubuntu"; }
+                                case "N/A"               -> { }/* Unknown */
                             }
                         }
                         if (releaseProperties.containsKey("OS_ARCH")) {
