@@ -179,7 +179,7 @@ public enum PropertyManager {
             properties.put(REMEMBER_DOWNLOAD_FOLDER, "FALSE");
             properties.put(DOWNLOAD_FOLDER, "");
             properties.put(DARK_MODE, "FALSE");
-            properties.put(FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber"); // comma separated list of available features
+            properties.put(FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac"); // comma separated list of available features
             properties.put(AUTO_EXTRACT, "FALSE");
             properties.put(SHOW_UNKNOWN_BUILDS, "FALSE");
             properties.store(output, null);

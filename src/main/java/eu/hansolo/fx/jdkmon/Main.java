@@ -331,6 +331,13 @@ public class Main extends Application {
             }
         }
 
+        if (PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
+            if (!PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).contains("crac")) {
+                PropertyManager.INSTANCE.set(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
+                PropertyManager.INSTANCE.storeProperties();
+            }
+        }
+
         closeMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
         closeMacWindowButton.setDarkMode(darkMode.get());
 
