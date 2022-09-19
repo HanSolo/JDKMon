@@ -156,7 +156,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -550,9 +549,9 @@ public class Main extends Application {
         cveLinks                               = FXCollections.observableArrayList();
 
         downloadJDKMaintainedVersions          = new LinkedHashSet<>();
-        downloadJDKSelectedPkgs                = new LinkedList<>();
+        downloadJDKSelectedPkgs                = new ArrayList<>();
         downloadJDKSelectedPkg                 = null;
-        downloadJDKSelectedPkgsForMajorVersion = new LinkedList<>();
+        downloadJDKSelectedPkgsForMajorVersion = new ArrayList<>();
         downloadJDKJavafxBundled               = false;
         downloadJDKOperatingSystems            = new TreeSet<>();
         downloadJDKArchitectures               = new TreeSet<>();
