@@ -156,7 +156,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -327,6 +326,13 @@ public class Main extends Application {
                 darkMode.set(PropertyManager.INSTANCE.getBoolean(PropertyManager.DARK_MODE));
             } else {
                 PropertyManager.INSTANCE.set(PropertyManager.DARK_MODE, "FALSE");
+                PropertyManager.INSTANCE.storeProperties();
+            }
+        }
+
+        if (PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
+            if (!PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).contains("crac")) {
+                PropertyManager.INSTANCE.set(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
                 PropertyManager.INSTANCE.storeProperties();
             }
         }
@@ -543,9 +549,9 @@ public class Main extends Application {
         cveLinks                               = FXCollections.observableArrayList();
 
         downloadJDKMaintainedVersions          = new LinkedHashSet<>();
-        downloadJDKSelectedPkgs                = new LinkedList<>();
+        downloadJDKSelectedPkgs                = new ArrayList<>();
         downloadJDKSelectedPkg                 = null;
-        downloadJDKSelectedPkgsForMajorVersion = new LinkedList<>();
+        downloadJDKSelectedPkgsForMajorVersion = new ArrayList<>();
         downloadJDKJavafxBundled               = false;
         downloadJDKOperatingSystems            = new TreeSet<>();
         downloadJDKArchitectures               = new TreeSet<>();
