@@ -16,7 +16,16 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
+import eu.hansolo.jdktools.scopes.BasicScope;
+import eu.hansolo.jdktools.scopes.BuildScope;
+import eu.hansolo.jdktools.scopes.DownloadScope;
+import eu.hansolo.jdktools.scopes.QualityScope;
+import eu.hansolo.jdktools.scopes.Scope;
+import eu.hansolo.jdktools.scopes.UsageScope;
+
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 
@@ -41,4 +50,45 @@ public class Constants {
     public static final String  TEST_CONNECTIVITY_URL                 = "https://api.foojay.io";
 
     public static final String  UNKNOWN_BUILD_OF_OPENJDK              = "Unknown build of OpenJDK";
+
+    public static final ConcurrentHashMap<String, BuildScope> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
+        // Builds of OpenJDK
+        put("aoj", BuildScope.BUILD_OF_OPEN_JDK);
+        put("aoj_openj9", BuildScope.BUILD_OF_OPEN_JDK);
+        put("bisheng", BuildScope.BUILD_OF_OPEN_JDK);
+        put("corretto", BuildScope.BUILD_OF_OPEN_JDK);
+        put("debian", BuildScope.BUILD_OF_OPEN_JDK);
+        put("dragonwell", BuildScope.BUILD_OF_OPEN_JDK);
+        put("liberica", BuildScope.BUILD_OF_OPEN_JDK);
+        put("jetbrains", BuildScope.BUILD_OF_OPEN_JDK);
+        put("kona", BuildScope.BUILD_OF_OPEN_JDK);
+        put("microsoft", BuildScope.BUILD_OF_OPEN_JDK);
+        put("ojdk_build", BuildScope.BUILD_OF_OPEN_JDK);
+        put("open_logic", BuildScope.BUILD_OF_OPEN_JDK);
+        put("oracle", BuildScope.BUILD_OF_OPEN_JDK);
+        put("oracle_open_jdk", BuildScope.BUILD_OF_OPEN_JDK);
+        put("red_hat", BuildScope.BUILD_OF_OPEN_JDK);
+        put("sap_machine", BuildScope.BUILD_OF_OPEN_JDK);
+        put("semeru", BuildScope.BUILD_OF_OPEN_JDK);
+        put("semeru_certified", BuildScope.BUILD_OF_OPEN_JDK);
+        put("temurin", BuildScope.BUILD_OF_OPEN_JDK);
+        put("trava", BuildScope.BUILD_OF_OPEN_JDK);
+        put("zulu", BuildScope.BUILD_OF_OPEN_JDK);
+        put("zulu_prime", BuildScope.BUILD_OF_OPEN_JDK);
+        // Builds of GraalVM
+        put("graalvm_ce8", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce11", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce16", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce17", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce19", BuildScope.BUILD_OF_GRAALVM);
+        put("liberica_native", BuildScope.BUILD_OF_GRAALVM);
+        put("mandrel", BuildScope.BUILD_OF_GRAALVM);
+        put("gluon_graalvm", BuildScope.BUILD_OF_GRAALVM);
+    }};
+    
+    public static final ConcurrentHashMap<Scope, List<String>> REVERSE_SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
+        put(BuildScope.BUILD_OF_OPEN_JDK, List.of("aoj", "aoj_openj9", "bisheng", "corretto", "debian", "dragonwell", "jetbrains", "kona", "liberica", "microsoft", "ojdk_build", "open_logic", "oracle", "oracle_open_jdk", "red_hat", "sap_machine", "semeru", "semeru_certified", "temurin", "trava", "zulu", "zulu_prime"));
+        put(BuildScope.BUILD_OF_GRAALVM, List.of("graalvm_ce8", "graalvm_ce11", "graalvm_ce16", "graalvm_ce17", "graalvm_ce19", "liberica_native", "mandrel", "gluon_graalvm"));
+    }};
+
 }

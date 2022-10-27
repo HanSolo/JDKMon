@@ -1347,10 +1347,7 @@ public class Main extends Application {
         Collections.sort(pkgs, Comparator.comparing(Pkg::getDistributionName).reversed());
 
         Optional<Pkg> optFirstPkg = pkgs.stream()
-                                        .filter(pkg -> !pkg.getDistribution().getApiString().toLowerCase().startsWith("graal"))
-                                        .filter(pkg -> !pkg.getDistribution().getApiString().equalsIgnoreCase("liberica_native"))
-                                        .filter(pkg -> !pkg.getDistribution().getApiString().equalsIgnoreCase("mandrel"))
-                                        .filter(pkg -> !pkg.getDistribution().getApiString().toLowerCase().startsWith("gluon"))
+                                        .filter(pkg -> distribution.getBuildScope() == Constants.SCOPE_LOOKUP.get(pkg.getDistribution().getApiString()))
                                         .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
                                         .findFirst();
         if (optFirstPkg.isEmpty()) { return hBox; }
