@@ -18,6 +18,7 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import eu.hansolo.cvescanner.CveScanner.Severity;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;
@@ -169,15 +170,13 @@ public class Helper {
     }
 
     public static final Color getColorForCVE(final CVE cve, final boolean darkMode) {
-        final double score = cve.score();
-        if (score >= 9.0) {
-            return darkMode ? MacosAccentColor.RED.colorDark : MacosAccentColor.RED.colorAqua;
-        } else if (score >= 7.0) {
-            return darkMode ? MacosAccentColor.ORANGE.colorDark : MacosAccentColor.ORANGE.colorAqua;
-        } else if (score >= 4.0) {
-            return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
-        } else {
-            return darkMode ? MacosAccentColor.GREEN.colorDark : MacosAccentColor.GREEN.colorAqua;
+        switch (cve.severity()) {
+            case LOW             : return darkMode ? MacosAccentColor.GREEN.colorDark  : MacosAccentColor.GREEN.colorAqua;
+            case MEDIUM          : return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
+            case HIGH            : return darkMode ? MacosAccentColor.ORANGE.colorDark : MacosAccentColor.ORANGE.colorAqua;
+            case CRITICAL        : return darkMode ? MacosAccentColor.RED.colorDark    : MacosAccentColor.RED.colorAqua;
+            case NONE, NOT_FOUND :
+            default              : return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua;
         }
     }
 

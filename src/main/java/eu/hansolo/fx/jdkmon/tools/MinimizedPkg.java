@@ -67,7 +67,6 @@ public class MinimizedPkg {
         this.id                    = json.get(Pkg.FIELD_ID).getAsString();
         this.distribution          = DiscoClient.getDistributionFromText(json.get(Pkg.FIELD_DISTRIBUTION).getAsString());
         if (null == this.distribution) {
-            System.out.println(jsonText);
             throw new IllegalArgumentException("Distribution not found");
         }
         this.majorVersion          = new MajorVersion(json.get(Pkg.FIELD_MAJOR_VERSION).getAsInt());

@@ -190,6 +190,7 @@ public class Main extends Application {
     private              boolean                   isWindows              = OperatingSystem.WINDOWS == operatingSystem;
     private              CveScanner                cveScanner             = new CveScanner();
     private              List<CVE>                 cves                   = new CopyOnWriteArrayList<>();
+    private              List<CVE>                 cvesGraalVM            = new CopyOnWriteArrayList<>();
     private              String                    cssFile;
     private              Notification.Notifier     notifier;
     private              BooleanProperty           darkMode;
@@ -390,6 +391,7 @@ public class Main extends Application {
         executor = Executors.newScheduledThreadPool(2);
         executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> cveScanner.updateGraalVMCves(), Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
 
@@ -451,7 +453,7 @@ public class Main extends Application {
                 finder.checkForJavaFXUpdates(javafxSearchPaths).entrySet().forEach(entry -> distroEntries.add(getJavaFXEntry(entry.getKey(), entry.getValue())));
             }
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
         }
         distroBox = new VBox(10);
         distroBox.getChildren().setAll(distroEntries);
@@ -1181,6 +1183,19 @@ public class Main extends Application {
             final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
             cves.add(new CVE(id, score, severity, affectedVersions));
         });
+
+        List<CveScanner.CVE> cvesGraalVMFound = cveScanner.getGraalVMCves();
+        if (cvesGraalVMFound.isEmpty()) { return; }
+        cvesGraalVM.clear();
+        cvesGraalVMFound.forEach(cve -> {
+            final String   id       = cve.id();
+            final double              score            = cve.score();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
+
+            cvesGraalVM.add(new CVE(id, score, severity, affectedVersions));
+        });
+
         checkForUpdates();
     }
 
@@ -1201,7 +1216,7 @@ public class Main extends Application {
                             final JsonObject json = jsonArray.get(i).getAsJsonObject();
                             pkgs.add(new MinimizedPkg(json.toString()));
                         } catch (Exception e) {
-                            System.out.println(e);
+                            //System.out.println(e);
                         }
                     }
                     if (!pkgs.isEmpty()) {
@@ -1288,7 +1303,12 @@ public class Main extends Application {
     private HBox getDistroEntry(final Distro distribution, final List<Pkg> pkgs) {
         final boolean isDistributionInUse = distribution.isInUse();
 
-        List<CVE> vulnerabilities = Helper.getCVEsForVersion(cves, VersionNumber.fromText(distribution.getVersion()));
+        List<CVE> vulnerabilities;
+        if (BuildScope.BUILD_OF_OPEN_JDK == distribution.getBuildScope()) {
+            vulnerabilities = Helper.getCVEsForVersion(cves, VersionNumber.fromText(distribution.getVersion()));
+        } else {
+            vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, VersionNumber.fromText(distribution.getVersion()));
+        }
 
         StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")")
                                                                                     .append(distribution.getFxBundled() ? " (FX)" : "")
@@ -1317,6 +1337,8 @@ public class Main extends Application {
         } else {
             final boolean isDarkMode = darkMode.get();
             List<Hyperlink> cveLinksFound = new ArrayList<>();
+            Comparator<CVE> severityComparator = (o1, o2) -> o2.severity().compareToSeverity(o1.severity());
+            Collections.sort(vulnerabilities, severityComparator);
             vulnerabilities.forEach(cve -> {
                 Hyperlink cveLink = new Hyperlink();
                 cveLink.setTooltip(new Tooltip(distribution.getName() + " " + distribution.getVersion() + " might be affected by " + cve.id()));

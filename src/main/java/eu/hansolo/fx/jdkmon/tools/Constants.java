@@ -30,26 +30,28 @@ import java.util.regex.Pattern;
 
 
 public class Constants {
-    public static final String  RELEASES_URI                          = "https://github.com/HanSolo/JDKMon/releases/latest";
-    public static final long    INITIAL_DELAY_IN_SECONDS              = 30;
-    public static final long    RESCAN_INTERVAL_IN_SECONDS            = 3600;
-    public static final long    INITIAL_CVE_DELAY_IN_MINUTES          = 2;
-    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES        = 60;
-    public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES = 5;
-    public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES       = 60;
+    public static final String  RELEASES_URI                           = "https://github.com/HanSolo/JDKMon/releases/latest";
+    public static final long    INITIAL_DELAY_IN_SECONDS               = 30;
+    public static final long    RESCAN_INTERVAL_IN_SECONDS             = 3600;
+    public static final long    INITIAL_CVE_DELAY_IN_MINUTES           = 2;
+    public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES         = 60;
+    public static final long    INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES   = 3;
+    public static final long    GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES = 60;
+    public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES  = 5;
+    public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES        = 60;
 
-    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS        = 5;
+    public static final long    INITIAL_CHECK_DELAY_IN_SECONDS         = 5;
 
-    public static final long    CHECK_INTERVAL_IN_SECONDS             = 60;
-    public static final Pattern POSITIVE_INTEGER_PATTERN              = Pattern.compile("\\d+");
-    public static final String  HOME_FOLDER                           = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
-    public static final String  OPENJFX_MAVEN_METADATA                = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
-    public static final String  JAVAFX_RUNTIME_VERSION                = "javafx.runtime.version";
-    public static final String  ALL_PKGS_MINIMIZED_URI                = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
+    public static final long    CHECK_INTERVAL_IN_SECONDS              = 60;
+    public static final Pattern POSITIVE_INTEGER_PATTERN               = Pattern.compile("\\d+");
+    public static final String  HOME_FOLDER                            = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
+    public static final String  OPENJFX_MAVEN_METADATA                 = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
+    public static final String  JAVAFX_RUNTIME_VERSION                 = "javafx.runtime.version";
+    public static final String  ALL_PKGS_MINIMIZED_URI                 = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
 
-    public static final String  TEST_CONNECTIVITY_URL                 = "https://api.foojay.io";
+    public static final String  TEST_CONNECTIVITY_URL                  = "https://api.foojay.io";
 
-    public static final String  UNKNOWN_BUILD_OF_OPENJDK              = "Unknown build of OpenJDK";
+    public static final String  UNKNOWN_BUILD_OF_OPENJDK               = "Unknown build of OpenJDK";
 
     public static final ConcurrentHashMap<String, BuildScope> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
         // Builds of OpenJDK
