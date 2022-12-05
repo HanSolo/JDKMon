@@ -55,7 +55,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10'
     implementation 'io.foojay.api:discoclient:2.0.35'
     implementation 'eu.hansolo:jdktools:17.0.27'
-    implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
+    implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.1'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.0.1'
     implementation 'io.github.1tchy.java9modular.org.apache.commons:commons-compress:1.21.0'
     implementation 'org.tukaani:xz:1.9'
