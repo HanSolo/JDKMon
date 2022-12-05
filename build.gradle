@@ -142,7 +142,9 @@ run {
     }
 }
 
+/*
 signing {
     useGpgCmd()
     sign configurations.archives
 }
+*/
