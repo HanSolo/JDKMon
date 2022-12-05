@@ -13,7 +13,6 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
-          architecture: x64
           distribution: 'zulu'
           gpg-private-key: ${{ secrets.GPG_KEY }}
           gpg-passphrase: PASSPHRASE
@@ -37,11 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17.0.2
-        #uses: foojayio/setup-java@disco
         uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
-          architecture: x64
           distribution: 'zulu'
           gpg-private-key: ${{ secrets.GPG_KEY }}
           gpg-passphrase: PASSPHRASE
@@ -51,8 +48,6 @@ jobs:
         run: ./gradlew build
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Grant execute permission for build_app_macos.sh
-        run: chmod +x ./build_app_macos.sh
       - name: Create Distribution
         run: ./build_app_macos.sh
       - uses: actions/upload-artifact@v3
@@ -72,12 +67,9 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
-          architecture: x64
           distribution: 'zulu'
           gpg-private-key: ${{ secrets.GPG_KEY }}
           gpg-passphrase: PASSPHRASE
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
         env:
