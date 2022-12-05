@@ -17,14 +17,11 @@ jobs:
           distribution: 'zulu'
           gpg-private-key: ${{ secrets.GPG_KEY }}
           gpg-passphrase: PASSPHRASE
-      - name: GPG setup
-        run: |
-          GPG_TTY=$(tty)
-          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew.bat build
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_TTY: $(tty)
       - name: Create Distribution
         run: .\build_app_windows.bat
       - uses: actions/upload-artifact@v3
@@ -51,14 +48,11 @@ jobs:
           gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: GPG setup
-        run: |
-          GPG_TTY=$(tty)
-          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew build
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_TTY: $(tty)
       - name: Grant execute permission for build_app_macos.sh
         run: chmod +x ./build_app_macos.sh
       - name: Create Distribution
@@ -86,14 +80,11 @@ jobs:
           gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: GPG setup
-        run: | 
-          GPG_TTY=$(tty)
-          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew build
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_TTY: $(tty)
       - name: Grant execute permission for build_app_linux.sh
         run: chmod +x ./build_app_linux.sh
       - name: Create Distribution
