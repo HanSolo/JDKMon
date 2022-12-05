@@ -8,7 +8,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.0'
+        classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.1'
         classpath 'org.javamodularity:moduleplugin:1.8.12'
     }
 }
@@ -17,7 +17,7 @@ plugins {
     id 'java'
     id 'application'
     id 'signing'
-    id 'com.google.osdetector'           version '1.7.0'
+    id 'com.google.osdetector'           version '1.7.1'
     id 'org.javamodularity.moduleplugin' version '1.8.12'
     id 'net.nemerosa.versioning'         version '3.0.0'
 }
