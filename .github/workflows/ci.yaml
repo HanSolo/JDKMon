@@ -17,6 +17,10 @@ jobs:
           distribution: 'zulu'
           gpg-private-key: ${{ secrets.GPG_KEY }}
           gpg-passphrase: PASSPHRASE
+      - name: GPG setup
+        run: |
+          GPG_TTY=$(tty)
+          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew.bat build
         env:
@@ -47,6 +51,10 @@ jobs:
           gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: GPG setup
+        run: |
+          GPG_TTY=$(tty)
+          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew build
         env:
@@ -78,6 +86,10 @@ jobs:
           gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: GPG setup
+        run: | 
+          GPG_TTY=$(tty)
+          export GPG_TTY
       - name: Build with Gradle
         run: ./gradlew build
         env:
