@@ -15,12 +15,11 @@ jobs:
           java-version: 17.0.2
           architecture: x64
           distribution: 'zulu'
-          gpg-private-key: GPG_KEY
-          gpg-passphrase: GPG_PASSPHRASE
+          gpg-private-key: ${{ secrets.GPG_KEY }}
+          gpg-passphrase: PASSPHRASE
       - name: Build with Gradle
         run: ./gradlew.bat build
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Create Distribution
         run: .\build_app_windows.bat
@@ -44,14 +43,13 @@ jobs:
           java-version: 17.0.2
           architecture: x64
           distribution: 'zulu'
-          gpg-private-key: GPG_KEY
-          gpg-passphrase: GPG_PASSPHRASE
+          gpg-private-key: ${{ secrets.GPG_KEY }}
+          gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Grant execute permission for build_app_macos.sh
         run: chmod +x ./build_app_macos.sh
@@ -76,14 +74,13 @@ jobs:
           java-version: 17.0.2
           architecture: x64
           distribution: 'zulu'
-          gpg-private-key: GPG_KEY
-          gpg-passphrase: GPG_PASSPHRASE
+          gpg-private-key: ${{ secrets.GPG_KEY }}
+          gpg-passphrase: PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Grant execute permission for build_app_linux.sh
         run: chmod +x ./build_app_linux.sh
