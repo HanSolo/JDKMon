@@ -10,10 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17.0.2
-        uses: foojayio/setup-java@disco
+        uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
           architecture: x64
+          distribution: 'zulu'
+          gpg-private-key: GPG_KEY
+          gpg-passphrase: GPG_PASSPHRASE
       - name: Build with Gradle
         run: ./gradlew.bat build
         env:
@@ -35,10 +38,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17.0.2
-        uses: foojayio/setup-java@disco
+        #uses: foojayio/setup-java@disco
+        uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
           architecture: x64
+          distribution: 'zulu'
+          gpg-private-key: GPG_KEY
+          gpg-passphrase: GPG_PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
@@ -64,10 +71,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17.0.2
-        uses: foojayio/setup-java@disco
+        uses: actions/setup-java@v3
         with:
           java-version: 17.0.2
           architecture: x64
+          distribution: 'zulu'
+          gpg-private-key: GPG_KEY
+          gpg-passphrase: GPG_PASSPHRASE
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
