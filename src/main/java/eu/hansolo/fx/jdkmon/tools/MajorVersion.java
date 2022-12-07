@@ -20,8 +20,11 @@ package eu.hansolo.fx.jdkmon.tools;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 
+import java.util.Comparator;
+import java.util.Objects;
 
-public class MajorVersion {
+
+public class MajorVersion implements Comparable<MajorVersion> {
     public  static final String        FIELD_MAJOR_VERSION   = "major_version";
     public  static final String        FIELD_TERM_OF_SUPPORT = "term_of_support";
     public  static final String        FIELD_MAINTAINED      = "maintained";
@@ -51,4 +54,19 @@ public class MajorVersion {
 
     // Maintained
     public Boolean isMaintained() { return maintained; }
+
+    @Override public int compareTo(final MajorVersion majorVersion) {
+        return Integer.compare(majorVersion.getAsInt(), getAsInt());
+    }
+
+    @Override public boolean equals(final Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || getClass() != obj.getClass()) { return false; }
+        MajorVersion other = (MajorVersion) obj;
+        return majorVersion == other.majorVersion && maintained == other.maintained;
+    }
+
+    @Override public int hashCode() {
+        return Objects.hash(majorVersion, maintained);
+    }
 }

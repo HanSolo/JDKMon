@@ -16,12 +16,8 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.jdktools.scopes.BasicScope;
 import eu.hansolo.jdktools.scopes.BuildScope;
-import eu.hansolo.jdktools.scopes.DownloadScope;
-import eu.hansolo.jdktools.scopes.QualityScope;
 import eu.hansolo.jdktools.scopes.Scope;
-import eu.hansolo.jdktools.scopes.UsageScope;
 
 import java.io.File;
 import java.util.List;
@@ -47,7 +43,8 @@ public class Constants {
     public static final String  HOME_FOLDER                            = new StringBuilder(System.getProperty("user.home")).append(File.separator).toString();
     public static final String  OPENJFX_MAVEN_METADATA                 = "https://repo1.maven.org/maven2/org/openjfx/javafx/maven-metadata.xml";
     public static final String  JAVAFX_RUNTIME_VERSION                 = "javafx.runtime.version";
-    public static final String  ALL_PKGS_MINIMIZED_URI                 = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
+    public static final String  ALL_JDK_PKGS_MINIMIZED_URI             = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_openjdk?downloadable=true&include_ea=true&minimized=true";
+    public static final String  ALL_GRAAL_PKGS_MINIMIZED_URI           = "https://api.foojay.io/disco/v3.0/packages/all_builds_of_graalvm?downloadable=true&include_ea=true&minimized=true";
 
     public static final String  TEST_CONNECTIVITY_URL                  = "https://api.foojay.io";
 

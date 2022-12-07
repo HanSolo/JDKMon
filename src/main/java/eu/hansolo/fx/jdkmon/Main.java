@@ -155,6 +155,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -226,6 +227,7 @@ public class Main extends Application {
     private              Worker<Boolean>           worker;
     private              Dialog                    aboutDialog;
     private              Dialog                    downloadJDKDialog;
+    private              Dialog                    downloadGraalDialog;
     private              Dialog                    cveDialog;
     private              ObservableList<Hyperlink> cveLinks;
     private              Stage                     cveStage;
@@ -240,6 +242,7 @@ public class Main extends Application {
     private              boolean                   isUpdateAvailable;
     private              VersionNumber             latestVersion;
     private              Map<String, Popup>        popups;
+
     private              Stage                     downloadJDKStage;
     private              AnchorPane                downloadJDKHeaderPane;
     private              Label                     downloadJDKWindowTitle;
@@ -272,12 +275,47 @@ public class Main extends Application {
     private              Set<Architecture>         downloadJDKArchitectures;
     private              Set<ArchiveType>          downloadJDKArchiveTypes;
     private              ProgressBar               downloadJDKProgressBar;
+
+    private              Stage                     downloadGraalStage;
+    private              AnchorPane                downloadGraalHeaderPane;
+    private              Label                     downloadGraalWindowTitle;
+    private              MacosWindowButton         downloadGraalCloseMacWindowButton;
+    private              WinWindowButton           downloadGraalCloseWinWindowButton;
+    private              StackPane                 downloadGraalPane;
+    private              ComboBox<MajorVersion>    downloadGraalMajorVersionComboBox;
+    private              ComboBox<Semver>          downloadGraalUpdateLevelComboBox;
+    private              ComboBox<Distribution>    downloadGraalDistributionComboBox;
+    private              ComboBox<OperatingSystem> downloadGraalOperatingSystemComboBox;
+    private              ComboBox<Architecture>    downloadGraalArchitectureComboBox;
+    private              ComboBox<ArchiveType>     downloadGraalArchiveTypeComboBox;
+    private              Label                     downloadGraalFilenameLabel;
+    private              Label                     alreadyGraalDownloadedLabel;
+    private              Set<MajorVersion>         downloadGraalMaintainedVersions;
+    private              Set<Semver>               downloadGraalVersions;
+    private              List<MinimizedPkg>        downloadGraalSelectedPkgs;
+    private              MinimizedPkg              downloadGraalSelectedPkg;
+    private              List<MinimizedPkg>        downloadGraalSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>        downloadGraalMinimizedPkgs;
+    private              boolean                   downloadGraalJavafxBundled;
+    private              MajorVersion              downloadGraalSelectedMajorVersion;
+    private              Semver                    downloadGraalSelectedVersionNumber;
+    private              Distribution              downloadGraalSelectedDistribution;
+    private              OperatingSystem           downloadGraalSelectedOperatingSystem;
+    private              Architecture              downloadGraalSelectedArchitecture;
+    private              ArchiveType               downloadGraalSelectedArchiveType;
+    private              Set<OperatingSystem>      downloadGraalOperatingSystems;
+    private              Set<Architecture>         downloadGraalArchitectures;
+    private              Set<ArchiveType>          downloadGraalArchiveTypes;
+    private              ProgressBar               downloadGraalProgressBar;
+    
     private              ImageView                 tckTestedTag;
     private              ImageView                 aqavitTestedTag;
     private              Hyperlink                 tckTestedLink;
     private              Hyperlink                 aqavitTestedLink;
     private              Button                    downloadJDKCancelButton;
     private              Button                    downloadJDKDownloadButton;
+    private              Button                    downloadGraalCancelButton;
+    private              Button                    downloadGraalDownloadButton;
 
     private              AtomicBoolean             online;
 
@@ -302,11 +340,13 @@ public class Main extends Application {
                                   .popupLifeTime(Duration.millis(5000))
                                   .build();
 
-        pane            = new StackPane();
+        pane              = new StackPane();
 
-        cvePane         = new StackPane();
+        cvePane           = new StackPane();
 
-        downloadJDKPane = new StackPane();
+        downloadJDKPane   = new StackPane();
+
+        downloadGraalPane = new StackPane();
 
         cveCloseButton  = new Button("Close");
         cveCloseButton.getStyleClass().addAll("jdk-mon", "cve-close-button");
@@ -315,6 +355,7 @@ public class Main extends Application {
             @Override protected void invalidated() {
                 pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                downloadGraalPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cveCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
             }
             @Override public Object getBean() { return Main.this; }
@@ -392,8 +433,11 @@ public class Main extends Application {
         executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> cveScanner.updateCves(), Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> cveScanner.updateGraalVMCves(), Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
-        executor.scheduleAtFixedRate(() -> updateDownloadPkgs(), Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(() -> {
+            updateDownloadJDKPkgs();
+            updateDownloadGraalPkgs();
+        }, Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -559,7 +603,19 @@ public class Main extends Application {
         downloadJDKArchitectures               = new TreeSet<>();
         downloadJDKArchiveTypes                = new TreeSet<>();
         downloadJDKMinimizedPkgs               = new CopyOnWriteArrayList<>();
-        updateDownloadPkgs();
+        updateDownloadJDKPkgs();
+
+        downloadGraalMaintainedVersions          = new LinkedHashSet<>();
+        downloadGraalVersions                    = new LinkedHashSet<>();
+        downloadGraalSelectedPkgs                = new ArrayList<>();
+        downloadGraalSelectedPkg                 = null;
+        downloadGraalSelectedPkgsForMajorVersion = new ArrayList<>();
+        downloadGraalJavafxBundled               = false;
+        downloadGraalOperatingSystems            = new TreeSet<>();
+        downloadGraalArchitectures               = new TreeSet<>();
+        downloadGraalArchiveTypes                = new TreeSet<>();
+        downloadGraalMinimizedPkgs               = new CopyOnWriteArrayList<>();
+        updateDownloadGraalPkgs();
     }
 
     private void registerListeners() {
@@ -632,7 +688,6 @@ public class Main extends Application {
             timeline.play();
         });
 
-
         cveStage.focusedProperty().addListener((o, ov, nv) -> {
             if (nv) {
                 if (darkMode.get()) {
@@ -702,6 +757,15 @@ public class Main extends Application {
             });
             downloadJDKCloseWinWindowButton.setOnMouseEntered(e -> downloadJDKCloseWinWindowButton.setHovered(true));
             downloadJDKCloseWinWindowButton.setOnMouseExited(e -> downloadJDKCloseWinWindowButton.setHovered(false));
+
+            downloadGraalCloseWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (downloadGraalDialog.isShowing()) {
+                    downloadGraalDialog.setResult(Boolean.TRUE);
+                    downloadGraalDialog.close();
+                }
+            });
+            downloadGraalCloseWinWindowButton.setOnMouseEntered(e -> downloadGraalCloseWinWindowButton.setHovered(true));
+            downloadGraalCloseWinWindowButton.setOnMouseExited(e -> downloadGraalCloseWinWindowButton.setHovered(false));
         } else {
             cveCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
                 if (cveDialog.isShowing()) {
@@ -720,6 +784,15 @@ public class Main extends Application {
             });
             downloadJDKCloseMacWindowButton.setOnMouseEntered(e -> downloadJDKCloseMacWindowButton.setHovered(true));
             downloadJDKCloseMacWindowButton.setOnMouseExited(e -> downloadJDKCloseMacWindowButton.setHovered(false));
+
+            downloadGraalCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (downloadGraalDialog.isShowing()) {
+                    downloadGraalDialog.setResult(Boolean.TRUE);
+                    downloadGraalDialog.close();
+                }
+            });
+            downloadGraalCloseMacWindowButton.setOnMouseEntered(e -> downloadGraalCloseMacWindowButton.setHovered(true));
+            downloadGraalCloseMacWindowButton.setOnMouseExited(e -> downloadGraalCloseMacWindowButton.setHovered(false));
         }
 
         downloadJDKBundledWithFXCheckBox.selectedProperty().addListener((o, ov, nv) -> {
@@ -752,25 +825,21 @@ public class Main extends Application {
                 }
             });
         });
-
         downloadJDKMajorVersionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == nv) { return; }
             selectMajorVersion();
         });
-
         downloadJDKUpdateLevelComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
             if (null == nv) { return; }
             selectVersionNumber();
         });
-
         downloadJDKDistributionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
             if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())  { return; }
             if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem()) { return; }
             selectDistribution();
         });
-
         downloadJDKOperatingSystemComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
@@ -779,7 +848,6 @@ public class Main extends Application {
             if (downloadJDKSelectedPkgs.isEmpty()) { return; }
             selectOperatingSystem();
         });
-
         downloadJDKArchitectureComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
@@ -789,7 +857,6 @@ public class Main extends Application {
             if (downloadJDKSelectedPkgs.isEmpty()) { return; }
             selectArchitecture();
         });
-
         downloadJDKArchiveTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == nv) { return; }
             selectArchiveType();
@@ -801,76 +868,170 @@ public class Main extends Application {
                 downloadAutoExtractLabel.setVisible(false);
             }
         });
-
         downloadJDKCancelButton.setOnAction(e -> {
             downloadJDKDialog.setResult(Boolean.TRUE);
             downloadJDKDialog.close();
         });
-
         downloadJDKDownloadButton.setOnAction(e -> {
             if (null == downloadJDKSelectedPkg) { return; }
             downloadPkgDownloadJDK(downloadJDKSelectedPkg);
         });
 
-        downloadJDKStage.focusedProperty().addListener((o, ov, nv) -> {
+        downloadGraalStage.focusedProperty().addListener((o, ov, nv) -> {
             if (nv) {
                 if (darkMode.get()) {
                     if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#969696"));
                     } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#dddddd"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#dddddd"));
                     }
                 } else {
                     if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
                     } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#000000"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
                     }
                 }
-                downloadJDKCloseMacWindowButton.setDisable(false);
-                downloadJDKCloseWinWindowButton.setDisable(false);
+                downloadGraalCloseMacWindowButton.setDisable(false);
+                downloadGraalCloseWinWindowButton.setDisable(false);
             } else {
                 if (darkMode.get()) {
                     if (isWindows) {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#969696"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#969696"));
                     } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#696a68"));
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#696a68"));
                     }
                 } else {
                     if (isWindows) {
-                        downloadJDKCloseWinWindowButton.setStyle("-fx-fill: #969696;");
+                        downloadGraalCloseWinWindowButton.setStyle("-fx-fill: #969696;");
                     } else {
-                        downloadJDKHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
-                        downloadJDKWindowTitle.setTextFill(Color.web("#a9a6a6"));
-                        downloadJDKCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#a9a6a6"));
+                        downloadGraalCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
                     }
                 }
-                downloadJDKCloseMacWindowButton.setDisable(true);
-                downloadJDKCloseWinWindowButton.setDisable(true);
+                downloadGraalCloseMacWindowButton.setDisable(true);
+                downloadGraalCloseWinWindowButton.setDisable(true);
+            }
+        });
+        downloadGraalMajorVersionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == nv) { return; }
+            selectGraalMajorVersion();
+        });
+        downloadGraalUpdateLevelComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == nv) { return; }
+            selectGraalVersionNumber();
+        });
+        downloadGraalDistributionComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadGraalUpdateLevelComboBox.getSelectionModel().getSelectedItem())  { return; }
+            if (null == downloadGraalDistributionComboBox.getSelectionModel().getSelectedItem()) { return; }
+            selectGraalDistribution();
+        });
+        downloadGraalOperatingSystemComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadGraalUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadGraalDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadGraalOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (downloadGraalSelectedPkgs.isEmpty()) { return; }
+            selectGraalOperatingSystem();
+        });
+        downloadGraalArchitectureComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadGraalUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadGraalDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadGraalOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadGraalArchitectureComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (downloadGraalSelectedPkgs.isEmpty()) { return; }
+            selectGraalArchitecture();
+        });
+        downloadGraalArchiveTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == nv) { return; }
+            selectGraalArchiveType();
+        });
+        downloadGraalCancelButton.setOnAction(e -> {
+            downloadGraalDialog.setResult(Boolean.TRUE);
+            downloadGraalDialog.close();
+        });
+        downloadGraalDownloadButton.setOnAction(e -> {
+            if (null == downloadGraalSelectedPkg) { return; }
+            downloadPkgDownloadGraal(downloadGraalSelectedPkg);
+        });
+        downloadGraalStage.focusedProperty().addListener((o, ov, nv) -> {
+            if (nv) {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#dddddd"));
+                    }
+                } else {
+                    if (isWindows) {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
+                    } else {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
+                    }
+                }
+                downloadGraalCloseMacWindowButton.setDisable(false);
+                downloadGraalCloseWinWindowButton.setDisable(false);
+            } else {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#696a68"));
+                    }
+                } else {
+                    if (isWindows) {
+                        downloadGraalCloseWinWindowButton.setStyle("-fx-fill: #969696;");
+                    } else {
+                        downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        downloadGraalWindowTitle.setTextFill(Color.web("#a9a6a6"));
+                        downloadGraalCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
+                    }
+                }
+                downloadGraalCloseMacWindowButton.setDisable(true);
+                downloadGraalCloseWinWindowButton.setDisable(true);
             }
         });
     }
 
     private void initOnFXApplicationThread() {
-        aboutDialog       = createAboutDialog();
-        downloadJDKDialog = createDownloadJDKDialog();
-        cveDialog         = createCveDialog();
+        aboutDialog         = createAboutDialog();
+        downloadJDKDialog   = createDownloadJDKDialog();
+        downloadGraalDialog = createDownloadGraalDialog();
+        cveDialog           = createCveDialog();
 
         registerListeners();
         if (online.get()) {
-            discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
-                downloadJDKMaintainedVersions.addAll(uv);
-                downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
-                if (downloadJDKMaintainedVersions.size() > 0) {
-                    downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
-                }
-            });
+            if (downloadJDKMaintainedVersions.isEmpty()) {
+                discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
+
+                    uv.forEach(mv -> {
+                        long exists = downloadJDKMaintainedVersions.stream().filter(dmv -> dmv.getAsInt() == mv.getAsInt()).count();
+                        if (exists > 0) { return; }
+                        downloadJDKMaintainedVersions.add(mv);
+                    });
+
+                    downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+                    if (downloadJDKMaintainedVersions.size() > 0) {
+                        downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+                    }
+                });
+            }
 
             updateCves();
         }
@@ -946,12 +1107,21 @@ public class Main extends Application {
 
             trayIcon.addSeparator();
 
-            MenuItem downloadJDKItem = new MenuItem("Download a JDK");
+            MenuItem downloadJDKItem = new MenuItem("Download build of OpenJDK");
             downloadJDKItem.setOnAction(e -> {
                if (downloadJDKDialog.isShowing()) { return; }
                downloadJDKDialog.show();
             });
             trayIcon.addMenuItem(downloadJDKItem);
+
+            trayIcon.addSeparator();
+
+            MenuItem downloadGraalItem = new MenuItem("Download build of GraalVM");
+            downloadGraalItem.setOnAction(e -> {
+                if (downloadGraalDialog.isShowing()) { return; }
+                downloadGraalDialog.show();
+            });
+            trayIcon.addMenuItem(downloadGraalItem);
 
             trayIcon.addSeparator();
 
@@ -1050,8 +1220,8 @@ public class Main extends Application {
             menu.getItems().add(new SeparatorMenuItem());
 
             CustomMenuItem downloadJDKItem = new CustomMenuItem();
-            Label downloadJDKItemLabel = new Label("Download a JDK");
-            downloadJDKItemLabel.setTooltip(new Tooltip("Download a JDK"));
+            Label downloadJDKItemLabel = new Label("Download a build of OpenJDK");
+            downloadJDKItemLabel.setTooltip(new Tooltip("Download a build of OpenJDK"));
             downloadJDKItemLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
             downloadJDKItemLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
             downloadJDKItem.setContent(downloadJDKItemLabel);
@@ -1061,6 +1231,21 @@ public class Main extends Application {
                 downloadJDKDialog.show();
             });
             menu.getItems().add(downloadJDKItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
+
+            CustomMenuItem downloadGraalItem = new CustomMenuItem();
+            Label downloadGraalItemLabel = new Label("Download a build of GraalVM");
+            downloadGraalItemLabel.setTooltip(new Tooltip("Download a build of GraalVM"));
+            downloadGraalItemLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            downloadGraalItemLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            downloadGraalItem.setContent(downloadGraalItemLabel);
+            downloadGraalItem.setHideOnClick(false);
+            downloadGraalItem.setOnAction( e -> {
+                if (downloadGraalDialog.isShowing()) { return; }
+                downloadGraalDialog.show();
+            });
+            menu.getItems().add(downloadGraalItem);
 
             menu.getItems().add(new SeparatorMenuItem());
 
@@ -1157,14 +1342,15 @@ public class Main extends Application {
     }
 
 
-    private final void isOnline() {
+    private void isOnline() {
         try {
             if (!online.get()) {
                 URL           url        = new URL(Constants.TEST_CONNECTIVITY_URL);
                 URLConnection connection = url.openConnection();
                 connection.connect();
                 online.set(true);
-                updateDownloadPkgs();
+                updateDownloadJDKPkgs();
+                updateDownloadGraalPkgs();
                 rescan();
             }
         } catch (IOException e) {
@@ -1199,9 +1385,9 @@ public class Main extends Application {
         checkForUpdates();
     }
 
-    private void updateDownloadPkgs() {
+    private void updateDownloadJDKPkgs() {
         downloadJDKPane.setDisable(true);
-        Helper.getAsync(Constants.ALL_PKGS_MINIMIZED_URI).thenAccept(response -> {
+        Helper.getAsync(Constants.ALL_JDK_PKGS_MINIMIZED_URI).thenAccept(response -> {
                 if (null == response) { return; }
                 final String bodyText = response.body();
                 if (null == bodyText || bodyText.isEmpty()) { return; }
@@ -1226,7 +1412,11 @@ public class Main extends Application {
 
                             // Major Versions
                             discoclient.getMaintainedMajorVersionsAsync(true, true).thenAccept(uv -> {
-                                downloadJDKMaintainedVersions.addAll(uv);
+                                uv.forEach(mv -> {
+                                    long exists = downloadJDKMaintainedVersions.stream().filter(dmv -> dmv.getAsInt() == mv.getAsInt()).count();
+                                    if (exists > 0) { return; }
+                                    downloadJDKMaintainedVersions.add(mv);
+                                });
                                 downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
                                 if (downloadJDKMaintainedVersions.size() > 0) {
                                     downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
@@ -1240,6 +1430,60 @@ public class Main extends Application {
                     }
                 }
             });
+    }
+
+    private void updateDownloadGraalPkgs() {
+        downloadGraalPane.setDisable(true);
+
+        Helper.getAsync(Constants.ALL_GRAAL_PKGS_MINIMIZED_URI).thenAccept(response -> {
+            if (null == response) { return; }
+            final String bodyText = response.body();
+            if (null == bodyText || bodyText.isEmpty()) { return; }
+            final Gson        gson    = new Gson();
+            final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+            if (element instanceof JsonObject) {
+                final List<MinimizedPkg> pkgs       = new ArrayList<>();
+                final JsonObject         jsonObject = element.getAsJsonObject();
+                final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    try {
+                        final JsonObject json = jsonArray.get(i).getAsJsonObject();
+                        pkgs.add(new MinimizedPkg(json.toString()));
+                    } catch (Exception e) {
+                        //System.out.println(e);
+                    }
+                }
+                if (!pkgs.isEmpty()) {
+                    Platform.runLater(() -> {
+                        downloadGraalMinimizedPkgs.clear();
+                        downloadGraalMinimizedPkgs.addAll(pkgs);
+
+                        // Major Versions
+                        downloadGraalMinimizedPkgs.forEach(pkg -> {
+                                                      long exists = downloadGraalMaintainedVersions.stream().filter(dmv -> dmv.getAsInt() == pkg.getMajorVersion().getAsInt()).count();
+                                                      if (exists > 0) { return; }
+                                                      downloadGraalMaintainedVersions.add(pkg.getMajorVersion());
+                                                  });
+
+                        downloadGraalMajorVersionComboBox.getItems().setAll(downloadGraalMaintainedVersions);
+                        if (downloadGraalMaintainedVersions.size() > 0) {
+                            downloadGraalMajorVersionComboBox.getSelectionModel().select(0);
+                            downloadGraalSelectedMajorVersion = downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem();
+                        }
+
+                        // Versions
+                        downloadGraalMinimizedPkgs.forEach(pkg -> {
+                            long exists = downloadGraalVersions.stream().filter(semver -> semver.compareTo(pkg.getJavaVersion()) == 0).count();
+                            if (exists > 0) { return; }
+                            downloadGraalVersions.add(pkg.getJavaVersion());
+                        });
+
+                        downloadGraalPane.setDisable(false);
+                        selectGraalMajorVersion();
+                    });
+                }
+            }
+        });
     }
 
     private void rescan() {
@@ -2215,7 +2459,8 @@ public class Main extends Application {
         return cveDialog;
     }
 
-    // Download a JDK related
+
+    // Download OpenJDK based distribution
     private Dialog createDownloadJDKDialog() {
         final boolean isDarkMode = darkMode.get();
 
@@ -2403,7 +2648,7 @@ public class Main extends Application {
         downloadJDKCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         downloadJDKCloseWinWindowButton.setDarkMode(isDarkMode);
 
-        downloadJDKWindowTitle = new Label("Download a JDK");
+        downloadJDKWindowTitle = new Label("Download a build of OpenJDK");
         if (isWindows) {
             downloadJDKWindowTitle.setFont(Fonts.segoeUi(9));
             downloadJDKWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
@@ -2889,6 +3134,613 @@ public class Main extends Application {
                 }
             });
             worker.progressProperty().addListener((o, ov, nv) -> downloadJDKProgressBar.setProgress(nv.doubleValue() * 100.0));
+
+            if (alreadyDownloaded) {
+                openFileLocation(new File(downloadFolder.getAbsolutePath()));
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                new Thread((Runnable) worker).start();
+            } else {
+                Alert info = new Alert(AlertType.INFORMATION);
+                info.setTitle("JDKMon");
+                info.setHeaderText("JDKMon Download Info");
+                info.setContentText("Download will be started and update will be saved to " + downloadFolder);
+                info.setOnCloseRequest(e -> new Thread((Runnable) worker).start());
+                info.show();
+            }
+        }
+    }
+
+
+    // Download GraalVM based distribution
+    private Dialog createDownloadGraalDialog() {
+        final boolean isDarkMode = darkMode.get();
+
+        Dialog downloadGraalDialog = new Dialog();
+        downloadGraalDialog.initOwner(stage);
+        downloadGraalDialog.initStyle(StageStyle.TRANSPARENT);
+        downloadGraalDialog.initModality(Modality.WINDOW_MODAL);
+
+        downloadGraalStage = (Stage) downloadGraalDialog.getDialogPane().getScene().getWindow();
+        downloadGraalStage.setAlwaysOnTop(true);
+        downloadGraalStage.getIcons().add(dukeStageIcon);
+        downloadGraalStage.getScene().setFill(Color.TRANSPARENT);
+        downloadGraalStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label downloadGraalMajorVersionLabel = new Label("Major version");
+        Region findlGraalMajorVersionSpacer = new Region();
+        HBox.setHgrow(findlGraalMajorVersionSpacer, Priority.ALWAYS);
+        downloadGraalMajorVersionComboBox = new ComboBox<>();
+        downloadGraalMajorVersionComboBox.setCellFactory(majorVersionListView -> isWindows ? new MajorVersionCell() : new MacosMajorVersionCell());
+        downloadGraalMajorVersionComboBox.setMinWidth(150);
+        downloadGraalMajorVersionComboBox.setMaxWidth(150);
+        downloadGraalMajorVersionComboBox.setPrefWidth(150);
+        HBox downloadGraalMajorVersionBox = new HBox(5, downloadGraalMajorVersionLabel, findlGraalMajorVersionSpacer, downloadGraalMajorVersionComboBox);
+        downloadGraalMajorVersionBox.setAlignment(Pos.CENTER);
+
+        Label downloadGraalUpdateLevelLabel = new Label("Update level");
+        Region downloadGraalUpdateLevelSpacer = new Region();
+        HBox.setHgrow(downloadGraalUpdateLevelSpacer, Priority.ALWAYS);
+        downloadGraalUpdateLevelComboBox = new ComboBox<>();
+        downloadGraalUpdateLevelComboBox.setCellFactory(updateLevelListView -> isWindows ? new UpdateLevelCell() : new MacosUpdateLevelCell());
+        downloadGraalUpdateLevelComboBox.setMinWidth(150);
+        downloadGraalUpdateLevelComboBox.setMaxWidth(150);
+        downloadGraalUpdateLevelComboBox.setPrefWidth(150);
+        HBox downloadGraalUpdateLevelBox = new HBox(5, downloadGraalUpdateLevelLabel, downloadGraalUpdateLevelSpacer, downloadGraalUpdateLevelComboBox);
+        downloadGraalUpdateLevelBox.setAlignment(Pos.CENTER);
+
+        Label downloadGraalDistributionLabel = new Label("Distribution");
+        Region downloadGraalDistributionSpacer = new Region();
+        HBox.setHgrow(downloadGraalDistributionSpacer, Priority.ALWAYS);
+        downloadGraalDistributionComboBox = new ComboBox<>();
+        downloadGraalDistributionComboBox.setCellFactory(distributionListView -> isWindows ? new DistributionCell() : new MacosDistributionCell());
+        downloadGraalDistributionComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final Distribution distribution) { return null == distribution ? null : distribution.getUiString(); }
+            @Override public Distribution fromString(final String text) {
+                return DiscoClient.getDistributionFromText(text);
+            }
+        });
+        downloadGraalDistributionComboBox.setMinWidth(150);
+        downloadGraalDistributionComboBox.setMaxWidth(150);
+        downloadGraalDistributionComboBox.setPrefWidth(150);
+        HBox downloadGraalDistributionBox = new HBox(5, downloadGraalDistributionLabel, downloadGraalDistributionSpacer, downloadGraalDistributionComboBox);
+        downloadGraalDistributionBox.setAlignment(Pos.CENTER);
+
+        Label downloadGraalOperatingSystemLabel = new Label("Operating system");
+        Region findlGraalOperatingSystemSpacer = new Region();
+        HBox.setHgrow(findlGraalOperatingSystemSpacer, Priority.ALWAYS);
+        downloadGraalOperatingSystemComboBox = new ComboBox<>();
+        downloadGraalOperatingSystemComboBox.setCellFactory(operatingSystemListView -> isWindows ? new OperatingSystemCell() : new MacosOperatingSystemCell());
+        downloadGraalOperatingSystemComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final OperatingSystem operatingSystem) { return null == operatingSystem ? null : operatingSystem.getUiString(); }
+            @Override public OperatingSystem fromString(final String text) { return OperatingSystem.fromText(text); }
+        });
+        downloadGraalOperatingSystemComboBox.setMinWidth(150);
+        downloadGraalOperatingSystemComboBox.setMaxWidth(150);
+        downloadGraalOperatingSystemComboBox.setPrefWidth(150);
+        HBox downloadGraalOperatingSystemBox = new HBox(5, downloadGraalOperatingSystemLabel, findlGraalOperatingSystemSpacer, downloadGraalOperatingSystemComboBox);
+        downloadGraalOperatingSystemBox.setAlignment(Pos.CENTER);
+
+        Label downloadGraalArchitectureLabel = new Label("Architecture");
+        Region downloadGraalArchitectureSpacer = new Region();
+        HBox.setHgrow(downloadGraalArchitectureSpacer, Priority.ALWAYS);
+        downloadGraalArchitectureComboBox = new ComboBox<>();
+        downloadGraalArchitectureComboBox.setCellFactory(architectureListView -> isWindows ? new ArchitectureCell() : new MacosArchitectureCell());
+        downloadGraalArchitectureComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final Architecture architecture) { return null == architecture ? null : architecture.getUiString(); }
+            @Override public Architecture fromString(final String text) { return Architecture.fromText(text); }
+        });
+        downloadGraalArchitectureComboBox.setMinWidth(150);
+        downloadGraalArchitectureComboBox.setMaxWidth(150);
+        downloadGraalArchitectureComboBox.setPrefWidth(150);
+        HBox downloadGraalArchitectureBox = new HBox(5, downloadGraalArchitectureLabel, downloadGraalArchitectureSpacer, downloadGraalArchitectureComboBox);
+        downloadGraalArchitectureBox.setAlignment(Pos.CENTER);
+
+        Label downloadGraalArchiveTypeLabel = new Label("Archive type");
+        Region downloadGraalArchiveTypeSpacer = new Region();
+        HBox.setHgrow(downloadGraalArchiveTypeSpacer, Priority.ALWAYS);
+        downloadGraalArchiveTypeComboBox = new ComboBox<>();
+        downloadGraalArchiveTypeComboBox.setCellFactory(archiveTypeListView -> isWindows ? new ArchiveTypeCell() : new MacosArchiveTypeCell());
+        downloadGraalArchiveTypeComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final ArchiveType archiveType) { return null == archiveType ? null : archiveType.getUiString(); }
+            @Override public ArchiveType fromString(final String text) { return ArchiveType.fromText(text); }
+        });
+        downloadGraalArchiveTypeComboBox.setMinWidth(150);
+        downloadGraalArchiveTypeComboBox.setMaxWidth(150);
+        downloadGraalArchiveTypeComboBox.setPrefWidth(150);
+        HBox downloadGraalArchiveTypeBox = new HBox(5, downloadGraalArchiveTypeLabel, downloadGraalArchiveTypeSpacer, downloadGraalArchiveTypeComboBox);
+        downloadGraalArchiveTypeBox.setAlignment(Pos.CENTER);
+
+        downloadGraalFilenameLabel = new Label("-");
+        downloadGraalFilenameLabel.getStyleClass().add("small-label");
+        HBox.setMargin(downloadGraalFilenameLabel, new Insets(10, 0, 0, 0));
+        HBox.setHgrow(downloadGraalFilenameLabel, Priority.ALWAYS);
+        HBox downloadGraalFilenameBox = new HBox(downloadGraalFilenameLabel);
+        downloadGraalFilenameBox.setAlignment(Pos.CENTER);
+
+        alreadyGraalDownloadedLabel = new Label("(already dowloaded)");
+        alreadyGraalDownloadedLabel.getStyleClass().add("small-label");
+        alreadyGraalDownloadedLabel.setVisible(false);
+        HBox.setMargin(alreadyGraalDownloadedLabel, new Insets(0, 0, 10, 0));
+        HBox.setHgrow(alreadyGraalDownloadedLabel, Priority.ALWAYS);
+        HBox alreadyGraalDownloadedBox = new HBox(alreadyGraalDownloadedLabel);
+        alreadyGraalDownloadedBox.setAlignment(Pos.CENTER);
+
+        downloadGraalCancelButton = new Button("Cancel");
+
+        Region spacerLeft = new Region();
+        HBox.setMargin(spacerLeft, new Insets(10, 0, 10, 0));
+        HBox.setHgrow(spacerLeft, Priority.ALWAYS);
+
+        Region spacerRight = new Region();
+        HBox.setMargin(spacerRight, new Insets(10, 0, 10, 0));
+        HBox.setHgrow(spacerRight, Priority.ALWAYS);
+
+        downloadGraalDownloadButton = new Button("Download");
+        downloadGraalDownloadButton.setDisable(true);
+
+        HBox downloadGraalButtonBox = new HBox(5, downloadGraalCancelButton, spacerLeft, spacerRight, downloadGraalDownloadButton);
+        downloadGraalButtonBox.setAlignment(Pos.CENTER);
+
+        downloadGraalCloseMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
+        downloadGraalCloseMacWindowButton.setDarkMode(isDarkMode);
+
+        downloadGraalCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        downloadGraalCloseWinWindowButton.setDarkMode(isDarkMode);
+
+        downloadGraalWindowTitle = new Label("Download a build of GraalVM");
+        if (isWindows) {
+            downloadGraalWindowTitle.setFont(Fonts.segoeUi(9));
+            downloadGraalWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
+            downloadGraalWindowTitle.setAlignment(Pos.CENTER_LEFT);
+            downloadGraalWindowTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
+            downloadGraalWindowTitle.setGraphicTextGap(10);
+
+            AnchorPane.setTopAnchor(downloadGraalCloseWinWindowButton, 0d);
+            AnchorPane.setRightAnchor(downloadGraalCloseWinWindowButton, 0d);
+            AnchorPane.setTopAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setRightAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadGraalWindowTitle, 10d);
+        } else {
+            downloadGraalWindowTitle.setFont(Fonts.sfProTextMedium(12));
+            downloadGraalWindowTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
+            downloadGraalWindowTitle.setAlignment(Pos.CENTER);
+
+            AnchorPane.setTopAnchor(downloadGraalCloseMacWindowButton, 7.125d);
+            AnchorPane.setLeftAnchor(downloadGraalCloseMacWindowButton, 11d);
+            AnchorPane.setTopAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setRightAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(downloadGraalWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(downloadGraalWindowTitle, 0d);
+        }
+        downloadGraalWindowTitle.setMouseTransparent(true);
+
+        downloadGraalHeaderPane = new AnchorPane();
+        downloadGraalHeaderPane.getStyleClass().add("header");
+        downloadGraalHeaderPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
+        if (isWindows) {
+            downloadGraalHeaderPane.setMinHeight(31);
+            downloadGraalHeaderPane.setMaxHeight(31);
+            downloadGraalHeaderPane.setPrefHeight(31);
+            downloadGraalHeaderPane.getChildren().addAll(downloadGraalCloseWinWindowButton, downloadGraalWindowTitle);
+        } else {
+            downloadGraalHeaderPane.setMinHeight(26.25);
+            downloadGraalHeaderPane.setMaxHeight(26.25);
+            downloadGraalHeaderPane.setPrefHeight(26.25);
+            downloadGraalHeaderPane.getChildren().addAll(downloadGraalCloseMacWindowButton, downloadGraalWindowTitle);
+        }
+
+        downloadGraalProgressBar = new ProgressBar(0);
+        downloadGraalProgressBar.setVisible(false);
+        VBox.setMargin(downloadGraalProgressBar, new Insets(0, 0, 5, 0));
+
+        VBox downloadGraalVBox = new VBox(10, downloadGraalMajorVersionBox, downloadGraalUpdateLevelBox, downloadGraalDistributionBox, downloadGraalOperatingSystemBox,
+                                                      downloadGraalArchitectureBox, downloadGraalArchiveTypeBox, downloadGraalFilenameBox, alreadyGraalDownloadedBox, downloadGraalProgressBar, downloadGraalButtonBox);
+        downloadGraalVBox.setAlignment(Pos.CENTER);
+
+        downloadGraalPane.getChildren().add(downloadGraalVBox);
+        downloadGraalPane.getStyleClass().add("jdk-mon");
+        downloadGraalPane.setPadding(new Insets(10));
+
+        BorderPane downloadGraalMainPane = new BorderPane();
+        downloadGraalMainPane.setTop(downloadGraalHeaderPane);
+        downloadGraalMainPane.setCenter(downloadGraalPane);
+
+        downloadGraalProgressBar.prefWidthProperty().bind(downloadGraalMainPane.widthProperty());
+
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+            downloadGraalMainPane.setOnMousePressed(press -> downloadGraalMainPane.setOnMouseDragged(drag -> {
+                downloadGraalStage.setX(drag.getScreenX() - press.getSceneX());
+                downloadGraalStage.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            downloadGraalDialog.getDialogPane().setContent(new StackPane(downloadGraalMainPane));
+        } else {
+            StackPane downloadGraalGlassPane = new StackPane(downloadGraalMainPane);
+            downloadGraalGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+            downloadGraalGlassPane.setMinSize(310, isWindows ? 480 : 390);
+            downloadGraalGlassPane.setMaxSize(310, isWindows ? 480 : 390);
+            downloadGraalGlassPane.setPrefSize(310, isWindows ? 480 : 390);
+            downloadGraalGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+            downloadGraalGlassPane.setOnMousePressed(press -> downloadGraalGlassPane.setOnMouseDragged(drag -> {
+                downloadGraalStage.setX(drag.getScreenX() - press.getSceneX());
+                downloadGraalStage.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            downloadGraalDialog.getDialogPane().setContent(downloadGraalGlassPane);
+        }
+
+        downloadGraalDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Adjustments related to dark/light mode
+        if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            if (isDarkMode) {
+                downloadGraalPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+            } else {
+                downloadGraalPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+            }
+        }
+        if (isDarkMode) {
+            if (isWindows) {
+                downloadGraalWindowTitle.setTextFill(Color.web("#969696"));
+                downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadGraalHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                downloadGraalPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadGraalMainPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadGraalMainPane.setBorder(new Border(new BorderStroke(Color.web("#333333"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                downloadGraalMajorVersionLabel.setTextFill(Color.web("#292929"));
+                downloadGraalUpdateLevelLabel.setTextFill(Color.web("#292929"));
+                downloadGraalDistributionLabel.setTextFill(Color.web("#292929"));
+                downloadGraalOperatingSystemLabel.setTextFill(Color.web("#292929"));
+                downloadGraalArchitectureLabel.setTextFill(Color.web("#292929"));
+                downloadGraalArchiveTypeLabel.setTextFill(Color.web("#292929"));
+                downloadGraalFilenameLabel.setTextFill(Color.web("#292929"));
+            } else {
+                downloadGraalWindowTitle.setTextFill(Color.web("#dddddd"));
+                downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadGraalPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                downloadGraalMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
+                downloadGraalMainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+                downloadGraalMajorVersionLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalUpdateLevelLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalDistributionLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalOperatingSystemLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalArchitectureLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalArchiveTypeLabel.setTextFill(Color.web("#dddddd"));
+                downloadGraalFilenameLabel.setTextFill(Color.web("#dddddd"));
+            }
+        } else {
+            if (isWindows) {
+                downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
+                downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadGraalHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                downloadGraalPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadGraalMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), CornerRadii.EMPTY, Insets.EMPTY)));
+                downloadGraalMainPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+                downloadGraalMajorVersionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalDistributionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalFilenameLabel.setTextFill(Color.web("#2a2a2a"));
+            } else {
+                downloadGraalWindowTitle.setTextFill(Color.web("#000000"));
+                downloadGraalHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                downloadGraalPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                downloadGraalMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                downloadGraalMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+                downloadGraalMajorVersionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalUpdateLevelLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalDistributionLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalOperatingSystemLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalArchitectureLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalArchiveTypeLabel.setTextFill(Color.web("#2a2a2a"));
+                downloadGraalFilenameLabel.setTextFill(Color.web("#2a2a2a"));
+            }
+        }
+
+        return downloadGraalDialog;
+    }
+
+    private void selectGraalMajorVersion() {
+        if (null == downloadGraalSelectedMajorVersion) { return; }
+        downloadGraalSelectedMajorVersion = downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem();
+        final boolean include_build = downloadGraalSelectedMajorVersion.isEarlyAccessOnly();
+
+        List<MinimizedPkg> pkgs = downloadGraalMinimizedPkgs.stream()
+                                                            .filter(pkg -> pkg.getMajorVersion().getAsInt() == downloadGraalSelectedMajorVersion.getAsInt())
+                                                            //.filter(pkg -> pkg.getReleaseStatus() == (include_build ? EA : GA))
+                                                            .filter(pkg -> pkg.isDirectlyDownloadable())
+                                                            .collect(Collectors.toList());
+
+        downloadGraalSelectedPkgsForMajorVersion.clear();
+        downloadGraalSelectedPkgsForMajorVersion.addAll(pkgs);
+
+        List<Semver> versionList = downloadGraalVersions.stream()
+                                                        //.filter(semver -> downloadGraalSelectedMajorVersion.isEarlyAccessOnly() ? (semver.getReleaseStatus() == EA) : (semver.getReleaseStatus() == GA))
+                                                        .filter(semver -> semver.getMajorVersion().getAsInt() == downloadGraalSelectedMajorVersion.getAsInt())
+                                                        .sorted(Comparator.comparing(Semver::getVersionNumber).reversed())
+                                                        .map(semVer -> semVer.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build))
+                                                        .distinct().map(versionString -> Semver.fromText(versionString).getSemver1())
+                                                        .collect(Collectors.toList());
+
+        Platform.runLater(() -> {
+            downloadGraalUpdateLevelComboBox.getItems().setAll(versionList);
+            if (versionList.size() > 0) {
+                downloadGraalUpdateLevelComboBox.getSelectionModel().select(0);
+            }
+        });
+    }
+
+    private void selectGraalVersionNumber() {
+        downloadGraalSelectedVersionNumber = downloadGraalUpdateLevelComboBox.getSelectionModel().getSelectedItem();
+
+        boolean include_build = downloadGraalSelectedMajorVersion.isEarlyAccessOnly();
+        List<io.foojay.api.discoclient.pkg.Distribution> distrosForSelection = downloadGraalSelectedPkgsForMajorVersion.stream()
+                                                                                                                       .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadGraalSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                                                                       .map(pkg -> pkg.getDistribution())
+                                                                                                                       .distinct()
+                                                                                                                       .sorted(Comparator.comparing(io.foojay.api.discoclient.pkg.Distribution::getName).reversed())
+                                                                                                                       .collect(Collectors.toList());
+
+        Platform.runLater(() -> {
+            downloadGraalDistributionComboBox.getItems().setAll(distrosForSelection);
+            if (downloadGraalDistributionComboBox.getItems().size() > 0) {
+                if (downloadGraalDistributionComboBox.getItems().get(0).getApiString().equals("zulu_prime") && downloadGraalDistributionComboBox.getItems().size() > 1) {
+                    downloadGraalDistributionComboBox.getSelectionModel().select(1);
+                } else {
+                    downloadGraalDistributionComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadGraalOperatingSystemComboBox.getItems().clear();
+                downloadGraalArchitectureComboBox.getItems().clear();
+                downloadGraalArchiveTypeComboBox.getItems().clear();
+            }
+        });
+    }
+
+    private void selectGraalDistribution() {
+        downloadGraalSelectedDistribution = downloadGraalDistributionComboBox.getSelectionModel().getSelectedItem();
+        if (null == downloadGraalSelectedDistribution) { return; }
+
+        downloadGraalSelectedPkgs.clear();
+        downloadGraalOperatingSystems.clear();
+        downloadGraalArchitectures.clear();
+        downloadGraalArchiveTypes.clear();
+
+        boolean include_build = downloadGraalSelectedMajorVersion.isEarlyAccessOnly();
+
+        if (downloadGraalJavafxBundled) {
+            downloadGraalSelectedPkgs.addAll(downloadGraalMinimizedPkgs.stream()
+                                                                       .filter(pkg -> pkg.isJavaFXBundled())
+                                                                       .filter(pkg -> pkg.getDistribution().getApiString().equals(downloadGraalSelectedDistribution.getApiString()))
+                                                                       .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadGraalSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                       .filter(pkg -> pkg.getPackageType() == PackageType.JDK)
+                                                                       .filter(pkg -> pkg.isDirectlyDownloadable())
+                                                                       .collect(Collectors.toList()));
+        } else {
+            downloadGraalSelectedPkgs.addAll(downloadGraalMinimizedPkgs.stream()
+                                                                   .filter(pkg -> pkg.getDistribution().getApiString().equals(downloadGraalSelectedDistribution.getApiString()))
+                                                                   .filter(pkg -> pkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build).equals(downloadGraalSelectedVersionNumber.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, include_build)))
+                                                                   .filter(pkg -> pkg.getPackageType() == PackageType.JDK)
+                                                                   .filter(pkg -> pkg.isDirectlyDownloadable())
+                                                                   .collect(Collectors.toList()));
+        }
+        downloadGraalSelectedPkgs.forEach(pkg -> {
+            downloadGraalOperatingSystems.add(pkg.getOperatingSystem());
+            downloadGraalArchitectures.add(pkg.getArchitecture());
+            downloadGraalArchiveTypes.add(pkg.getArchiveType());
+        });
+        Platform.runLater(() -> {
+            downloadGraalOperatingSystemComboBox.getItems().setAll(downloadGraalOperatingSystems);
+            int selectIndex = -1;
+            for (int i = 0; i < downloadGraalOperatingSystemComboBox.getItems().size() ; i++) {
+                if (downloadGraalOperatingSystemComboBox.getItems().get(i) == operatingSystem) {
+                    selectIndex = i;
+                    break;
+                }
+            }
+            if (-1 == selectIndex) {
+                if (downloadGraalOperatingSystems.size() > 0) {
+                    downloadGraalOperatingSystemComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadGraalOperatingSystemComboBox.getSelectionModel().select(selectIndex);
+            }
+        });
+    }
+
+    private void selectGraalOperatingSystem() {
+        downloadGraalSelectedOperatingSystem = downloadGraalOperatingSystemComboBox.getSelectionModel().getSelectedItem();
+        List<MinimizedPkg> selection;
+        if (downloadGraalJavafxBundled) {
+            selection = downloadGraalSelectedPkgs.stream()
+                                                 .filter(pkg -> pkg.isJavaFXBundled())
+                                                 .filter(pkg -> downloadGraalSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadGraalSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .collect(Collectors.toList());
+        } else {
+            selection = downloadGraalSelectedPkgs.stream()
+                                                 .filter(pkg -> downloadGraalSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                 .filter(pkg -> downloadGraalSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                 .collect(Collectors.toList());
+        }
+
+        downloadGraalArchitectures = selection.stream().map(pkg -> pkg.getArchitecture()).collect(Collectors.toSet());
+
+        Platform.runLater(() -> {
+            downloadGraalArchitectureComboBox.getItems().clear();
+            downloadGraalArchitectures.forEach(architecture -> downloadGraalArchitectureComboBox.getItems().add(architecture));
+            downloadGraalArchitectureComboBox.getItems().setAll(downloadGraalArchitectures);
+            int selectIndex = -1;
+            for (int i = 0; i < downloadGraalArchitectureComboBox.getItems().size() ; i++) {
+                if (downloadGraalArchitectureComboBox.getItems().get(i) == architecture) {
+                    selectIndex = i;
+                    break;
+                }
+            }
+            if (-1 == selectIndex) {
+                if (downloadGraalArchitectures.size() > 0) {
+                    downloadGraalArchitectureComboBox.getSelectionModel().select(0);
+                }
+            } else {
+                downloadGraalArchitectureComboBox.getSelectionModel().select(selectIndex);
+            }
+        });
+    }
+
+    private void selectGraalArchitecture() {
+        downloadGraalSelectedArchitecture = downloadGraalArchitectureComboBox.getSelectionModel().getSelectedItem();
+        List<MinimizedPkg> selection = downloadGraalSelectedPkgs.stream()
+                                                                .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                                .filter(pkg -> downloadGraalSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                                .filter(pkg -> downloadGraalSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                                .filter(pkg -> downloadGraalSelectedArchitecture == pkg.getArchitecture())
+                                                                .collect(Collectors.toList());
+        downloadGraalArchiveTypes = selection.stream().map(pkg -> pkg.getArchiveType()).collect(Collectors.toSet());
+        Platform.runLater(() -> {
+            downloadGraalArchiveTypeComboBox.getItems().setAll(downloadGraalArchiveTypes);
+            if (downloadGraalArchiveTypes.size() > 0) {
+                downloadGraalArchiveTypeComboBox.getSelectionModel().select(0);
+            }
+            selectArchiveType();
+        });
+    }
+
+    private void selectGraalArchiveType() {
+        downloadGraalSelectedArchiveType = downloadGraalArchiveTypeComboBox.getSelectionModel().getSelectedItem();
+        updateGraal();
+    }
+
+    private void updateGraal() {
+        List<MinimizedPkg> selection = downloadGraalSelectedPkgs.stream()
+                                                                .filter(pkg -> downloadGraalSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                                .filter(pkg -> downloadGraalSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                                .filter(pkg -> downloadGraalSelectedArchitecture == pkg.getArchitecture())
+                                                                .filter(pkg -> downloadGraalSelectedArchiveType == pkg.getArchiveType())
+                                                                .collect(Collectors.toList());
+        if (selection.size() > 0) {
+            downloadGraalSelectedPkg = selection.get(0);
+
+            final File    downloadFolder;
+            final boolean graalAlreadyDownloaded;
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+                if (!PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                    if (folder.isDirectory()) {
+                        downloadFolder = folder;
+                        graalAlreadyDownloaded = new File(downloadFolder.getAbsolutePath() + File.separator + downloadGraalSelectedPkg.getFilename()).exists();
+                    } else {
+                        graalAlreadyDownloaded = false;
+                    }
+                } else {
+                    graalAlreadyDownloaded = false;
+                }
+            } else {
+                graalAlreadyDownloaded = false;
+            }
+
+            Platform.runLater(() -> {
+                alreadyGraalDownloadedLabel.setVisible(graalAlreadyDownloaded);
+                downloadGraalFilenameLabel.setText(null == downloadGraalSelectedPkg ? "-" : downloadGraalSelectedPkg.getFilename());
+                tckTestedTag.setVisible(Verification.YES == downloadGraalSelectedPkg.getTckTested());
+                tckTestedLink.setText(Verification.YES == downloadGraalSelectedPkg.getTckTested() ? downloadGraalSelectedPkg.getTckCertUri() : "");
+                aqavitTestedTag.setVisible(Verification.YES == downloadGraalSelectedPkg.getAqavitCertified());
+                aqavitTestedLink.setText(Verification.YES == downloadGraalSelectedPkg.getAqavitCertified() ? downloadGraalSelectedPkg.getAqavitCertUri() : "");
+                downloadGraalDownloadButton.setDisable(false);
+            });
+        } else {
+            downloadGraalSelectedPkg = null;
+            Platform.runLater(() -> {
+                downloadGraalFilenameLabel.setText("-");
+                downloadGraalDownloadButton.setDisable(true);
+            });
+        }
+    }
+
+    private void downloadPkgDownloadGraal(final MinimizedPkg pkg) {
+        if (null == pkg) { return; }
+        directoryChooser.setTitle("Choose folder for download");
+
+        final File downloadFolder;
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+                directoryChooser.setTitle("Choose folder for download");
+                downloadFolder = directoryChooser.showDialog(stage);
+            } else {
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                if (folder.isDirectory()) {
+                    downloadFolder = folder;
+                } else {
+                    downloadFolder = directoryChooser.showDialog(stage);
+                }
+            }
+        } else {
+            downloadFolder = directoryChooser.showDialog(stage);
+        }
+        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.storeProperties();
+
+        if (null != downloadFolder) {
+            final boolean alreadyDownloaded = new File(downloadFolder + File.separator + pkg.getFilename()).exists();
+            final String  directDownloadUri = discoclient.getPkgDirectDownloadUri(pkg.getId());
+            if (null == directDownloadUri) {
+                new Alert(AlertType.ERROR, "Problem downloading the package, please try again.", ButtonType.CLOSE).show();
+                return;
+            }
+            final String target = downloadFolder.getAbsolutePath() + File.separator + pkg.getFilename();
+            Worker<Boolean> worker = createWorker(directDownloadUri, target);
+            worker.stateProperty().addListener((o, ov, nv) -> {
+                if (nv.equals(State.READY)) {
+                } else if (nv.equals(State.RUNNING)) {
+                    blocked.set(true);
+                    downloadGraalProgressBar.setVisible(true);
+                    downloadGraalDownloadButton.setDisable(true);
+                    downloadGraalCancelButton.setDisable(true);
+                } else if (nv.equals(State.CANCELLED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    downloadGraalProgressBar.setProgress(0);
+                    downloadGraalProgressBar.setVisible(false);
+                    downloadGraalDownloadButton.setDisable(false);
+                    downloadGraalCancelButton.setDisable(false);
+                } else if (nv.equals(State.FAILED)) {
+                    final File file = new File(target);
+                    if (file.exists()) { file.delete(); }
+                    blocked.set(false);
+                    downloadGraalProgressBar.setProgress(0);
+                    downloadGraalProgressBar.setVisible(false);
+                    downloadGraalDownloadButton.setDisable(false);
+                    downloadGraalCancelButton.setDisable(false);
+                } else if (nv.equals(State.SUCCEEDED)) {
+                    blocked.set(false);
+                    downloadGraalProgressBar.setProgress(0);
+                    downloadGraalProgressBar.setVisible(false);
+                    downloadGraalDownloadButton.setDisable(false);
+                    downloadGraalCancelButton.setDisable(false);
+
+                    if (downloadAutoExtractLabel.isVisible()) {
+                        switch(pkg.getArchiveType()) {
+                            case TAR_GZ -> Helper.untar(target, downloadFolder.getAbsolutePath());
+                            case ZIP    -> Helper.unzip(target, downloadFolder.getAbsolutePath());
+                        }
+                    }
+
+                    downloadGraalDialog.setResult(Boolean.TRUE);
+                    downloadGraalDialog.close();
+                } else if (nv.equals(State.SCHEDULED)) {
+                    blocked.set(true);
+                    downloadGraalProgressBar.setVisible(true);
+                    downloadGraalDownloadButton.setDisable(true);
+                    downloadGraalCancelButton.setDisable(false);
+                }
+            });
+            worker.progressProperty().addListener((o, ov, nv) -> downloadGraalProgressBar.setProgress(nv.doubleValue() * 100.0));
 
             if (alreadyDownloaded) {
                 openFileLocation(new File(downloadFolder.getAbsolutePath()));

@@ -14,7 +14,8 @@ module eu.hansolo.fx.jdkmon {
     requires transitive eu.hansolo.jdktools;
     requires io.foojay.api.discoclient;
     requires eu.hansolo.cvescanner;
-    requires com.dustinredmond.fxtrayicon;
+    //requires com.dustinredmond.fxtrayicon;
+    requires FXTrayIcon;
     requires org.apache.commons.compress;
     requires org.tukaani.xz;
 
