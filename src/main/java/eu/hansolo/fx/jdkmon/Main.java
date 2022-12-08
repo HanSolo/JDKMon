@@ -155,7 +155,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -290,7 +289,7 @@ public class Main extends Application {
     private              ComboBox<ArchiveType>     downloadGraalArchiveTypeComboBox;
     private              Label                     downloadGraalFilenameLabel;
     private              Label                     alreadyGraalDownloadedLabel;
-    private              Set<MajorVersion>         downloadGraalMaintainedVersions;
+    private              Set<MajorVersion>         downloadGraalMajorVersions;
     private              Set<Semver>               downloadGraalVersions;
     private              List<MinimizedPkg>        downloadGraalSelectedPkgs;
     private              MinimizedPkg              downloadGraalSelectedPkg;
@@ -605,7 +604,7 @@ public class Main extends Application {
         downloadJDKMinimizedPkgs               = new CopyOnWriteArrayList<>();
         updateDownloadJDKPkgs();
 
-        downloadGraalMaintainedVersions          = new LinkedHashSet<>();
+        downloadGraalMajorVersions               = new LinkedHashSet<>();
         downloadGraalVersions                    = new LinkedHashSet<>();
         downloadGraalSelectedPkgs                = new ArrayList<>();
         downloadGraalSelectedPkg                 = null;
@@ -1460,13 +1459,14 @@ public class Main extends Application {
 
                         // Major Versions
                         downloadGraalMinimizedPkgs.forEach(pkg -> {
-                                                      long exists = downloadGraalMaintainedVersions.stream().filter(dmv -> dmv.getAsInt() == pkg.getMajorVersion().getAsInt()).count();
+                                                      long exists = downloadGraalMajorVersions.stream().filter(dmv -> dmv.getAsInt() == pkg.getMajorVersion().getAsInt()).count();
                                                       if (exists > 0) { return; }
-                                                      downloadGraalMaintainedVersions.add(pkg.getMajorVersion());
+                                                      downloadGraalMajorVersions.add(pkg.getMajorVersion());
                                                   });
+                        List<MajorVersion> downloadGraalMajorVersionsSorted = downloadGraalMajorVersions.stream().sorted(Comparator.comparing(MajorVersion::getAsInt).reversed()).collect(Collectors.toList());
 
-                        downloadGraalMajorVersionComboBox.getItems().setAll(downloadGraalMaintainedVersions);
-                        if (downloadGraalMaintainedVersions.size() > 0) {
+                        downloadGraalMajorVersionComboBox.getItems().setAll(downloadGraalMajorVersionsSorted);
+                        if (downloadGraalMajorVersions.size() > 0) {
                             downloadGraalMajorVersionComboBox.getSelectionModel().select(0);
                             downloadGraalSelectedMajorVersion = downloadGraalMajorVersionComboBox.getSelectionModel().getSelectedItem();
                         }
