@@ -3092,6 +3092,13 @@ public class Main extends Application {
                 } else if (nv.equals(State.RUNNING)) {
                     blocked.set(true);
                     downloadJDKProgressBar.setVisible(true);
+                    downloadJDKBundledWithFXCheckBox.setDisable(true);
+                    downloadJDKMajorVersionComboBox.setDisable(true);
+                    downloadJDKUpdateLevelComboBox.setDisable(true);
+                    downloadJDKDistributionComboBox.setDisable(true);
+                    downloadJDKOperatingSystemComboBox.setDisable(true);
+                    downloadJDKArchitectureComboBox.setDisable(true);
+                    downloadJDKArchiveTypeComboBox.setDisable(true);
                     downloadJDKDownloadButton.setDisable(true);
                     downloadJDKCancelButton.setDisable(true);
                 } else if (nv.equals(State.CANCELLED)) {
@@ -3100,6 +3107,13 @@ public class Main extends Application {
                     blocked.set(false);
                     downloadJDKProgressBar.setProgress(0);
                     downloadJDKProgressBar.setVisible(false);
+                    downloadJDKBundledWithFXCheckBox.setDisable(false);
+                    downloadJDKMajorVersionComboBox.setDisable(false);
+                    downloadJDKUpdateLevelComboBox.setDisable(false);
+                    downloadJDKDistributionComboBox.setDisable(false);
+                    downloadJDKOperatingSystemComboBox.setDisable(false);
+                    downloadJDKArchitectureComboBox.setDisable(false);
+                    downloadJDKArchiveTypeComboBox.setDisable(false);
                     downloadJDKDownloadButton.setDisable(false);
                     downloadJDKCancelButton.setDisable(false);
                 } else if (nv.equals(State.FAILED)) {
@@ -3108,12 +3122,26 @@ public class Main extends Application {
                     blocked.set(false);
                     downloadJDKProgressBar.setProgress(0);
                     downloadJDKProgressBar.setVisible(false);
+                    downloadJDKBundledWithFXCheckBox.setDisable(false);
+                    downloadJDKMajorVersionComboBox.setDisable(false);
+                    downloadJDKUpdateLevelComboBox.setDisable(false);
+                    downloadJDKDistributionComboBox.setDisable(false);
+                    downloadJDKOperatingSystemComboBox.setDisable(false);
+                    downloadJDKArchitectureComboBox.setDisable(false);
+                    downloadJDKArchiveTypeComboBox.setDisable(false);
                     downloadJDKDownloadButton.setDisable(false);
                     downloadJDKCancelButton.setDisable(false);
                 } else if (nv.equals(State.SUCCEEDED)) {
                     blocked.set(false);
                     downloadJDKProgressBar.setProgress(0);
                     downloadJDKProgressBar.setVisible(false);
+                    downloadJDKBundledWithFXCheckBox.setDisable(false);
+                    downloadJDKMajorVersionComboBox.setDisable(false);
+                    downloadJDKUpdateLevelComboBox.setDisable(false);
+                    downloadJDKDistributionComboBox.setDisable(false);
+                    downloadJDKOperatingSystemComboBox.setDisable(false);
+                    downloadJDKArchitectureComboBox.setDisable(false);
+                    downloadJDKArchiveTypeComboBox.setDisable(false);
                     downloadJDKDownloadButton.setDisable(false);
                     downloadJDKCancelButton.setDisable(false);
 
@@ -3129,6 +3157,13 @@ public class Main extends Application {
                 } else if (nv.equals(State.SCHEDULED)) {
                     blocked.set(true);
                     downloadJDKProgressBar.setVisible(true);
+                    downloadJDKBundledWithFXCheckBox.setDisable(true);
+                    downloadJDKMajorVersionComboBox.setDisable(true);
+                    downloadJDKUpdateLevelComboBox.setDisable(true);
+                    downloadJDKDistributionComboBox.setDisable(true);
+                    downloadJDKOperatingSystemComboBox.setDisable(true);
+                    downloadJDKArchitectureComboBox.setDisable(true);
+                    downloadJDKArchiveTypeComboBox.setDisable(true);
                     downloadJDKDownloadButton.setDisable(true);
                     downloadJDKCancelButton.setDisable(false);
                 }
@@ -3699,6 +3734,12 @@ public class Main extends Application {
                 } else if (nv.equals(State.RUNNING)) {
                     blocked.set(true);
                     downloadGraalProgressBar.setVisible(true);
+                    downloadGraalMajorVersionComboBox.setDisable(true);
+                    downloadGraalUpdateLevelComboBox.setDisable(true);
+                    downloadGraalDistributionComboBox.setDisable(true);
+                    downloadGraalOperatingSystemComboBox.setDisable(true);
+                    downloadGraalArchitectureComboBox.setDisable(true);
+                    downloadGraalArchiveTypeComboBox.setDisable(true);
                     downloadGraalDownloadButton.setDisable(true);
                     downloadGraalCancelButton.setDisable(true);
                 } else if (nv.equals(State.CANCELLED)) {
@@ -3707,6 +3748,12 @@ public class Main extends Application {
                     blocked.set(false);
                     downloadGraalProgressBar.setProgress(0);
                     downloadGraalProgressBar.setVisible(false);
+                    downloadGraalMajorVersionComboBox.setDisable(false);
+                    downloadGraalUpdateLevelComboBox.setDisable(false);
+                    downloadGraalDistributionComboBox.setDisable(false);
+                    downloadGraalOperatingSystemComboBox.setDisable(false);
+                    downloadGraalArchitectureComboBox.setDisable(false);
+                    downloadGraalArchiveTypeComboBox.setDisable(false);
                     downloadGraalDownloadButton.setDisable(false);
                     downloadGraalCancelButton.setDisable(false);
                 } else if (nv.equals(State.FAILED)) {
@@ -3715,12 +3762,24 @@ public class Main extends Application {
                     blocked.set(false);
                     downloadGraalProgressBar.setProgress(0);
                     downloadGraalProgressBar.setVisible(false);
+                    downloadGraalMajorVersionComboBox.setDisable(false);
+                    downloadGraalUpdateLevelComboBox.setDisable(false);
+                    downloadGraalDistributionComboBox.setDisable(false);
+                    downloadGraalOperatingSystemComboBox.setDisable(false);
+                    downloadGraalArchitectureComboBox.setDisable(false);
+                    downloadGraalArchiveTypeComboBox.setDisable(false);
                     downloadGraalDownloadButton.setDisable(false);
                     downloadGraalCancelButton.setDisable(false);
                 } else if (nv.equals(State.SUCCEEDED)) {
                     blocked.set(false);
                     downloadGraalProgressBar.setProgress(0);
                     downloadGraalProgressBar.setVisible(false);
+                    downloadGraalMajorVersionComboBox.setDisable(false);
+                    downloadGraalUpdateLevelComboBox.setDisable(false);
+                    downloadGraalDistributionComboBox.setDisable(false);
+                    downloadGraalOperatingSystemComboBox.setDisable(false);
+                    downloadGraalArchitectureComboBox.setDisable(false);
+                    downloadGraalArchiveTypeComboBox.setDisable(false);
                     downloadGraalDownloadButton.setDisable(false);
                     downloadGraalCancelButton.setDisable(false);
 
@@ -3736,6 +3795,12 @@ public class Main extends Application {
                 } else if (nv.equals(State.SCHEDULED)) {
                     blocked.set(true);
                     downloadGraalProgressBar.setVisible(true);
+                    downloadGraalMajorVersionComboBox.setDisable(true);
+                    downloadGraalUpdateLevelComboBox.setDisable(true);
+                    downloadGraalDistributionComboBox.setDisable(true);
+                    downloadGraalOperatingSystemComboBox.setDisable(true);
+                    downloadGraalArchitectureComboBox.setDisable(true);
+                    downloadGraalArchiveTypeComboBox.setDisable(true);
                     downloadGraalDownloadButton.setDisable(true);
                     downloadGraalCancelButton.setDisable(false);
                 }
