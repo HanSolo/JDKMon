@@ -18,7 +18,6 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import eu.hansolo.cvescanner.CveScanner.Severity;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
 import eu.hansolo.fx.jdkmon.tools.Records.CVE;

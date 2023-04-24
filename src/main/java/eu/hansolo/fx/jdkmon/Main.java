@@ -1377,7 +1377,6 @@ public class Main extends Application {
             final double              score            = cve.score();
             final Severity            severity         = Severity.fromText(cve.severity().getApiString());
             final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
-
             cvesGraalVM.add(new CVE(id, score, severity, affectedVersions));
         });
 
