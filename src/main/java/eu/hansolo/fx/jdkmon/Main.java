@@ -139,8 +139,8 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Desktop;
+import javax.swing.SwingUtilities;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -1282,6 +1282,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setAlwaysOnTop(true);
+        stage.setMaxWidth(850);
         stage.show();
         stage.getIcons().add(dukeStageIcon);
         stage.centerOnScreen();
