@@ -17,7 +17,7 @@
 
 <br>
 JDKMon is a little tool written in JavaFX that tries to detect all JDK's installed
-on your machine and will inform you about new updates of each OpenJDK distribution found.
+on your machine and will inform you about new updates and vulnerabilities of each OpenJDK distribution found.
 In addition JDKMon is also able to monitor JavaFX SDK versions that are installed on your
 machine.
 
@@ -131,7 +131,7 @@ The application will only check for dark/light mode during startup and won't cha
 
 The main window will show you all JDK's found by JDKMon and if there is an
 update available it will show you the archive types of the available updates.
-In the image below you can see that there is an update for GraalVM available
+In the image below you can see that there is an update for Zulu(FX) available
 and that you can download it as a tar.gz file.
 To download an update just click on the archive type tag and choose a folder
 where the download should be stored.
@@ -141,13 +141,13 @@ will appear at the end of the packages list. When clicking on the dot the defaul
 the release details over at [foojay.io](https://foojay.io)
 
 JDKMon will not only help you to keep your installed OpenJDK distributions up to date but will also check
-the NVD for known vulnerabilities (CVE) related to their version number. If you have for example installed
+the NVD (National Vulnerability Database) for known vulnerabilities (CVE - Common Vulnerability and Exposure) related to their version number. If you have for example installed
 an OpenJDK distribution with the version 11.0.13, JDKMon will check the NVD for known vulnerabilities of OpenJDK
 with the version number 11.0.13. In case JDKMon will find vulnerabilities, it will indicate this with a red
 square with an exclamation mark behind the version number. Meaning to say if you have for example Zulu 11.0.13 
 and Liberica 11.0.13 installed ony your machine, JDKMon will show you the vulnerabilties, it found for
 OpenJDK 11.0.13 for both distributions. So there is no guarantee that your installed distribution is really
-affected by the CVE's found in NVD but you at least get the info that there are vulnerabilities for 11.0.13.
+affected by the CVE's found in the NVD but you at least get the info that there are vulnerabilities for 11.0.13.
 
 ![vulnerability](https://i.ibb.co/JRTjp7R/JDKMon.png)
 
