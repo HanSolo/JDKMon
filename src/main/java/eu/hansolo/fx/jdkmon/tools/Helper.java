@@ -18,10 +18,11 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import eu.hansolo.cvescanner.Constants.CVE;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
-import eu.hansolo.fx.jdkmon.tools.Records.CVE;
 import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import javafx.scene.paint.Color;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -165,17 +166,32 @@ public class Helper {
     }
 
     public static final List<CVE> getCVEsForVersion(final List<CVE> cves, final VersionNumber versionNumber) {
-        return cves.stream().filter(cve -> cve.affectedVersions().contains(versionNumber)).collect(Collectors.toList());
+        final String version = versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, false);
+        return cves.stream().filter(cve -> cve.affectedVersions().contains(version)).collect(Collectors.toList());
     }
 
     public static final Color getColorForCVE(final CVE cve, final boolean darkMode) {
-        switch (cve.severity()) {
-            case LOW             : return darkMode ? MacosAccentColor.GREEN.colorDark  : MacosAccentColor.GREEN.colorAqua;
-            case MEDIUM          : return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
-            case HIGH            : return darkMode ? MacosAccentColor.ORANGE.colorDark : MacosAccentColor.ORANGE.colorAqua;
-            case CRITICAL        : return darkMode ? MacosAccentColor.RED.colorDark    : MacosAccentColor.RED.colorAqua;
-            case NONE, NOT_FOUND :
-            default              : return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua;
+        switch(cve.cvss()) {
+            case CVSSV2 -> {
+                switch(cve.severity()) {
+                    case LOW             : return darkMode ? MacosAccentColor.GREEN.colorDark  : MacosAccentColor.GREEN.colorAqua;
+                    case MEDIUM          : return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
+                    case HIGH            : return darkMode ? MacosAccentColor.RED.colorDark    : MacosAccentColor.RED.colorAqua;
+                    case NONE, NOT_FOUND :
+                    default              : return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua;
+                }
+            }
+            case CVSSV3 -> {
+                switch (cve.severity()) {
+                    case LOW             : return darkMode ? MacosAccentColor.GREEN.colorDark  : MacosAccentColor.GREEN.colorAqua;
+                    case MEDIUM          : return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;
+                    case HIGH            : return darkMode ? MacosAccentColor.ORANGE.colorDark : MacosAccentColor.ORANGE.colorAqua;
+                    case CRITICAL        : return darkMode ? MacosAccentColor.RED.colorDark    : MacosAccentColor.RED.colorAqua;
+                    case NONE, NOT_FOUND :
+                    default              : return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua;
+                }
+            }
+            default -> { return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua; }
         }
     }
 

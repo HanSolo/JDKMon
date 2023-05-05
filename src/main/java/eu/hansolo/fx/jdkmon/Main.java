@@ -21,6 +21,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import eu.hansolo.cvescanner.Constants.CVE;
+import eu.hansolo.cvescanner.Constants.CVSS;
+import eu.hansolo.cvescanner.Constants.Severity;
 import eu.hansolo.cvescanner.CveScanner;
 import eu.hansolo.fx.jdkmon.controls.AttentionIndicator;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
@@ -52,7 +55,6 @@ import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
 import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
 import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
-import eu.hansolo.fx.jdkmon.tools.Records.CVE;
 import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
 import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
@@ -61,7 +63,6 @@ import eu.hansolo.jdktools.ArchiveType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
-import eu.hansolo.jdktools.Severity;
 import eu.hansolo.jdktools.Verification;
 import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
@@ -1359,26 +1360,28 @@ public class Main extends Application {
     }
 
     private void updateCves() {
-        List<CveScanner.CVE> cvesFound = cveScanner.getCves();
+        List<CVE> cvesFound = cveScanner.getCves();
         if (cvesFound.isEmpty()) { return; }
         cves.clear();
         cvesFound.forEach(cve -> {
-            final String   id       = cve.id();
-            final double              score            = cve.score();
-            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
-            final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
-            cves.add(new CVE(id, score, severity, affectedVersions));
+            final String       id               = cve.id();
+            final double       score            = cve.score();
+            final CVSS         cvss             = cve.cvss();
+            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
+            final List<String> affectedVersions = cve.affectedVersions();
+            cves.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
-        List<CveScanner.CVE> cvesGraalVMFound = cveScanner.getGraalVMCves();
+        List<CVE> cvesGraalVMFound = cveScanner.getGraalVMCves();
         if (cvesGraalVMFound.isEmpty()) { return; }
         cvesGraalVM.clear();
         cvesGraalVMFound.forEach(cve -> {
-            final String   id       = cve.id();
-            final double              score            = cve.score();
-            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
-            final List<VersionNumber> affectedVersions = cve.affectedVersions().stream().map(v -> VersionNumber.fromText(v)).collect(Collectors.toList());
-            cvesGraalVM.add(new CVE(id, score, severity, affectedVersions));
+            final String       id               = cve.id();
+            final double       score            = cve.score();
+            final CVSS         cvss             = cve.cvss();
+            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
+            final List<String> affectedVersions = cve.affectedVersions();
+            cvesGraalVM.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
         checkForUpdates();
@@ -1549,9 +1552,9 @@ public class Main extends Application {
 
         List<CVE> vulnerabilities;
         if (BuildScope.BUILD_OF_OPEN_JDK == distribution.getBuildScope()) {
-            vulnerabilities = Helper.getCVEsForVersion(cves, VersionNumber.fromText(distribution.getVersion()));
+            vulnerabilities = Helper.getCVEsForVersion(cves, distribution.getVersionNumber());
         } else {
-            vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, VersionNumber.fromText(distribution.getVersion()));
+            vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, distribution.getVersionNumber());
         }
 
         StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")")
@@ -1587,7 +1590,7 @@ public class Main extends Application {
                 Hyperlink cveLink = new Hyperlink();
                 cveLink.setTooltip(new Tooltip(distribution.getName() + " " + distribution.getVersion() + " might be affected by " + cve.id()));
                 cveLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                cveLink.setText(cve.id() + " (Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
+                cveLink.setText(cve.id() + " (" + cve.cvss().name() + " Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
                 cveLink.setOnAction(e -> {
                     if (Desktop.isDesktopSupported()) {
                         try {

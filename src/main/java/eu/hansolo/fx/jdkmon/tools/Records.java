@@ -19,55 +19,9 @@ package eu.hansolo.fx.jdkmon.tools;
 import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
-import eu.hansolo.jdktools.Severity;
-import eu.hansolo.jdktools.util.OutputFormat;
-import eu.hansolo.jdktools.versioning.VersionNumber;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static eu.hansolo.jdktools.Constants.COLON;
-import static eu.hansolo.jdktools.Constants.COMMA;
-import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_CLOSE;
-import static eu.hansolo.jdktools.Constants.CURLY_BRACKET_OPEN;
-import static eu.hansolo.jdktools.Constants.QUOTES;
 
 
 public class Records {
-
-    public record CVE(String id, double score, Severity severity, List<VersionNumber> affectedVersions) implements Comparable<CVE> {
-        public static final String FIELD_ID                = "id";
-        public static final String FIELD_SCORE             = "score";
-        public static final String FIELD_SEVERITY          = "severity";
-        public static final String FIELD_URL               = "url";
-        public static final String FIELD_AFFECTED_VERSIONS = "affected_versions";
-
-        public String url() { return "http://cve.mitre.org/cgi-bin/cvename.cgi?name=" + id; }
-
-        @Override public String toString() {
-            return new StringBuilder().append(CURLY_BRACKET_OPEN)
-                                      .append(QUOTES).append(FIELD_ID).append(QUOTES).append(COLON).append(QUOTES).append(id).append(QUOTES).append(COMMA)
-                                      .append(QUOTES).append(FIELD_SCORE).append(QUOTES).append(COLON).append(score).append(COMMA)
-                                      .append(QUOTES).append(FIELD_SEVERITY).append(QUOTES).append(COLON).append(QUOTES).append(severity.name()).append(QUOTES).append(COMMA)
-                                      .append(QUOTES).append(FIELD_URL).append(QUOTES).append(COLON).append(QUOTES).append(url()).append(QUOTES).append(COMMA)
-                                      .append(QUOTES).append(FIELD_AFFECTED_VERSIONS).append(QUOTES).append(COLON)
-                                      .append(affectedVersions.stream().map(version -> version.toString(OutputFormat.REDUCED_COMPRESSED, true, false)).collect(Collectors.joining("\",\"", "[\"", "\"]")))
-                                      .append(CURLY_BRACKET_CLOSE).toString();
-        }
-
-        @Override public boolean equals(final Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
-            CVE cve2 = (CVE) o;
-            return Double.compare(cve2.score, score) == 0 && id.equals(cve2.id);
-        }
-        @Override public int hashCode() {
-            return Objects.hash(id, score);
-        }
-
-        @Override public int compareTo(final CVE other) { return id.compareTo(other.id()); }
-    }
 
     public record SysInfo(OperatingSystem operatingSystem, Architecture architecture, OperatingMode operatingMode) {}
 
