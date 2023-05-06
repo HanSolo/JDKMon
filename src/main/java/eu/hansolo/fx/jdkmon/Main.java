@@ -45,9 +45,11 @@ import eu.hansolo.fx.jdkmon.tools.Distro;
 import eu.hansolo.fx.jdkmon.tools.Finder;
 import eu.hansolo.fx.jdkmon.tools.Fonts;
 import eu.hansolo.fx.jdkmon.tools.Helper;
+import eu.hansolo.fx.jdkmon.tools.LibCTypeCell;
 import eu.hansolo.fx.jdkmon.tools.MacosArchitectureCell;
 import eu.hansolo.fx.jdkmon.tools.MacosArchiveTypeCell;
 import eu.hansolo.fx.jdkmon.tools.MacosDistributionCell;
+import eu.hansolo.fx.jdkmon.tools.MacosLibCTypeCell;
 import eu.hansolo.fx.jdkmon.tools.MacosMajorVersionCell;
 import eu.hansolo.fx.jdkmon.tools.MacosOperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.MacosUpdateLevelCell;
@@ -60,6 +62,7 @@ import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
 import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
 import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.ArchiveType;
+import eu.hansolo.jdktools.LibCType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
@@ -256,6 +259,7 @@ public class Main extends Application {
     private              ComboBox<Distribution>    downloadJDKDistributionComboBox;
     private              ComboBox<OperatingSystem> downloadJDKOperatingSystemComboBox;
     private              ComboBox<Architecture>    downloadJDKArchitectureComboBox;
+    private              ComboBox<LibCType>        downloadJDKLibCTypeComboBox;
     private              ComboBox<ArchiveType>     downloadJDKArchiveTypeComboBox;
     private              Label                     downloadJDKFilenameLabel;
     private              Label                     alreadyDownloadedLabel;
@@ -269,9 +273,11 @@ public class Main extends Application {
     private              Semver                    downloadJDKSelectedVersionNumber;
     private              Distribution              downloadJDKSelectedDistribution;
     private              OperatingSystem           downloadJDKSelectedOperatingSystem;
+    private              LibCType                  downloadJDKSelectedLibCType;
     private              Architecture              downloadJDKSelectedArchitecture;
     private              ArchiveType               downloadJDKSelectedArchiveType;
     private              Set<OperatingSystem>      downloadJDKOperatingSystems;
+    private              Set<LibCType>             downloadJDKLibCTypes;
     private              Set<Architecture>         downloadJDKArchitectures;
     private              Set<ArchiveType>          downloadJDKArchiveTypes;
     private              ProgressBar               downloadJDKProgressBar;
@@ -601,6 +607,7 @@ public class Main extends Application {
         downloadJDKJavafxBundled               = false;
         downloadJDKOperatingSystems            = new TreeSet<>();
         downloadJDKArchitectures               = new TreeSet<>();
+        downloadJDKLibCTypes                   = new TreeSet<>();
         downloadJDKArchiveTypes                = new TreeSet<>();
         downloadJDKMinimizedPkgs               = new CopyOnWriteArrayList<>();
         updateDownloadJDKPkgs();
@@ -813,6 +820,7 @@ public class Main extends Application {
 
                 downloadJDKDistributionComboBox.getItems().clear();
                 downloadJDKOperatingSystemComboBox.getItems().clear();
+                downloadJDKLibCTypeComboBox.getItems().clear();
                 downloadJDKArchitectureComboBox.getItems().clear();
                 downloadJDKArchiveTypeComboBox.getItems().clear();
                 downloadJDKFilenameLabel.setText("-");
@@ -856,6 +864,16 @@ public class Main extends Application {
             if (null == downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem())    { return; }
             if (downloadJDKSelectedPkgs.isEmpty()) { return; }
             selectArchitecture();
+        });
+        downloadJDKLibCTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (null == downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKUpdateLevelComboBox.getSelectionModel().getSelectedItem())     { return; }
+            if (null == downloadJDKDistributionComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKOperatingSystemComboBox.getSelectionModel().getSelectedItem()) { return; }
+            if (null == downloadJDKArchitectureComboBox.getSelectionModel().getSelectedItem())    { return; }
+            if (null == downloadJDKLibCTypeComboBox.getSelectionModel().getSelectedItem())        { return; }
+            if (downloadJDKSelectedPkgs.isEmpty()) { return; }
+            selectLibCType();
         });
         downloadJDKArchiveTypeComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (null == nv) { return; }
@@ -1419,11 +1437,14 @@ public class Main extends Application {
                                     if (exists > 0) { return; }
                                     downloadJDKMaintainedVersions.add(mv);
                                 });
-                                downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
-                                if (downloadJDKMaintainedVersions.size() > 0) {
-                                    downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
-                                    downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
-                                }
+
+                                Platform.runLater(() -> {
+                                    downloadJDKMajorVersionComboBox.getItems().setAll(downloadJDKMaintainedVersions);
+                                    if (downloadJDKMaintainedVersions.size() > 0) {
+                                        downloadJDKMajorVersionComboBox.getSelectionModel().select(0);
+                                        downloadJDKSelectedMajorVersion = downloadJDKMajorVersionComboBox.getSelectionModel().getSelectedItem();
+                                    }
+                                });
                             });
 
                             downloadJDKPane.setDisable(false);
@@ -2530,8 +2551,8 @@ public class Main extends Application {
         downloadJDKDistributionBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKOperatingSystemLabel = new Label("Operating system");
-        Region findlJDKOperatingSystemSpacer = new Region();
-        HBox.setHgrow(findlJDKOperatingSystemSpacer, Priority.ALWAYS);
+        Region downloadJDKOperatingSystemSpacer = new Region();
+        HBox.setHgrow(downloadJDKOperatingSystemSpacer, Priority.ALWAYS);
         downloadJDKOperatingSystemComboBox = new ComboBox<>();
         downloadJDKOperatingSystemComboBox.setCellFactory(operatingSystemListView -> isWindows ? new OperatingSystemCell() : new MacosOperatingSystemCell());
         downloadJDKOperatingSystemComboBox.setConverter(new StringConverter<>() {
@@ -2541,7 +2562,7 @@ public class Main extends Application {
         downloadJDKOperatingSystemComboBox.setMinWidth(150);
         downloadJDKOperatingSystemComboBox.setMaxWidth(150);
         downloadJDKOperatingSystemComboBox.setPrefWidth(150);
-        HBox downloadJDKOperatingSystemBox = new HBox(5, downloadJDKOperatingSystemLabel, findlJDKOperatingSystemSpacer, downloadJDKOperatingSystemComboBox);
+        HBox downloadJDKOperatingSystemBox = new HBox(5, downloadJDKOperatingSystemLabel, downloadJDKOperatingSystemSpacer, downloadJDKOperatingSystemComboBox);
         downloadJDKOperatingSystemBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKArchitectureLabel = new Label("Architecture");
@@ -2558,6 +2579,21 @@ public class Main extends Application {
         downloadJDKArchitectureComboBox.setPrefWidth(150);
         HBox downloadJDKArchitectureBox = new HBox(5, downloadJDKArchitectureLabel, downloadJDKArchitectureSpacer, downloadJDKArchitectureComboBox);
         downloadJDKArchitectureBox.setAlignment(Pos.CENTER);
+
+        Label downloadJDKLibCTypeLabel = new Label("LibC Type");
+        Region downloadJDKLibCTypeSpacer = new Region();
+        HBox.setHgrow(downloadJDKLibCTypeSpacer, Priority.ALWAYS);
+        downloadJDKLibCTypeComboBox = new ComboBox<>();
+        downloadJDKLibCTypeComboBox.setCellFactory(libCTypeListView -> isWindows ? new LibCTypeCell() : new MacosLibCTypeCell());
+        downloadJDKLibCTypeComboBox.setConverter(new StringConverter<>() {
+            @Override public String toString(final LibCType libCType) { return null == libCType ? null : libCType.getUiString(); }
+            @Override public LibCType fromString(final String text) { return LibCType.fromText(text); }
+        });
+        downloadJDKLibCTypeComboBox.setMinWidth(150);
+        downloadJDKLibCTypeComboBox.setMaxWidth(150);
+        downloadJDKLibCTypeComboBox.setPrefWidth(150);
+        HBox downloadJDKLibCTypeBox = new HBox(5, downloadJDKLibCTypeLabel, downloadJDKLibCTypeSpacer, downloadJDKLibCTypeComboBox);
+        downloadJDKLibCTypeBox.setAlignment(Pos.CENTER);
 
         Label downloadJDKArchiveTypeLabel = new Label("Archive type");
         Region downloadJDKArchiveTypeSpacer = new Region();
@@ -2699,7 +2735,8 @@ public class Main extends Application {
         VBox.setMargin(downloadJDKProgressBar, new Insets(0, 0, 5, 0));
 
         VBox downloadJDKVBox = new VBox(10, downloadJDKFxBox, downloadJDKMajorVersionBox, downloadJDKUpdateLevelBox, downloadJDKDistributionBox, downloadJDKOperatingSystemBox,
-                                        downloadJDKArchitectureBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, alreadyDownloadedBox, downloadJDKProgressBar, downloadJDKButtonBox);
+                                        downloadJDKArchitectureBox, downloadJDKLibCTypeBox, downloadJDKArchiveTypeBox, downloadJDKFilenameBox, alreadyDownloadedBox,
+                                        downloadJDKProgressBar, downloadJDKButtonBox);
         downloadJDKVBox.setAlignment(Pos.CENTER);
 
         downloadJDKPane.getChildren().add(downloadJDKVBox);
@@ -2821,6 +2858,7 @@ public class Main extends Application {
             downloadJDKDistributionComboBox.getItems().clear();
             downloadJDKOperatingSystemComboBox.getItems().clear();
             downloadJDKArchitectureComboBox.getItems().clear();
+            downloadJDKLibCTypeComboBox.getItems().clear();
             downloadJDKArchiveTypeComboBox.getItems().clear();
         }
 
@@ -2893,6 +2931,7 @@ public class Main extends Application {
             } else {
                 downloadJDKOperatingSystemComboBox.getItems().clear();
                 downloadJDKArchitectureComboBox.getItems().clear();
+                downloadJDKLibCTypeComboBox.getItems().clear();
                 downloadJDKArchiveTypeComboBox.getItems().clear();
             }
         });
@@ -2905,6 +2944,7 @@ public class Main extends Application {
         downloadJDKSelectedPkgs.clear();
         downloadJDKOperatingSystems.clear();
         downloadJDKArchitectures.clear();
+        downloadJDKLibCTypes.clear();
         downloadJDKArchiveTypes.clear();
 
         boolean include_build = downloadJDKSelectedMajorVersion.isEarlyAccessOnly();
@@ -2928,6 +2968,7 @@ public class Main extends Application {
         downloadJDKSelectedPkgs.forEach(pkg -> {
             downloadJDKOperatingSystems.add(pkg.getOperatingSystem());
             downloadJDKArchitectures.add(pkg.getArchitecture());
+            downloadJDKLibCTypes.add(pkg.getLibCType());
             downloadJDKArchiveTypes.add(pkg.getArchiveType());
         });
         Platform.runLater(() -> {
@@ -2996,7 +3037,32 @@ public class Main extends Application {
                                                               .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
                                                               .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
                                                               .collect(Collectors.toList());
+
+        downloadJDKLibCTypes = selection.stream().map(pkg -> pkg.getLibCType()).collect(Collectors.toSet());
+
+        Platform.runLater(() -> {
+            downloadJDKLibCTypeComboBox.getItems().clear();
+            downloadJDKLibCTypes.forEach(libCType -> downloadJDKLibCTypeComboBox.getItems().add(libCType));
+            downloadJDKLibCTypeComboBox.getItems().setAll(downloadJDKLibCTypes);
+
+            if (downloadJDKLibCTypes.size() > 0) {
+                downloadJDKLibCTypeComboBox.getSelectionModel().select(0);
+            }
+        });
+    }
+
+    private void selectLibCType() {
+        downloadJDKSelectedLibCType = downloadJDKLibCTypeComboBox.getSelectionModel().getSelectedItem();
+        List<MinimizedPkg> selection = downloadJDKSelectedPkgs.stream()
+                                                              .filter(pkg -> pkg.isJavaFXBundled() == downloadJDKJavafxBundled)
+                                                              .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
+                                                              .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
+                                                              .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                              .filter(pkg -> downloadJDKSelectedLibCType == pkg.getLibCType())
+                                                              .collect(Collectors.toList());
+
         downloadJDKArchiveTypes = selection.stream().map(pkg -> pkg.getArchiveType()).collect(Collectors.toSet());
+
         Platform.runLater(() -> {
             downloadJDKArchiveTypeComboBox.getItems().setAll(downloadJDKArchiveTypes);
             if (downloadJDKArchiveTypes.size() > 0) {
@@ -3017,6 +3083,7 @@ public class Main extends Application {
                                                               .filter(pkg -> downloadJDKSelectedDistribution.getApiString().equals(pkg.getDistribution().getApiString()))
                                                               .filter(pkg -> downloadJDKSelectedOperatingSystem == pkg.getOperatingSystem())
                                                               .filter(pkg -> downloadJDKSelectedArchitecture == pkg.getArchitecture())
+                                                              .filter(pkg -> downloadJDKSelectedLibCType == pkg.getLibCType())
                                                               .filter(pkg -> downloadJDKSelectedArchiveType == pkg.getArchiveType())
                                                               .collect(Collectors.toList());
         if (selection.size() > 0) {

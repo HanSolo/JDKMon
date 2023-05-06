@@ -73,7 +73,7 @@ public class MinimizedPkg {
         this.javaVersion           = Semver.fromText(json.get(Pkg.FIELD_JAVA_VERSION).getAsString()).getSemver1();
         this.architecture          = Architecture.fromText(json.get(Pkg.FIELD_ARCHITECTURE).getAsString());
         this.operatingSystem       = OperatingSystem.fromText(json.get(Pkg.FIELD_OPERATING_SYSTEM).getAsString());
-        this.libCType              = this.operatingSystem.getLibCType();
+        this.libCType              = json.has(Pkg.FIELD_LIB_C_TYPE) ? LibCType.fromText(json.get(Pkg.FIELD_LIB_C_TYPE).getAsString()) : this.operatingSystem.getLibCType();
         this.packageType           = PackageType.fromText(json.get(Pkg.FIELD_PACKAGE_TYPE).getAsString());
         this.releaseStatus         = ReleaseStatus.fromText(json.get(Pkg.FIELD_RELEASE_STATUS).getAsString());
         this.archiveType           = ArchiveType.fromText(json.get(Pkg.FIELD_ARCHIVE_TYPE).getAsString());
@@ -87,7 +87,7 @@ public class MinimizedPkg {
         this.aqavitCertUri         = json.has(Pkg.FIELD_AQAVIT_CERT_URI) ? json.get(Pkg.FIELD_AQAVIT_CERT_URI).getAsString() : "";
     }
     public MinimizedPkg(final String id, final ArchiveType archiveType, final Distribution distribution, final MajorVersion majorVersion, final Semver javaVersion,
-                        final ReleaseStatus releaseStatus, final OperatingSystem operatingSystem, final Architecture architecture, final PackageType packageType,
+                        final ReleaseStatus releaseStatus, final OperatingSystem operatingSystem, final Architecture architecture, final LibCType libCType, final PackageType packageType,
                         final boolean javafxBundled, final boolean directlyDownloadable, final String filename, final boolean freeToUseInProduction, final Verification tckTested,
                         final String tckCertUri, final Verification aqavitCertified, final String aqavitCertUri) {
         this.id                    = id;
@@ -97,8 +97,8 @@ public class MinimizedPkg {
         this.javaVersion           = javaVersion;
         this.releaseStatus         = releaseStatus;
         this.operatingSystem       = operatingSystem;
-        this.libCType              = operatingSystem.getLibCType();
         this.architecture          = architecture;
+        this.libCType              = libCType;
         this.packageType           = packageType;
         this.javafxBundled         = javafxBundled;
         this.directlyDownloadable  = directlyDownloadable;
