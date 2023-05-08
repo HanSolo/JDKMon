@@ -1,8 +1,8 @@
 #!/bin/bash
 
 JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.53.jar"
-APP_VERSION=17.0.53
+MAIN_JAR="JDKMon-17.0.55.jar"
+APP_VERSION=17.0.55
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
@@ -82,6 +82,7 @@ do
   --main-jar ${MAIN_JAR} \
   --java-options -Xmx2048m \
   --java-options '--enable-preview' \
+  --java-options '--Djdk.gtk.version=2' \
   --runtime-image build/java-runtime \
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon128x128.png \
   --linux-shortcut \

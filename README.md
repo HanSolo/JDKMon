@@ -183,3 +183,10 @@ autoextract=TRUE/FALSE Will directly extract downloaded JDK's (default is FALSE)
 show_unknown_builds=TRUE/FALSE Will show unknown builds of OpenJDK (default is FALSE) EXPERIMENTAL!
 ```
 
+### Installation problems
+#### Linux
+Make sure that you have the following programs installed before you execute build_appLinux.sh:
+- binutils ```sudo apt install binutils```
+- fakeroot ```sudo apt install fakeroot```
+- rpm ```sudo apt install rpm```
+
