@@ -1067,7 +1067,7 @@ public class Main extends Application {
         if (trayIconSupported) {
             FXTrayIcon trayIcon;
             if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
-                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_blk.png"), 16, 16);
+                trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_linux.png"), 16, 16);
             } else {
                 trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"), 16, 16);
             }
