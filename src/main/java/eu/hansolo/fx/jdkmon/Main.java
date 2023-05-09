@@ -1623,7 +1623,7 @@ public class Main extends Application {
                         if (OperatingSystem.LINUX == operatingSystem) {
                             Runtime runtime = Runtime.getRuntime();
                             try {
-                                runtime.exec("xdg-open " + cve.url());
+                                runtime.exec(new String[] { "xdg-open", cve.url() });
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
@@ -1874,7 +1874,7 @@ public class Main extends Application {
                             final String downloadSiteUri = discoclient.getPkgDownloadSiteUri(pkg.getId());
                             Runtime runtime = Runtime.getRuntime();
                             try {
-                                runtime.exec("xdg-open " + downloadSiteUri);
+                                runtime.exec(new String[] { "xdg-open", downloadSiteUri });
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
@@ -1911,7 +1911,7 @@ public class Main extends Application {
                     if (OperatingSystem.LINUX == operatingSystem) {
                         Runtime runtime = Runtime.getRuntime();
                         try {
-                            runtime.exec("xdg-open " + releaseDetailsUrl);
+                            runtime.exec(new String[] { "xdg-open", releaseDetailsUrl });
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
@@ -2030,7 +2030,7 @@ public class Main extends Application {
                     if (OperatingSystem.LINUX == operatingSystem) {
                         Runtime runtime = Runtime.getRuntime();
                         try {
-                            runtime.exec("xdg-open " + Constants.RELEASES_URI);
+                            runtime.exec(new String[] { "xdg-open", Constants.RELEASES_URI });
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
@@ -2687,7 +2687,7 @@ public class Main extends Application {
                 if (OperatingSystem.LINUX == operatingSystem) {
                     Runtime runtime = Runtime.getRuntime();
                     try {
-                        runtime.exec("xdg-open " + tckTestedLink.getText());
+                        runtime.exec(new String[] { "xdg-open", tckTestedLink.getText() });
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -2718,7 +2718,7 @@ public class Main extends Application {
                 if (OperatingSystem.LINUX == operatingSystem) {
                     Runtime runtime = Runtime.getRuntime();
                     try {
-                        runtime.exec("xdg-open " + aqavitTestedLink.getText());
+                        runtime.exec(new String[] { "xdg-open", aqavitTestedLink.getText() });
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
