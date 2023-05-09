@@ -1066,7 +1066,7 @@ public class Main extends Application {
 
         if (trayIconSupported) {
             FXTrayIcon trayIcon;
-            if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+            if (OperatingSystem.LINUX == operatingSystem) {
                 trayIcon = new FXTrayIcon(stage, getClass().getResource("duke_linux.png"), 24, 16);
             } else {
                 trayIcon = new FXTrayIcon(stage, getClass().getResource("duke.png"), 16, 16);
@@ -1619,7 +1619,15 @@ public class Main extends Application {
                         } catch (IOException | URISyntaxException ex) {
                             ex.printStackTrace();
                         }
+                    } else {
+                        Runtime runtime = Runtime.getRuntime();
+                        try {
+                            runtime.exec("xdg-open " + cve.url());
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
+
                 });
                 cveLink.setTextFill(Color.BLACK);
                 cveLink.setBackground(new Background(new BackgroundFill(Helper.getColorForCVE(cve, isDarkMode), new CornerRadii(5), Insets.EMPTY)));
