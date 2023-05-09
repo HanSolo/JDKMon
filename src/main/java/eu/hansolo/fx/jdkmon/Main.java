@@ -1869,6 +1869,16 @@ public class Main extends Application {
                         } catch (IOException | URISyntaxException ex) {
                             ex.printStackTrace();
                         }
+                    } else {
+                        if (OperatingSystem.LINUX == operatingSystem) {
+                            final String downloadSiteUri = discoclient.getPkgDownloadSiteUri(pkg.getId());
+                            Runtime runtime = Runtime.getRuntime();
+                            try {
+                                runtime.exec("xdg-open " + downloadSiteUri);
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
                     }
                 } });
             }
@@ -1896,6 +1906,15 @@ public class Main extends Application {
                         Desktop.getDesktop().browse(new URI(releaseDetailsUrl));
                     } catch (IOException | URISyntaxException ex) {
                         ex.printStackTrace();
+                    }
+                } else {
+                    if (OperatingSystem.LINUX == operatingSystem) {
+                        Runtime runtime = Runtime.getRuntime();
+                        try {
+                            runtime.exec("xdg-open " + releaseDetailsUrl);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
             } });
@@ -2006,6 +2025,15 @@ public class Main extends Application {
                         Desktop.getDesktop().browse(new URI(Constants.RELEASES_URI));
                     } catch (IOException | URISyntaxException ex) {
                         ex.printStackTrace();
+                    }
+                } else {
+                    if (OperatingSystem.LINUX == operatingSystem) {
+                        Runtime runtime = Runtime.getRuntime();
+                        try {
+                            runtime.exec("xdg-open " + Constants.RELEASES_URI);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
             });
@@ -2655,6 +2683,15 @@ public class Main extends Application {
                 } catch (IOException | URISyntaxException ex) {
                     ex.printStackTrace();
                 }
+            } else {
+                if (OperatingSystem.LINUX == operatingSystem) {
+                    Runtime runtime = Runtime.getRuntime();
+                    try {
+                        runtime.exec("xdg-open " + tckTestedLink.getText());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         });
         Tooltip.install(tckTestedTag, new Tooltip("Package is TCK tested"));
@@ -2676,6 +2713,15 @@ public class Main extends Application {
                     Desktop.getDesktop().browse(new URI(aqavitTestedLink.getText()));
                 } catch (IOException | URISyntaxException ex) {
                     ex.printStackTrace();
+                }
+            } else {
+                if (OperatingSystem.LINUX == operatingSystem) {
+                    Runtime runtime = Runtime.getRuntime();
+                    try {
+                        runtime.exec("xdg-open " + aqavitTestedLink.getText());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
         });
