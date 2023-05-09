@@ -1620,11 +1620,13 @@ public class Main extends Application {
                             ex.printStackTrace();
                         }
                     } else {
-                        Runtime runtime = Runtime.getRuntime();
-                        try {
-                            runtime.exec("xdg-open " + cve.url());
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
+                        if (OperatingSystem.LINUX == operatingSystem) {
+                            Runtime runtime = Runtime.getRuntime();
+                            try {
+                                runtime.exec("xdg-open " + cve.url());
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
                         }
                     }
 
