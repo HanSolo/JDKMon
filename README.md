@@ -190,3 +190,8 @@ Make sure that you have the following programs installed before you execute buil
 - fakeroot ```sudo apt install fakeroot```
 - rpm ```sudo apt install rpm```
 
+### Problems opening CVE links
+#### Linux
+Make sure you have the xdg-open tool installed (it is part of the xdg-utils package).
+- xdg-utils ```sudo apt install xdg-utils```
+- 

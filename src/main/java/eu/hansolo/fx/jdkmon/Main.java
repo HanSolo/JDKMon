@@ -1620,13 +1620,15 @@ public class Main extends Application {
                             ex.printStackTrace();
                         }
                     } else {
-                        if (OperatingSystem.LINUX == operatingSystem) {
-                            Runtime runtime = Runtime.getRuntime();
-                            try {
-                                runtime.exec(new String[] { "xdg-open", cve.url() });
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
+                        Runtime runtime = Runtime.getRuntime();
+                        try {
+                            switch (operatingSystem) {
+                                case LINUX, LINUX_MUSL, ALPINE_LINUX -> runtime.exec(new String[] { "xdg-open", cve.url() });
+                                case MACOS                           -> runtime.exec(new String[] { "open", cve.url() });
+                                case WINDOWS                         -> runtime.exec(new String[] { "start", cve.url() });
                             }
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
                         }
                     }
 
