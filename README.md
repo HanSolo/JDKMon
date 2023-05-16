@@ -194,4 +194,9 @@ Make sure that you have the following programs installed before you execute buil
 #### Linux
 Make sure you have the xdg-open tool installed (it is part of the xdg-utils package).
 - xdg-utils ```sudo apt install xdg-utils```
-- 
+
+### No CVEs found
+In case the cve files (in your home folder) are empty,
+delete the empty file and restart JDKMon. After the restart the file should be filled with data again.
+- cvedb.json
+- graalvm_cvedb.json

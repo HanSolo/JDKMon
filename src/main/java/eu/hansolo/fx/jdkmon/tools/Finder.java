@@ -45,10 +45,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -331,6 +336,25 @@ public class Finder {
             result = pathStream.collect(Collectors.toList());
         } catch (IOException e) {
             result = new ArrayList<>();
+        }
+        return result;
+    }
+
+    private List<Path> findFileByName(final Path path, final String filename) {
+        final List<Path> result = new ArrayList<>();
+        try {
+            Files.walkFileTree(path, new HashSet<>(Arrays.asList(FileVisitOption.FOLLOW_LINKS)), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+                @Override public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                    final String name = file.getFileName().toString().toLowerCase();
+                    if (filename.equals(name)) { result.add(file); }
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException { return FileVisitResult.SKIP_SUBTREE; }
+                @Override public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException { return FileVisitResult.CONTINUE; }
+            });
+        } catch (IOException e) {
+            System.out.println(e);
+            return result;
         }
         return result;
     }
