@@ -346,11 +346,13 @@ public class Finder {
             Files.walkFileTree(path, new HashSet<>(Arrays.asList(FileVisitOption.FOLLOW_LINKS)), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                 @Override public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
                     final String name = file.getFileName().toString().toLowerCase();
-                    if (filename.equals(name)) { result.add(file); }
+                    if (filename.equals(name) && !Files.isSymbolicLink(file.toAbsolutePath())) { result.add(file); }
                     return FileVisitResult.CONTINUE;
                 }
                 @Override public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException { return FileVisitResult.SKIP_SUBTREE; }
-                @Override public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException { return FileVisitResult.CONTINUE; }
+                @Override public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+                    return Files.isSymbolicLink(dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+                }
             });
         } catch (IOException e) {
             System.out.println(e);
