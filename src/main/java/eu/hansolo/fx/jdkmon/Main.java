@@ -370,17 +370,17 @@ public class Main extends Application {
         darkMode.set(Detector.isDarkMode());
 
         if (OperatingSystem.LINUX == operatingSystem) {
-            if (PropertyManager.INSTANCE.hasKey(PropertyManager.DARK_MODE)) {
-                darkMode.set(PropertyManager.INSTANCE.getBoolean(PropertyManager.DARK_MODE));
+            if (PropertyManager.INSTANCE.hasKey(PropertyManager.PROPERTY_DARK_MODE)) {
+                darkMode.set(PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_DARK_MODE));
             } else {
-                PropertyManager.INSTANCE.set(PropertyManager.DARK_MODE, "FALSE");
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_DARK_MODE, "FALSE");
                 PropertyManager.INSTANCE.storeProperties();
             }
         }
 
-        if (PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
-            if (!PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).contains("crac")) {
-                PropertyManager.INSTANCE.set(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
+        if (PropertyManager.INSTANCE.hasKey(PropertyManager.PROPERTY_FEATURES)) {
+            if (!PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_FEATURES).contains("crac")) {
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
                 PropertyManager.INSTANCE.storeProperties();
             }
         }
@@ -448,14 +448,14 @@ public class Main extends Application {
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
-        searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
-        javafxSearchPaths  = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.JAVAFX_SEARCH_PATH).split(",")));
+        searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_SEARCH_PATH).split(",")));
+        javafxSearchPaths  = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_JAVAFX_SEARCH_PATH).split(",")));
 
         // If on Linux or Mac add .sdkman/candidates/java folder to search paths if present
         if (operatingSystem == OperatingSystem.LINUX || operatingSystem == OperatingSystem.MACOS) {
             if (Detector.isSDKMANInstalled() && searchPaths.stream().filter(path -> path.equals(Detector.SDKMAN_FOLDER)).findFirst().isEmpty()) {
                 searchPaths.add(Detector.SDKMAN_FOLDER);
-                PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
                 PropertyManager.INSTANCE.storeProperties();
             }
         }
@@ -879,7 +879,7 @@ public class Main extends Application {
             if (null == nv) { return; }
             selectArchiveType();
 
-            final boolean downloadAndExtract = PropertyManager.INSTANCE.getBoolean(PropertyManager.AUTO_EXTRACT);
+            final boolean downloadAndExtract = PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_AUTO_EXTRACT);
             if (downloadAndExtract && (ArchiveType.TAR_GZ == downloadJDKSelectedPkg.getArchiveType() || ArchiveType.ZIP == downloadJDKSelectedPkg.getArchiveType())) {
                 downloadAutoExtractLabel.setVisible(true);
             } else {
@@ -1111,11 +1111,11 @@ public class Main extends Application {
 
             CheckMenuItem rememberDownloadFolderItem = new CheckMenuItem();
             rememberDownloadFolderItem.setVisible(true);
-            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER));
+            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER));
             rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
             rememberDownloadFolderItem.setOnAction(e -> rememberDownloadFolderItem.setSelected(!rememberDownloadFolderItem.isSelected()));
             rememberDownloadFolderItem.selectedProperty().addListener(o -> {
-                PropertyManager.INSTANCE.set(PropertyManager.REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
                 PropertyManager.INSTANCE.storeProperties();
                 trayIcon.removeMenuItem(6);
                 rememberDownloadFolderItem.setText(rememberDownloadFolderItem.isSelected() ? "Remember download folder" : "Don't remember download folder");
@@ -1227,10 +1227,10 @@ public class Main extends Application {
 
             CheckMenuItem rememberDownloadFolderItem = new CheckMenuItem();
             rememberDownloadFolderItem.setVisible(true);
-            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER));
+            rememberDownloadFolderItem.setSelected(PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER));
             rememberDownloadFolderItem.setText("Remember download folder");
             rememberDownloadFolderItem.selectedProperty().addListener(o -> {
-                PropertyManager.INSTANCE.set(PropertyManager.REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER, rememberDownloadFolderItem.isSelected() ? "TRUE" : "FALSE");
                 PropertyManager.INSTANCE.storeProperties();
             });
             menu.getItems().add(rememberDownloadFolderItem);
@@ -1560,8 +1560,10 @@ public class Main extends Application {
                 macProgressIndicator.setIndeterminate(false);
             }
             if (updatesAvailable.get()) {
-                Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
-                notifier.notify(notification);
+                if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_SHOW_NOTIFICATIONS)) {
+                    Notification notification = NotificationBuilder.create().title("New updates available").message(msgBuilder.toString()).image(dukeNotificationIcon).build();
+                    notifier.notify(notification);
+                }
             }
         });
 
@@ -1797,7 +1799,7 @@ public class Main extends Application {
         popups.put(distroLabel.getText(), popup);
         // ********************************************************************
 
-        final String downloadFolder        = PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER);
+        final String downloadFolder        = PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER);
         final String distributionApiString = distribution.getApiString();
         final Semver availableJavaVersion  = firstPkg.getJavaVersion();
         if (distributionApiString.equals(nameToCheck)) {
@@ -2138,12 +2140,12 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
 
         final File downloadFolder;
-        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
                 directoryChooser.setTitle("Choose folder for download");
                 downloadFolder = directoryChooser.showDialog(stage);
             } else {
-                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                 if (folder.isDirectory()) {
                     downloadFolder = folder;
                 } else {
@@ -2153,7 +2155,7 @@ public class Main extends Application {
         } else {
             downloadFolder = directoryChooser.showDialog(stage);
         }
-        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
@@ -2199,7 +2201,7 @@ public class Main extends Application {
 
             if (alreadyDownloaded) {
                 openFileLocation(new File(downloadFolder.getAbsolutePath()));
-            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
@@ -2218,12 +2220,12 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
 
         final File downloadFolder;
-        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
                 directoryChooser.setTitle("Choose folder for download");
                 downloadFolder = directoryChooser.showDialog(stage);
             } else {
-                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                 if (folder.isDirectory()) {
                     downloadFolder = folder;
                 } else {
@@ -2233,7 +2235,7 @@ public class Main extends Application {
         } else {
             downloadFolder = directoryChooser.showDialog(stage);
         }
-        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
@@ -2268,7 +2270,7 @@ public class Main extends Application {
             });
             worker.progressProperty().addListener((o, ov, nv) -> progressBar.setProgress(nv.doubleValue() * 100.0));
 
-            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
@@ -2320,7 +2322,7 @@ public class Main extends Application {
                 String javafxSearchPath = selectedFolder.getAbsolutePath() + File.separator;
                 if (javafxSearchPaths.contains(javafxSearchPath)) { return; }
                 javafxSearchPaths.add(javafxSearchPath);
-                PropertyManager.INSTANCE.set(PropertyManager.JAVAFX_SEARCH_PATH, javafxSearchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_JAVAFX_SEARCH_PATH, javafxSearchPaths.stream().collect(Collectors.joining(",")));
                 PropertyManager.INSTANCE.storeProperties();
                 rescan();
             }
@@ -2338,7 +2340,7 @@ public class Main extends Application {
                 String searchPath = selectedFolder.getAbsolutePath() + File.separator;
                 if (searchPaths.contains(searchPath)) { return; }
                 searchPaths.add(searchPath);
-                PropertyManager.INSTANCE.set(PropertyManager.SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
+                PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_SEARCH_PATH, searchPaths.stream().collect(Collectors.joining(",")));
                 PropertyManager.INSTANCE.storeProperties();
                 searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
                 rescan();
@@ -2351,11 +2353,11 @@ public class Main extends Application {
         PropertyManager.INSTANCE.resetSearchPathProperty(javafx);
         if (javafx) {
             javafxSearchPaths.clear();
-            javafxSearchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.JAVAFX_SEARCH_PATH).split(",")));
+            javafxSearchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_JAVAFX_SEARCH_PATH).split(",")));
         } else {
             distros.clear();
             searchPaths.clear();
-            searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.SEARCH_PATH).split(",")));
+            searchPaths.addAll(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_SEARCH_PATH).split(",")));
             searchPathLabel.setText(searchPaths.stream().collect(Collectors.joining(", ")));
         }
         rescan();
@@ -3149,9 +3151,9 @@ public class Main extends Application {
 
             final File    downloadFolder;
             final boolean alreadyDownloaded;
-            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-                if (!PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
-                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+                if (!PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
+                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                     if (folder.isDirectory()) {
                         downloadFolder = folder;
                         alreadyDownloaded = new File(downloadFolder.getAbsolutePath() + File.separator + downloadJDKSelectedPkg.getFilename()).exists();
@@ -3188,12 +3190,12 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
 
         final File downloadFolder;
-        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
                 directoryChooser.setTitle("Choose folder for download");
                 downloadFolder = directoryChooser.showDialog(stage);
             } else {
-                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                 if (folder.isDirectory()) {
                     downloadFolder = folder;
                 } else {
@@ -3203,7 +3205,7 @@ public class Main extends Application {
         } else {
             downloadFolder = directoryChooser.showDialog(stage);
         }
-        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
@@ -3300,7 +3302,7 @@ public class Main extends Application {
 
             if (alreadyDownloaded) {
                 openFileLocation(new File(downloadFolder.getAbsolutePath()));
-            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);
@@ -3791,9 +3793,9 @@ public class Main extends Application {
 
             final File    downloadFolder;
             final boolean graalAlreadyDownloaded;
-            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-                if (!PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
-                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+            if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+                if (!PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
+                    File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                     if (folder.isDirectory()) {
                         downloadFolder = folder;
                         graalAlreadyDownloaded = new File(downloadFolder.getAbsolutePath() + File.separator + downloadGraalSelectedPkg.getFilename()).exists();
@@ -3830,12 +3832,12 @@ public class Main extends Application {
         directoryChooser.setTitle("Choose folder for download");
 
         final File downloadFolder;
-        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
-            if (PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER).isEmpty()) {
+        if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
+            if (PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER).isEmpty()) {
                 directoryChooser.setTitle("Choose folder for download");
                 downloadFolder = directoryChooser.showDialog(stage);
             } else {
-                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.DOWNLOAD_FOLDER));
+                File folder = new File(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_DOWNLOAD_FOLDER));
                 if (folder.isDirectory()) {
                     downloadFolder = folder;
                 } else {
@@ -3845,7 +3847,7 @@ public class Main extends Application {
         } else {
             downloadFolder = directoryChooser.showDialog(stage);
         }
-        PropertyManager.INSTANCE.set(PropertyManager.DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
+        PropertyManager.INSTANCE.set(PropertyManager.PROPERTY_DOWNLOAD_FOLDER, downloadFolder.getAbsolutePath());
         PropertyManager.INSTANCE.storeProperties();
 
         if (null != downloadFolder) {
@@ -3937,7 +3939,7 @@ public class Main extends Application {
 
             if (alreadyDownloaded) {
                 openFileLocation(new File(downloadFolder.getAbsolutePath()));
-            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.REMEMBER_DOWNLOAD_FOLDER)) {
+            } else if (PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) {
                 new Thread((Runnable) worker).start();
             } else {
                 Alert info = new Alert(AlertType.INFORMATION);

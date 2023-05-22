@@ -17,10 +17,11 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 import eu.hansolo.fx.jdkmon.Main;
+import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.util.Helper;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,19 +35,20 @@ import java.util.Properties;
 public enum PropertyManager {
     INSTANCE;
 
-    public  static final String     VERSION_PROPERTIES       = "version.properties";
-    public  static final String     JDKMON_PROPERTIES        = "jdkmon.properties";
-    public  static final String     SEARCH_PATH              = "searchpath";
-    public  static final String     JAVAFX_SEARCH_PATH       = "javafx_searchpath";
-    public  static final String     REMEMBER_DOWNLOAD_FOLDER = "remember_download_folder";
-    public  static final String     DOWNLOAD_FOLDER          = "download_folder";
-    public  static final String     DARK_MODE                = "dark_mode";
-    public  static final String     FEATURES                 = "features";
-    public  static final String     AUTO_EXTRACT             = "autoextract";
-    public  static final String     SHOW_UNKNOWN_BUILDS      = "show_unknown_builds";
-    public  static final String     VERSION                  = "version";
-    private              Properties properties;
-    private              Properties versionProperties;
+    public static final String     VERSION_PROPERTIES                = "version.properties";
+    public static final String     JDKMON_PROPERTIES                 = "jdkmon.properties";
+    public static final String     PROPERTY_VERSION                  = "version";
+    public static final String     PROPERTY_SEARCH_PATH              = "searchpath";
+    public static final String     PROPERTY_JAVAFX_SEARCH_PATH       = "javafx_searchpath";
+    public static final String     PROPERTY_REMEMBER_DOWNLOAD_FOLDER = "remember_download_folder";
+    public static final String     PROPERTY_DOWNLOAD_FOLDER          = "download_folder";
+    public static final String     PROPERTY_DARK_MODE                = "dark_mode";
+    public static final String     PROPERTY_FEATURES                 = "features";
+    public static final String     PROPERTY_AUTO_EXTRACT             = "autoextract";
+    public static final String     PROPERTY_SHOW_UNKNOWN_BUILDS      = "show_unknown_builds";
+    public static final String     PROPERTY_SHOW_NOTIFICATIONS       = "show_notifications";
+    private             Properties properties;
+    private             Properties versionProperties;
 
 
     // ******************** Constructors **************************************
@@ -69,9 +71,8 @@ public enum PropertyManager {
         // If properties empty, fill with default values
         if (properties.isEmpty()) {
             createProperties(properties);
-        } else if (!properties.containsKey(JAVAFX_SEARCH_PATH)) {
-            properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
-            storeProperties();
+        } else {
+            validateProperties();
         }
 
         // Version number properties
@@ -119,7 +120,6 @@ public enum PropertyManager {
 
     public boolean hasKey(final String key) { return properties.containsKey(key); }
 
-
     public void storeProperties() {
         if (null == properties) { return; }
         final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
@@ -134,23 +134,10 @@ public enum PropertyManager {
         final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
             if (javafx) {
-                properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
+                properties.put(PROPERTY_JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
             } else {
-                final String searchPath;
-                switch (DiscoClient.getOperatingSystem()) {
-                    case MACOS:
-                        searchPath = Finder.MACOS_JAVA_INSTALL_PATH;
-                        break;
-                    case WINDOWS:
-                        searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH;
-                        break;
-                    case LINUX:
-                        searchPath = Finder.LINUX_JAVA_INSTALL_PATH;
-                        break;
-                    default:
-                        searchPath = "";
-                }
-                properties.put(SEARCH_PATH, searchPath);
+                final String searchPath = getDefaultSearchPath();
+                properties.put(PROPERTY_SEARCH_PATH, searchPath);
             }
             properties.store(output, null);
         } catch (IOException ex) {
@@ -159,29 +146,51 @@ public enum PropertyManager {
     }
 
     public VersionNumber getVersionNumber() {
-        return VersionNumber.fromText(versionProperties.getProperty(VERSION));
+        return VersionNumber.fromText(versionProperties.getProperty(PROPERTY_VERSION));
     }
 
 
     // ******************** Properties ****************************************
+    private String getDefaultSearchPath() {
+        final OperatingSystem operatingSystem = Helper.getOperatingSystem();
+        final String searchPath;
+        switch(operatingSystem) {
+            case MACOS                           -> searchPath = Finder.MACOS_JAVA_INSTALL_PATH;
+            case WINDOWS                         -> searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH;
+            case LINUX, ALPINE_LINUX, LINUX_MUSL -> searchPath = Finder.LINUX_JAVA_INSTALL_PATH;
+            default                              -> searchPath = "";
+        }
+        return searchPath;
+    }
+
+    private void validateProperties() {
+        if (null == properties) { return; }
+        boolean storeProperties = false;
+        if (!properties.containsKey(PROPERTY_SEARCH_PATH)) { properties.put(PROPERTY_SEARCH_PATH, getDefaultSearchPath()); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_JAVAFX_SEARCH_PATH)) { properties.put(PROPERTY_JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_REMEMBER_DOWNLOAD_FOLDER)) { properties.put(PROPERTY_REMEMBER_DOWNLOAD_FOLDER, "FALSE"); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_DOWNLOAD_FOLDER)) { properties.put(PROPERTY_DOWNLOAD_FOLDER, ""); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_DARK_MODE)) { properties.put(PROPERTY_DARK_MODE, "FALSE"); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_FEATURES)) { properties.put(PROPERTY_FEATURES, Constants.FEATURES); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_AUTO_EXTRACT)) { properties.put(PROPERTY_AUTO_EXTRACT, "FALSE"); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_SHOW_UNKNOWN_BUILDS)) { properties.put(PROPERTY_SHOW_UNKNOWN_BUILDS, "FALSE"); storeProperties = true; }
+        if (!properties.containsKey(PROPERTY_SHOW_NOTIFICATIONS)) { properties.put(PROPERTY_SHOW_NOTIFICATIONS, "TRUE"); storeProperties = true; }
+        if (storeProperties) { storeProperties(); }
+    }
+
     private void createProperties(Properties properties) {
         final String propFilePath = new StringBuilder(Constants.HOME_FOLDER).append(JDKMON_PROPERTIES).toString();
         try (OutputStream output = new FileOutputStream(propFilePath)) {
-            final String searchPath;
-            switch(DiscoClient.getOperatingSystem()) {
-                case MACOS  : searchPath = Finder.MACOS_JAVA_INSTALL_PATH;   break;
-                case WINDOWS: searchPath = Finder.WINDOWS_JAVA_INSTALL_PATH; break;
-                case LINUX  : searchPath = Finder.LINUX_JAVA_INSTALL_PATH;   break;
-                default     : searchPath = "";
-            }
-            properties.put(SEARCH_PATH, searchPath);
-            properties.put(JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
-            properties.put(REMEMBER_DOWNLOAD_FOLDER, "FALSE");
-            properties.put(DOWNLOAD_FOLDER, "");
-            properties.put(DARK_MODE, "FALSE");
-            properties.put(FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac"); // comma separated list of available features
-            properties.put(AUTO_EXTRACT, "FALSE");
-            properties.put(SHOW_UNKNOWN_BUILDS, "FALSE");
+            final String searchPath = getDefaultSearchPath();
+            properties.put(PROPERTY_SEARCH_PATH, searchPath);
+            properties.put(PROPERTY_JAVAFX_SEARCH_PATH, Constants.HOME_FOLDER);
+            properties.put(PROPERTY_REMEMBER_DOWNLOAD_FOLDER, "FALSE");
+            properties.put(PROPERTY_DOWNLOAD_FOLDER, "");
+            properties.put(PROPERTY_DARK_MODE, "FALSE");
+            properties.put(PROPERTY_FEATURES, Constants.FEATURES);
+            properties.put(PROPERTY_AUTO_EXTRACT, "FALSE");
+            properties.put(PROPERTY_SHOW_UNKNOWN_BUILDS, "FALSE");
+            properties.put(PROPERTY_SHOW_NOTIFICATIONS, "TRUE");
             properties.store(output, null);
         } catch (IOException ex) {
             ex.printStackTrace();

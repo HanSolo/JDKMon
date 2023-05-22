@@ -17,6 +17,7 @@
 package eu.hansolo.fx.jdkmon.notification;
 
 import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.util.Helper;
 import io.foojay.api.discoclient.DiscoClient;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -84,11 +85,11 @@ public class Notification {
 
         private static final double                ICON_WIDTH      = 18;
         private static final double                ICON_HEIGHT     = 18;
-        private static       OperatingSystem       operatingSystem = DiscoClient.getOperatingSystem();
+        private static       OperatingSystem       operatingSystem = Helper.getOperatingSystem();
         private static       double                width           = OperatingSystem.WINDOWS == operatingSystem ? 332 : 345;
-        private static       double                height          = OperatingSystem.WINDOWS == operatingSystem ? 92 : 75;
-        private static       double                offsetX         = OperatingSystem.WINDOWS == operatingSystem ? 0 : 10;
-        private static       double                offsetY         = OperatingSystem.WINDOWS == operatingSystem ? 72 : 36;
+        private static       double                height          = OperatingSystem.WINDOWS == operatingSystem ?  92 :  75;
+        private static       double                offsetX         = OperatingSystem.WINDOWS == operatingSystem ?   0 :  OperatingSystem.MACOS == operatingSystem ? 10 : 20;
+        private static       double                offsetY         = OperatingSystem.WINDOWS == operatingSystem ?  72 :  36;
         private static       double                spacingY        = 5;
         private static       Pos                   popupLocation   = Pos.TOP_RIGHT;
         private static       Stage                 stageRef        = null;
@@ -332,17 +333,9 @@ public class Notification {
             IntStream.range(0, popups.size()).parallel().forEachOrdered(
                 i -> {
                     switch (popupLocation) {
-                        case TOP_LEFT: case TOP_CENTER: case TOP_RIGHT: 
-                            popups.get(i).setY(popups.get(i).getY() + height + spacingY); 
-                            break;
-                        
-                        case BOTTOM_LEFT: case BOTTOM_CENTER: case BOTTOM_RIGHT:                             
-                            popups.get(i).setY(popups.get(i).getY() - height - spacingY);                             
-                            break;
-                        
-                        default: 
-                            popups.get(i).setY(popups.get(i).getY() - height - spacingY);
-                            break;
+                        case TOP_LEFT, TOP_CENTER, TOP_RIGHT          -> popups.get(i).setY(popups.get(i).getY() + height + spacingY);
+                        case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> popups.get(i).setY(popups.get(i).getY() - height - spacingY);
+                        default                                       -> popups.get(i).setY(popups.get(i).getY() - height - spacingY);
                     }    
                 }
             );
@@ -426,10 +419,10 @@ public class Notification {
 
         private double calcX(final double left, final double totalWidth) {
             switch (popupLocation) {
-                case TOP_LEFT  : case CENTER_LEFT : case BOTTOM_LEFT  : return left + offsetX;
-                case TOP_CENTER: case CENTER      : case BOTTOM_CENTER: return left + (totalWidth - width) * 0.5 - offsetX;
-                case TOP_RIGHT : case CENTER_RIGHT: case BOTTOM_RIGHT : return left + totalWidth - width - offsetX;
-                default: return 0.0;
+                case TOP_LEFT, CENTER_LEFT, BOTTOM_LEFT    -> { return left + offsetX; }
+                case TOP_CENTER, CENTER, BOTTOM_CENTER     -> { return left + (totalWidth - width) * 0.5 - offsetX; }
+                case TOP_RIGHT, CENTER_RIGHT, BOTTOM_RIGHT -> { return left + totalWidth - width - offsetX; }
+                default                                    -> { return 0.0; }
             }
         }
         private double calcY(final double top, final double totalHeight ) {

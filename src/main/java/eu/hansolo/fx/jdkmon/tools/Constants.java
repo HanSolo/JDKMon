@@ -50,6 +50,8 @@ public class Constants {
 
     public static final String  UNKNOWN_BUILD_OF_OPENJDK               = "Unknown build of OpenJDK";
 
+    public static final String  FEATURES                               = "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac"; // comma separated list of available features
+
     public static final ConcurrentHashMap<String, BuildScope> SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
         // Builds of OpenJDK
         put("aoj", BuildScope.BUILD_OF_OPEN_JDK);

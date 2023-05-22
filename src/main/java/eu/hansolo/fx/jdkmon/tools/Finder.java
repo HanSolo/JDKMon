@@ -150,7 +150,7 @@ public class Finder {
         //CompletableFuture.allOf(updateFutures.toArray(new CompletableFuture[updateFutures.size()])).join();
 
         // Show unknown builds of OpenJDK
-        final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.SHOW_UNKNOWN_BUILDS, false);
+        final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_SHOW_UNKNOWN_BUILDS, false);
         distributions.stream()
                      .filter(Objects::nonNull)
                      .filter(distro ->  showUnknownBuildsOfOpenJDK ? distro.getName() != null : !distro.getName().equals(Constants.UNKNOWN_BUILD_OF_OPENJDK))
@@ -533,12 +533,12 @@ public class Finder {
 
                 if (lines.length > 2) {
                     String line3 = lines[2].toLowerCase();
-                    if (!PropertyManager.INSTANCE.hasKey(PropertyManager.FEATURES)) {
-                        PropertyManager.INSTANCE.setString(PropertyManager.FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
+                    if (!PropertyManager.INSTANCE.hasKey(PropertyManager.PROPERTY_FEATURES)) {
+                        PropertyManager.INSTANCE.setString(PropertyManager.PROPERTY_FEATURES, "loom,panama,metropolis,valhalla,lanai,kona_fiber,crac");
                         PropertyManager.INSTANCE.storeProperties();
                     }
 
-                    String[] features = PropertyManager.INSTANCE.getString(PropertyManager.FEATURES).split(",");
+                    String[] features = PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_FEATURES).split(",");
                     for (String feat : features) {
                             feat = feat.trim().toLowerCase();
                             if (line3.contains(feat)) {
@@ -640,7 +640,7 @@ public class Finder {
                 if (architecture.isEmpty()) { architecture = this.architecture.name().toLowerCase(); }
 
                 // @ToDo: Assuming an unknown build of OpenJDK is a build of Oracle OpenJDK
-                final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.SHOW_UNKNOWN_BUILDS, false);
+                final boolean showUnknownBuildsOfOpenJDK = PropertyManager.INSTANCE.getBoolean(PropertyManager.PROPERTY_SHOW_UNKNOWN_BUILDS, false);
                 if (showUnknownBuildsOfOpenJDK && name.equals(Constants.UNKNOWN_BUILD_OF_OPENJDK) && apiString.isEmpty()) {
                     apiString = "oracle_open_jdk";
                 }
