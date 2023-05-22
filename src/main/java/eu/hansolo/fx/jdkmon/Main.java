@@ -73,6 +73,7 @@ import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Distribution;
+import io.foojay.api.discoclient.pkg.Feature;
 import io.foojay.api.discoclient.pkg.MajorVersion;
 import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
@@ -1665,9 +1666,11 @@ public class Main extends Application {
         Pkg     firstPkg         = optFirstPkg.get();
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
+        Feature feature          = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
         for (Distro distro : distros) {
-            if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck) {
+            Feature distroFeature = distro.getFeature().isEmpty() ? Feature.NONE : Feature.fromText(distro.getFeature());
+            if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck && distroFeature == feature) {
                 return hBox;
             }
         }
