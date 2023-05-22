@@ -1679,6 +1679,7 @@ public class Main extends Application {
         if (distros.stream()
                    .filter(d -> d.getApiString().equals(firstPkg.getDistribution().getApiString()))
                    .filter(d -> VersionNumber.equalsExceptBuild(VersionNumber.fromText(d.getVersion()), firstPkg.getJavaVersion().getVersionNumber()))
+                   .filter(d -> firstPkg.getFeatures().isEmpty() ? d != null : d.getFeature() == firstPkg.getFeatures().stream().findFirst().get())
                    .count() > 0) {
             return hBox;
         }
