@@ -1581,7 +1581,7 @@ public class Main extends Application {
             vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, distribution.getVersionNumber());
         }
 
-        StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(null == distribution.getFeature() ? Feature.NONE.getApiString() : " (" + distribution.getFeature().getApiString() + ")")
+        StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append((null == distribution.getFeature() || Feature.NONE == distribution.getFeature()) ? "" : " (" + distribution.getFeature().getApiString() + ")")
                                                                                     .append(distribution.getFxBundled() ? " (FX)" : "")
                                                                                     .append("  ")
                                                                                     .append(distribution.getVersion())
