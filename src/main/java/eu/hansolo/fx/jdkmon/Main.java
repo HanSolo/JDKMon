@@ -1573,7 +1573,6 @@ public class Main extends Application {
 
     private HBox getDistroEntry(final Distro distribution, final List<Pkg> pkgs) {
         final boolean isDistributionInUse = distribution.isInUse();
-
         List<CVE> vulnerabilities;
         if (BuildScope.BUILD_OF_OPEN_JDK == distribution.getBuildScope()) {
             vulnerabilities = Helper.getCVEsForVersion(cves, distribution.getVersionNumber());
