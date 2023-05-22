@@ -18,6 +18,7 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.versioning.VersionNumber;
+import io.foojay.api.discoclient.pkg.Feature;
 
 
 public class Distro {
@@ -30,12 +31,12 @@ public class Distro {
     private final String        architecture;
     private final Boolean       fxBundled;
     private final String        location;
-    private final String        feature;
+    private final Feature       feature;
     private final BuildScope    buildScope;
     private       boolean       inUse;
 
 
-    public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final String feature, final BuildScope buildScope) {
+    public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final Feature feature, final BuildScope buildScope) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
@@ -67,7 +68,7 @@ public class Distro {
 
     public String getLocation() { return location; }
 
-    public String getFeature() { return feature; }
+    public Feature getFeature() { return feature; }
 
     public BuildScope getBuildScope() { return buildScope; }
 

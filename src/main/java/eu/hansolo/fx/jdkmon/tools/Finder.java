@@ -28,6 +28,7 @@ import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
+import io.foojay.api.discoclient.pkg.Feature;
 import io.foojay.api.discoclient.pkg.Pkg;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -155,7 +156,7 @@ public class Finder {
                      .filter(Objects::nonNull)
                      .filter(distro ->  showUnknownBuildsOfOpenJDK ? distro.getName() != null : !distro.getName().equals(Constants.UNKNOWN_BUILD_OF_OPENJDK))
                      .forEach(distribution -> {
-            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature());
+            List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature().getApiString());
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
@@ -382,7 +383,7 @@ public class Finder {
                 String       apiString        = "";
                 String       operatingSystem  = "";
                 String       architecture     = "";
-                String       feature          = "";
+                Feature      feature          = Feature.NONE;
                 Boolean      fxBundled        = Boolean.FALSE;
                 //FPU          fpu              = FPU.UNKNOWN;
                 
@@ -542,7 +543,7 @@ public class Finder {
                     for (String feat : features) {
                             feat = feat.trim().toLowerCase();
                             if (line3.contains(feat)) {
-                                feature = feat;
+                                feature = Feature.fromText(feat);
                                 break;
                             }
                         }

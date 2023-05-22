@@ -1581,7 +1581,7 @@ public class Main extends Application {
             vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, distribution.getVersionNumber());
         }
 
-        StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(distribution.getFeature().isEmpty() ? "" : " (" + distribution.getFeature() + ")")
+        StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append(null == distribution.getFeature() ? Feature.NONE.getApiString() : " (" + distribution.getFeature().getApiString() + ")")
                                                                                     .append(distribution.getFxBundled() ? " (FX)" : "")
                                                                                     .append("  ")
                                                                                     .append(distribution.getVersion())
@@ -1669,7 +1669,7 @@ public class Main extends Application {
         Feature feature          = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
         for (Distro distro : distros) {
-            Feature distroFeature = distro.getFeature().isEmpty() ? Feature.NONE : Feature.fromText(distro.getFeature());
+            Feature distroFeature = null == distro.getFeature() ? Feature.NONE : distro.getFeature();
             if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck && distroFeature == feature) {
                 return hBox;
             }
