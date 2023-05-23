@@ -1665,11 +1665,10 @@ public class Main extends Application {
         Pkg     firstPkg         = optFirstPkg.get();
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
-        //String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
+        String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
         for (Distro distro : distros) {
             if (distro.getApiString().equals(nameToCheck) &&
-                //distro.getVersion().equals(versionToCheck) &&
-                distro.getVersionNumber().compareTo(firstPkg.getJavaVersion().getVersionNumber()) > 0 &&
+                distro.getVersion().equals(versionToCheck) &&
                 distro.getFxBundled() == fxBundledToCheck) {
                 return hBox;
             }
