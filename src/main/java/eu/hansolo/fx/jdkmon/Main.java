@@ -1653,33 +1653,44 @@ public class Main extends Application {
         HBox hBox = new HBox(5, distroBox);
         hBox.setMinWidth(360);
 
+        // Filter ubuntu and debian distribution related JDK's because they cannot be updated by JDKMon
+        if (distribution.getApiString().equals("ubuntu") || distribution.getApiString().equals("debian")) { return hBox; }
+
         if (pkgs.isEmpty()) { return hBox; }
-        Collections.sort(pkgs, Comparator.comparing(Pkg::getDistributionName).reversed());
+
+        if (distribution.getApiString().equals("zulu_prime")) {
+            Collections.sort(pkgs, Comparator.comparing(Pkg::getDistributionName).reversed().thenComparing(Comparator.comparing(Pkg::getDistributionVersion).reversed()));
+        } else {
+            Collections.sort(pkgs, Comparator.comparing(Pkg::getDistributionName).reversed());
+        }
 
         Optional<Pkg> optFirstPkg = pkgs.stream()
                                         .filter(pkg -> distribution.getBuildScope() == Constants.SCOPE_LOOKUP.get(pkg.getDistribution().getApiString()))
+                                        .filter(pkg -> distribution.getFeature() != Feature.NONE ? pkg.getFeatures().isEmpty() ? pkg == null : distribution.getFeature() == pkg.getFeatures().stream().findFirst().get() : pkg != null)
                                         .sorted(Comparator.comparing(Pkg::getDistributionName).reversed())
                                         .findFirst();
         if (optFirstPkg.isEmpty()) { return hBox; }
-        
+
         Pkg     firstPkg         = optFirstPkg.get();
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
+        Feature featureToCheck   = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
+
         for (Distro distro : distros) {
             if (distro.getApiString().equals(nameToCheck) &&
                 distro.getVersion().equals(versionToCheck) &&
-                distro.getFxBundled() == fxBundledToCheck) {
+                distro.getFxBundled() == fxBundledToCheck &&
+                distro.getFeature() == featureToCheck) {
                 return hBox;
             }
         }
 
         // If available update is already installed don't show it
-        Feature feature = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         if (distros.stream()
                    .filter(d -> d.getApiString().equals(firstPkg.getDistribution().getApiString()))
                    .filter(d -> VersionNumber.equalsExceptBuild(VersionNumber.fromText(d.getVersion()), firstPkg.getJavaVersion().getVersionNumber()))
-                   .filter(d -> firstPkg.getFeatures().isEmpty() ? d != null : d.getFeature() == feature)
+                   .filter(d -> d.getFeature() == featureToCheck)
                    .count() > 0) {
             return hBox;
         }
@@ -1836,12 +1847,15 @@ public class Main extends Application {
         hBox.getChildren().add(spacer);
 
         Collections.sort(pkgs, Comparator.comparing(Pkg::getArchiveType));
+        List<ArchiveType> archiveTypes = new ArrayList<>();
         pkgs.forEach(pkg -> {
             boolean     alreadyDownloaded = false;
             String      filename          = pkg.getFileName();
             ArchiveType archiveType       = pkg.getArchiveType();
             Label       archiveTypeLabel  = new Label(archiveType.getUiString());
             archiveTypeLabel.getStyleClass().add("tag-label");
+            if (archiveTypes.contains(archiveType)) { return; }
+            archiveTypes.add(archiveType);
             if (null != downloadFolder && !downloadFolder.isEmpty()) {
                 alreadyDownloaded = new File(downloadFolder + File.separator + filename).exists();
             }

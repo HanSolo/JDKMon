@@ -157,6 +157,7 @@ public class Finder {
                      .filter(distro ->  showUnknownBuildsOfOpenJDK ? distro.getName() != null : !distro.getName().equals(Constants.UNKNOWN_BUILD_OF_OPENJDK))
                      .forEach(distribution -> {
             List<Pkg> availableUpdates = discoclient.updateAvailableFor(DiscoClient.getDistributionFromText(distribution.getApiString()), Semver.fromText(distribution.getVersion()).getSemver1(), operatingSystem, Architecture.fromText(distribution.getArchitecture()), distribution.getFxBundled(), null, distribution.getFeature().getApiString());
+
             if (null != availableUpdates) {
                 distrosToUpdate.put(distribution, availableUpdates);
             }
@@ -166,8 +167,9 @@ public class Finder {
             } else if (OperatingSystem.LINUX == operatingSystem) {
                 availableUpdates = availableUpdates.stream().filter(pkg -> pkg.getLibCType() != LibCType.MUSL).collect(Collectors.toList());
             }
-            if (Architecture.NOT_FOUND != architecture) {
-                availableUpdates = availableUpdates.stream().filter(pkg -> architecture.getSynonyms().contains(pkg.getArchitecture())).collect(Collectors.toList());
+
+            if (Architecture.NOT_FOUND != architecture && !architecture.getSynonyms().isEmpty()) {
+                availableUpdates = availableUpdates.stream().filter(pkg -> architecture.getSynonyms().contains(pkg.getArchitecture()) | pkg.getArchitecture() == architecture).collect(Collectors.toList());
             }
 
             distrosToUpdate.put(distribution, availableUpdates);

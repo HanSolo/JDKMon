@@ -74,6 +74,7 @@ public class Constants {
         put("semeru_certified", BuildScope.BUILD_OF_OPEN_JDK);
         put("temurin", BuildScope.BUILD_OF_OPEN_JDK);
         put("trava", BuildScope.BUILD_OF_OPEN_JDK);
+        put("ubuntu", BuildScope.BUILD_OF_OPEN_JDK);
         put("zulu", BuildScope.BUILD_OF_OPEN_JDK);
         put("zulu_prime", BuildScope.BUILD_OF_OPEN_JDK);
         // Builds of GraalVM
@@ -82,14 +83,15 @@ public class Constants {
         put("graalvm_ce16", BuildScope.BUILD_OF_GRAALVM);
         put("graalvm_ce17", BuildScope.BUILD_OF_GRAALVM);
         put("graalvm_ce19", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce21", BuildScope.BUILD_OF_GRAALVM);
         put("liberica_native", BuildScope.BUILD_OF_GRAALVM);
         put("mandrel", BuildScope.BUILD_OF_GRAALVM);
         put("gluon_graalvm", BuildScope.BUILD_OF_GRAALVM);
     }};
     
     public static final ConcurrentHashMap<Scope, List<String>> REVERSE_SCOPE_LOOKUP = new ConcurrentHashMap<>() {{
-        put(BuildScope.BUILD_OF_OPEN_JDK, List.of("aoj", "aoj_openj9", "bisheng", "corretto", "debian", "dragonwell", "jetbrains", "kona", "liberica", "microsoft", "ojdk_build", "open_logic", "oracle", "oracle_open_jdk", "red_hat", "sap_machine", "semeru", "semeru_certified", "temurin", "trava", "zulu", "zulu_prime"));
-        put(BuildScope.BUILD_OF_GRAALVM, List.of("graalvm_ce8", "graalvm_ce11", "graalvm_ce16", "graalvm_ce17", "graalvm_ce19", "liberica_native", "mandrel", "gluon_graalvm"));
+        put(BuildScope.BUILD_OF_OPEN_JDK, List.of("aoj", "aoj_openj9", "bisheng", "corretto", "debian", "dragonwell", "jetbrains", "kona", "liberica", "microsoft", "ojdk_build", "open_logic", "oracle", "oracle_open_jdk", "red_hat", "sap_machine", "semeru", "semeru_certified", "temurin", "trava", "ubuntu", "zulu", "zulu_prime"));
+        put(BuildScope.BUILD_OF_GRAALVM, List.of("graalvm_ce8", "graalvm_ce11", "graalvm_ce16", "graalvm_ce17", "graalvm_ce19", "graalvm_ce21", "liberica_native", "mandrel", "gluon_graalvm"));
     }};
 
 }
