@@ -1673,6 +1673,7 @@ public class Main extends Application {
         }
 
         // If available update is already installed don't show it
+        System.out.println("firstPkg: " + firstPkg.getDistributionName() + " -> " + firstPkg.getJavaVersion());
         Feature feature = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         if (distros.stream()
                    .filter(d -> d.getApiString().equals(firstPkg.getDistribution().getApiString()))
