@@ -1665,20 +1665,19 @@ public class Main extends Application {
         Pkg     firstPkg         = optFirstPkg.get();
         String  nameToCheck      = firstPkg.getDistribution().getApiString();
         Boolean fxBundledToCheck = firstPkg.isJavaFXBundled();
-        Feature feature          = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         String  versionToCheck   = firstPkg.getJavaVersion().getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false);
         for (Distro distro : distros) {
-            Feature distroFeature = null == distro.getFeature() ? Feature.NONE : distro.getFeature();
-            if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck && distroFeature == feature) {
+            if (distro.getApiString().equals(nameToCheck) && distro.getVersion().equals(versionToCheck) && distro.getFxBundled() == fxBundledToCheck) {
                 return hBox;
             }
         }
 
         // If available update is already installed don't show it
+        Feature feature = firstPkg.getFeatures().isEmpty() ? Feature.NONE : firstPkg.getFeatures().stream().findFirst().get();
         if (distros.stream()
                    .filter(d -> d.getApiString().equals(firstPkg.getDistribution().getApiString()))
                    .filter(d -> VersionNumber.equalsExceptBuild(VersionNumber.fromText(d.getVersion()), firstPkg.getJavaVersion().getVersionNumber()))
-                   .filter(d -> firstPkg.getFeatures().isEmpty() ? d != null : d.getFeature() == firstPkg.getFeatures().stream().findFirst().get())
+                   .filter(d -> firstPkg.getFeatures().isEmpty() ? d != null : d.getFeature() == feature)
                    .count() > 0) {
             return hBox;
         }
