@@ -1,8 +1,8 @@
 @ECHO OFF
 
 set JAVA_VERSION=17
-set MAIN_JAR=JDKMon-17.0.61.jar
-set APP_VERSION=17.0.61
+set MAIN_JAR=JDKMon-17.0.63.jar
+set APP_VERSION=17.0.63
 
 rem ------ SETUP DIRECTORIES AND FILES ----------------------------------------
 rem Remove previously generated java runtime and installers. Copy all required

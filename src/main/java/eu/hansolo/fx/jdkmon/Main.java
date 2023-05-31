@@ -438,8 +438,8 @@ public class Main extends Application {
         // Scheduled jobs
         executor = Executors.newScheduledThreadPool(2);
         executor.scheduleAtFixedRate(() -> rescan(), Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
-        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateCves(); } }, Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
-        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateCves(true); } }, Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(true); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> {
             updateDownloadJDKPkgs();
