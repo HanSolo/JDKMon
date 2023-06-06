@@ -103,6 +103,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
@@ -314,7 +315,8 @@ public class Main extends Application {
     private              Set<Architecture>         downloadGraalArchitectures;
     private              Set<ArchiveType>          downloadGraalArchiveTypes;
     private              ProgressBar               downloadGraalProgressBar;
-    
+
+    private              ImageView                 sdkmanImgVw;
     private              ImageView                 tckTestedTag;
     private              ImageView                 aqavitTestedTag;
     private              Hyperlink                 tckTestedLink;
@@ -492,6 +494,14 @@ public class Main extends Application {
         searchPathLabel.getStyleClass().add("small-label");
 
         titleBox = new VBox(5, titleProgressBox, searchPathLabel);
+
+
+        sdkmanImgVw = new ImageView(new Image(Main.class.getResourceAsStream("sdkman.png")));
+        sdkmanImgVw.setPreserveRatio(true);
+        sdkmanImgVw.setFitHeight(18);
+        //sdkmanImgVw.setVisible(false);
+        Tooltip.install(sdkmanImgVw, new Tooltip("Handled by SDKman"));
+
 
         List<HBox> distroEntries = new ArrayList<>();
 
@@ -1591,6 +1601,12 @@ public class Main extends Application {
         distroLabel.setMinWidth(220);
         distroLabel.setAlignment(Pos.CENTER_LEFT);
         distroLabel.setMaxWidth(Double.MAX_VALUE);
+        distroLabel.setGraphicTextGap(5);
+        distroLabel.setContentDisplay(ContentDisplay.RIGHT);
+
+        if (distribution.isHandledBySdkman()) {
+            distroLabel.setGraphic(sdkmanImgVw);
+        }
 
         distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
         distroLabel.setOnMousePressed(e -> {

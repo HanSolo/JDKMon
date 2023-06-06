@@ -131,9 +131,10 @@ public class Finder {
         }
 
         searchPaths.forEach(searchPath -> {
-            final Path       path      = Paths.get(searchPath);
-            final List<Path> javaFiles = findByFileName(path, javaFile);
-            javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros));
+            final Path       path            = Paths.get(searchPath);
+            final boolean    handledBySdkman = searchPath.equals(Detector.SDKMAN_FOLDER);
+            final List<Path> javaFiles       = findByFileName(path, javaFile);
+            javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
         });
         service.shutdown();
         try {
@@ -364,7 +365,7 @@ public class Finder {
         return result;
     }
 
-    private void checkForDistribution(final String java, final Set<Distro> distros) {
+    private void checkForDistribution(final String java, final Set<Distro> distros, final boolean handledBySdkman) {
         AtomicBoolean inUse = new AtomicBoolean(false);
 
         try {
@@ -648,7 +649,7 @@ public class Finder {
                     apiString = "oracle_open_jdk";
                 }
 
-                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope);
+                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman);
                 if (inUse.get()) { distributionFound.setInUse(true); }
 
                 distros.add(distributionFound);
