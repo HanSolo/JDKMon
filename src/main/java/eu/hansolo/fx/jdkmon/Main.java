@@ -1535,6 +1535,7 @@ public class Main extends Application {
             Set<Distro> distrosFound = finder.getDistributions(searchPaths);
             distros.setAll(distrosFound);
             SwingUtilities.invokeLater(() -> checkForUpdates());
+            Helper.createJdkSwitcherScript(operatingSystem, distrosFound);
         });
     }
 

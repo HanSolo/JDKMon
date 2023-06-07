@@ -649,7 +649,7 @@ public class Finder {
                     apiString = "oracle_open_jdk";
                 }
 
-                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman);
+                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
                 if (inUse.get()) { distributionFound.setInUse(true); }
 
                 distros.add(distributionFound);

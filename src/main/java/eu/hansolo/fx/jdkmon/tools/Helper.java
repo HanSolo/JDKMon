@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.Constants.CVE;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
+import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
@@ -53,10 +54,13 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
+
+import static eu.hansolo.jdktools.Constants.NEW_LINE;
 
 
 public class Helper {
@@ -117,6 +121,67 @@ public class Helper {
         final Path           path   = Paths.get(filename);
         final BufferedReader reader = Files.newBufferedReader(path);
         return reader.lines().collect(Collectors.toList());
+    }
+
+    public static final void saveToTextFileToUserFolder(final String filename, final String text) {
+        if (null == text || text.isEmpty()) { return; }
+
+        final File existingFile = new File(filename);
+        if (existingFile.exists()) { existingFile.delete(); }
+
+        try {
+            Files.write(Paths.get(Constants.HOME_FOLDER + filename), text.getBytes());
+        } catch (IOException e) {
+            System.out.println("Error writing text file: " + filename);
+        }
+    }
+
+    public static final void createJdkSwitcherScript(final OperatingSystem operatingSystem, final Set<Distro> distros) {
+        final StringBuilder builder = new StringBuilder();
+        switch(operatingSystem) {
+            case WINDOWS -> {
+
+            }
+            case LINUX, LINUX_MUSL, ALPINE_LINUX -> {
+
+            }
+            case MACOS -> {
+                builder.append("#!/bin/sh").append(NEW_LINE)
+                       .append(NEW_LINE)
+                       .append("# To switch to specific JDK you need to call the script as follows:").append(NEW_LINE)
+                       .append("# . /switch-jdk.sh JDK_NAME").append(NEW_LINE)
+                       .append("#").append(NEW_LINE)
+                       .append("# JDK_NAME can be one of the following:").append(NEW_LINE);
+                distros.forEach(distro -> builder.append("# ").append(distro.getApiString().toUpperCase()).append("_")
+                                                 .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append(NEW_LINE));
+                builder.append(NEW_LINE).append(NEW_LINE)
+                       .append("function removeFromPath() {").append(NEW_LINE)
+                       .append("    export PATH=$(echo $PATH | sed -E -e \"s;:$1;;\" -e \"s;$1:?;;\")").append(NEW_LINE)
+                       .append("}").append(NEW_LINE)
+                       .append(NEW_LINE).append(NEW_LINE)
+                       .append("if [ \"$#\" -eq 0 ]; then").append(NEW_LINE)
+                       .append("   echo \"Missing JDK_NAME parameter\"").append(NEW_LINE)
+                       .append("elif [ $1 = \"-h\" ]; then").append(NEW_LINE)
+                       .append("   echo \". .\\switch-jdk.sh JDK_NAME\"").append(NEW_LINE)
+                       .append("   echo \"\"").append(NEW_LINE)
+                       .append("   echo \"JDK_NAME can be one of the following:\"").append(NEW_LINE);
+
+                distros.forEach(distro -> builder.append("   echo \"").append(distro.getApiString().toUpperCase()).append("_")
+                                                                   .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\"").append(NEW_LINE));
+
+
+                distros.forEach(distro -> builder.append("elif [ $1 = \"").append(distro.getApiString().toUpperCase()).append("_")
+                                                 .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\" ]; then").append(NEW_LINE)
+                                                 .append("   removeFromPath $JAVA_HOME && export JAVA_HOME=").append(distro.getPath()).append(" && export JDK_HOME=").append(distro.getPath()).append(" && export PATH=$JAVA_HOME/bin:$PATH").append(NEW_LINE)
+                                                 .append("   echo \"Switched to ").append(distro.getApiString().toUpperCase()).append(" ").append(distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true)).append("\"").append(NEW_LINE)
+                                                 .append("   java -version").append(NEW_LINE));
+                builder.append("else").append(NEW_LINE)
+                       .append("  echo \"JDK not found\"").append(NEW_LINE)
+                       .append("fi").append(NEW_LINE);
+                saveToTextFileToUserFolder("switch-jdk.sh", builder.toString());
+            }
+            default -> { }
+        }
     }
 
     public static final String colorToCss(final Color color) { return color.toString().replace("0x", "#"); }

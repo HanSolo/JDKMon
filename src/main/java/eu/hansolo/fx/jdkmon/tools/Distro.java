@@ -34,10 +34,11 @@ public class Distro {
     private final Feature       feature;
     private final BuildScope    buildScope;
     private final boolean       handledBySdkman;
+    private final String        path;
     private       boolean       inUse;
 
 
-    public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final Feature feature, final BuildScope buildScope, final boolean handledBySdkman) {
+    public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final Feature feature, final BuildScope buildScope, final boolean handledBySdkman, final String path) {
         this.name            = name;
         this.apiString       = apiString;
         this.version         = version;
@@ -50,6 +51,7 @@ public class Distro {
         this.feature         = feature;
         this.buildScope      = buildScope;
         this.handledBySdkman = handledBySdkman;
+        this.path            = path;
         this.inUse           = false;
     }
 
@@ -78,6 +80,8 @@ public class Distro {
 
     public boolean isHandledBySdkman() { return handledBySdkman; }
 
+    public String getPath() { return path; }
+
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }
 
@@ -91,7 +95,8 @@ public class Distro {
                                   .append("\"fx\":\"").append(getFxBundled()).append("\",")
                                   .append("\"location\":\"").append(getLocation()).append("\",")
                                   .append("\"feature\":\"").append(getFeature()).append("\",")
-                                  .append("\"handled_by_sdkman\":\"").append(isHandledBySdkman()).append("\",")
+                                  .append("\"handled_by_sdkman\":").append(isHandledBySdkman()).append(",")
+                                  .append("\"path\":\"").append(path).append("\",")
                                   .append("\"in_use\":").append(isInUse())
                                   .append("}")
                                   .toString();
