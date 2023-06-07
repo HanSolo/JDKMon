@@ -142,10 +142,7 @@ public class Helper {
             case WINDOWS -> {
 
             }
-            case LINUX, LINUX_MUSL, ALPINE_LINUX -> {
-
-            }
-            case MACOS -> {
+            case LINUX, LINUX_MUSL, ALPINE_LINUX, MACOS -> {
                 builder.append("#!/bin/sh").append(NEW_LINE)
                        .append(NEW_LINE)
                        .append("# To switch to specific JDK you need to call the script as follows:").append(NEW_LINE)
