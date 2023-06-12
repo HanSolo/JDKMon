@@ -149,7 +149,7 @@ public class Helper {
                        .append("# . /switch-jdk.sh JDK_NAME").append(NEW_LINE)
                        .append("#").append(NEW_LINE)
                        .append("# JDK_NAME can be one of the following:").append(NEW_LINE);
-                distros.forEach(distro -> builder.append("# ").append(distro.getApiString().toUpperCase()).append("_")
+                distros.forEach(distro -> builder.append("# ").append(distro.getApiString().toLowerCase()).append("_")
                                                  .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append(NEW_LINE));
                 builder.append(NEW_LINE).append(NEW_LINE)
                        .append("function removeFromPath() {").append(NEW_LINE)
@@ -163,14 +163,13 @@ public class Helper {
                        .append("   echo \"\"").append(NEW_LINE)
                        .append("   echo \"JDK_NAME can be one of the following:\"").append(NEW_LINE);
 
-                distros.forEach(distro -> builder.append("   echo \"").append(distro.getApiString().toUpperCase()).append("_")
+                distros.forEach(distro -> builder.append("   echo \"").append(distro.getApiString().toLowerCase()).append("_")
                                                                    .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\"").append(NEW_LINE));
 
-
-                distros.forEach(distro -> builder.append("elif [ $1 = \"").append(distro.getApiString().toUpperCase()).append("_")
+                distros.forEach(distro -> builder.append("elif [ $1 = \"").append(distro.getApiString().toLowerCase()).append("_")
                                                  .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\" ]; then").append(NEW_LINE)
                                                  .append("   removeFromPath $JAVA_HOME && export JAVA_HOME=").append(distro.getPath()).append(" && export JDK_HOME=").append(distro.getPath()).append(" && export PATH=$JAVA_HOME/bin:$PATH").append(NEW_LINE)
-                                                 .append("   echo \"Switched to ").append(distro.getApiString().toUpperCase()).append(" ").append(distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true)).append("\"").append(NEW_LINE)
+                                                 .append("   echo \"Switched to ").append(distro.getApiString().toLowerCase()).append(" ").append(distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true)).append("\"").append(NEW_LINE)
                                                  .append("   java -version").append(NEW_LINE));
                 builder.append("else").append(NEW_LINE)
                        .append("  echo \"JDK not found\"").append(NEW_LINE)
