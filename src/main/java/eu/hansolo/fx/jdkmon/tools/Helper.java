@@ -146,10 +146,10 @@ public class Helper {
                        .append("if \"%~1\"==\"\" (").append(NEW_LINE)
                        .append("  echo \"Missing JDK_NAME parameter\"").append(NEW_LINE)
                        .append(") else if \"%~1\"==\"-h\" (").append(NEW_LINE)
-                       .append("  echo . .\\switch-jdk.bat JDK_NAME").append(NEW_LINE)
-                       .append("  echo").append(NEW_LINE)
+                       .append("  echo .\\switch-jdk.bat JDK_NAME").append(NEW_LINE)
+                       .append("  echo.").append(NEW_LINE)
                        .append("  echo JDK_NAME ca be one of the following:").append(NEW_LINE);
-                distros.forEach(distro -> builder.append("  echo").append(distro.getApiString().toLowerCase()).append("_")
+                distros.forEach(distro -> builder.append("  echo ").append(distro.getApiString().toLowerCase()).append("_")
                                                  .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append(NEW_LINE));
 
                 distros.forEach(distro -> {
