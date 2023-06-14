@@ -83,7 +83,9 @@ public class Constants {
         put("graalvm_ce16", BuildScope.BUILD_OF_GRAALVM);
         put("graalvm_ce17", BuildScope.BUILD_OF_GRAALVM);
         put("graalvm_ce19", BuildScope.BUILD_OF_GRAALVM);
-        put("graalvm_ce21", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_ce20", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm_community", BuildScope.BUILD_OF_GRAALVM);
+        put("graalvm", BuildScope.BUILD_OF_GRAALVM);
         put("liberica_native", BuildScope.BUILD_OF_GRAALVM);
         put("mandrel", BuildScope.BUILD_OF_GRAALVM);
         put("gluon_graalvm", BuildScope.BUILD_OF_GRAALVM);
