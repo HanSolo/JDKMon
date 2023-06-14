@@ -201,7 +201,7 @@ public class Helper {
                        .append("if [ \"$#\" -eq 0 ]; then").append(NEW_LINE)
                        .append("   echo \"Missing JDK_NAME parameter\"").append(NEW_LINE)
                        .append("elif [ $1 = \"-h\" ]; then").append(NEW_LINE)
-                       .append("   echo \". .\\switch-jdk.sh JDK_NAME\"").append(NEW_LINE)
+                       .append("   echo \". ./switch-jdk.sh JDK_NAME\"").append(NEW_LINE)
                        .append("   echo \"\"").append(NEW_LINE)
                        .append("   echo \"JDK_NAME can be one of the following:\"").append(NEW_LINE);
 
