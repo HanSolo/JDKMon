@@ -140,7 +140,49 @@ public class Helper {
         final StringBuilder builder = new StringBuilder();
         switch(operatingSystem) {
             case WINDOWS -> {
+                builder.append("@echo off").append(NEW_LINE)
+                       .append("setlocal EnableDelayedExpansion").append(NEW_LINE)
+                       .append(NEW_LINE)
+                       .append("if \"%~1\"==\"\" (").append(NEW_LINE)
+                       .append("  echo \"Missing JDK_NAME parameter\"").append(NEW_LINE)
+                       .append(") else if \"%~1\"==\"-h\" (").append(NEW_LINE)
+                       .append("  echo \". .\\switch-jdk.bat JDK_NAME\"").append(NEW_LINE)
+                       .append("  echo \"\"").append(NEW_LINE)
+                       .append("  echo \"JDK_NAME ca be one of the following:\"").append(NEW_LINE);
+                distros.forEach(distro -> builder.append(distro.getApiString().toLowerCase()).append("_")
+                                                 .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append(NEW_LINE));
 
+                distros.forEach(distro -> {
+                    builder.append(") else if \"&~1\"==\"").append(distro.getApiString().toLowerCase()).append("_")
+                           .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\" (").append(NEW_LINE)
+                           .append("  set NEW_JAVA_HOME=").append(distro.getPath()).append(NEW_LINE)
+                           .append("  call :replaceInPath \"%JAVA_HOME%bin\\;\" \"!NEW_JAVA_HOME!bin\\;\"").append(NEW_LINE)
+                           .append(NEW_LINE)
+                           .append("  set JAVA_HOME=!NEW_JAVA_HOME!").append(NEW_LINE)
+                           .append("  set JDK_HOME=!NEW_JAVA_HOME!").append(NEW_LINE)
+                           .append(NEW_LINE)
+                           .append("  if \"!PATH!\"==\"\" (").append(NEW_LINE)
+                           .append("    set PATH=\"!JAVA_HOME!\\bin\"").append(NEW_LINE)
+                           .append("  ) else (").append(NEW_LINE)
+                           .append("    set PATH=\"!JAVA_HOME!\\bin;!PATH!\"").append(NEW_LINE)
+                           .append("  )").append(NEW_LINE)
+                           .append("  echo Switched to ").append(distro.getApiString().toLowerCase()).append("_")
+                                                         .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append(NEW_LINE)
+                           .append("  \"!JAVA_HOME!bin\\bin\\java\" -version").append(NEW_LINE);
+                });
+                builder.append(") else (").append(NEW_LINE)
+                       .append("  echo JDK_NAME not found").append(NEW_LINE)
+                       .append(")").append(NEW_LINE)
+                       .append(NEW_LINE)
+                       .append("exit  /B %ERROR_LEVEL%")
+                       .append(NEW_LINE)
+                       .append(NEW_LINE)
+                       .append(":replaceInPath").append(NEW_LINE)
+                       .append("set ARG1=%~1").append(NEW_LINE)
+                       .append("set ARG2=%~2").append(NEW_LINE)
+                       .append("call set PATH=%%PATH:%ARG1%=%ARG2%%%").append(NEW_LINE)
+                       .append("exit /B 0").append(NEW_LINE);
+                saveToTextFileToUserFolder("switch-jdk.bat", builder.toString());
             }
             case LINUX, LINUX_MUSL, ALPINE_LINUX, MACOS -> {
                 builder.append("#!/bin/sh").append(NEW_LINE)
@@ -164,7 +206,7 @@ public class Helper {
                        .append("   echo \"JDK_NAME can be one of the following:\"").append(NEW_LINE);
 
                 distros.forEach(distro -> builder.append("   echo \"").append(distro.getApiString().toLowerCase()).append("_")
-                                                                   .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\"").append(NEW_LINE));
+                                                                      .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\"").append(NEW_LINE));
 
                 distros.forEach(distro -> builder.append("elif [ $1 = \"").append(distro.getApiString().toLowerCase()).append("_")
                                                  .append(distro.getVersionNumber().getFeature().getAsInt()).append("_").append(distro.getVersionNumber().getInterim().orElse(0)).append("_").append(distro.getVersionNumber().getUpdate().orElse(0)).append("_").append(distro.getVersionNumber().getPatch().orElse(0)).append("\" ]; then").append(NEW_LINE)
