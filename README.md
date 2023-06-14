@@ -29,10 +29,9 @@ At the moment the following distributions will be identified:
 - Debian (pkgs not downloadable)
 - Dragonwell
 - Gluon GraalVM
-- Graalvm CE8
-- Graalvm CE11
-- Graalvm CE16
-- Graalvm CE17
+- GraalVM CE8, CE11, CE16, CE17, CE19, CE20
+- GraalVM Community
+- GraalVM
 - JetBrains
 - Kona
 - Liberica
@@ -62,7 +61,7 @@ JDKMon can be build for:
 - MacOS x64
 - MacOS aarch64
 - Linux x64
-- Linux aarch64 (e.g. Raspberry Pi 4 running Raspberry Pi OS 64bit)
+- Linux aarch64
 
 You can always check if you have the latest version install by taking a look at the About window.
 This can be opened by selecting ```About``` from the menu. If there is a new version available
