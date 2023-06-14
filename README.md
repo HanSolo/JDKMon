@@ -182,6 +182,43 @@ autoextract=TRUE/FALSE Will directly extract downloaded JDK's (default is FALSE)
 show_unknown_builds=TRUE/FALSE Will show unknown builds of OpenJDK (default is FALSE) EXPERIMENTAL!
 ```
 
+### Switch JDK script
+Since release 17.0.67 of JDKMon, it will create a script in your user home folder called
+
+- switch-jdk.sh (Linux and Mac)
+- switch-jdk.bat (Windows)
+
+With this script you can switch to a specific JDK that was found by JDKMon. 
+You can call the script with the -h parameter to get more help as follows:
+
+```
+>: ./switch-jdk.sh -h
+. ./switch-jdk.sh JDK_NAME
+
+JDK_NAME can be one of the following:
+zulu_17_0_7_0
+zulu_20_0_1_0
+zulu_8_0_372_0
+gluon_graalvm_22_1_0_1
+zulu_21_0_0_0
+graalvm_ce17_22_3_1_0
+zulu_11_0_19_0
+
+>: . ./switch-jdk.sh zulu_11_0_19_0
+Switched to zulu 11.0.19
+openjdk version "11.0.19" 2023-04-18 LTS
+OpenJDK Runtime Environment Zulu11.64+19-CA (build 11.0.19+7-LTS)
+OpenJDK 64-Bit Server VM Zulu11.64+19-CA (build 11.0.19+7-LTS, mixed mode)
+
+>: java -version
+openjdk version "11.0.19" 2023-04-18 LTS
+OpenJDK Runtime Environment Zulu11.64+19-CA (build 11.0.19+7-LTS)
+OpenJDK 64-Bit Server VM Zulu11.64+19-CA (build 11.0.19+7-LTS, mixed mode)
+```
+
+This script enables you to switch to a JDK of your choice for the current shell session.
+
+
 ### Installation problems
 #### Linux
 Make sure that you have the following programs installed before you execute build_appLinux.sh:
