@@ -367,7 +367,6 @@ public class Finder {
 
     private void checkForDistribution(final String java, final Set<Distro> distros, final boolean handledBySdkman) {
         AtomicBoolean inUse = new AtomicBoolean(false);
-
         try {
             List<String> commands = new ArrayList<>();
             commands.add(java);
@@ -467,6 +466,9 @@ public class Finder {
                 } else if (line2.contains("Bisheng")) {
                     name      = "Bishenq";
                     apiString = "bisheng";
+                } else if (line2.contains("Homebrew")) {
+                    name      = "Homebrew";
+                    apiString = "homebrew";
                 }
 
                 if (null == version) {
@@ -514,6 +516,7 @@ public class Finder {
                                 case "Bisheng"           -> { name = "Bisheng";        apiString = "bisheng"; }
                                 case "Debian"            -> { name = "Debian";         apiString = "debian"; }
                                 case "Ubuntu"            -> { name = "Ubuntu";         apiString = "ubuntu"; }
+                                case "Homebrew"          -> { name = "Homebrew";       apiString = "homebrew"; }
                                 case "N/A"               -> { }/* Unknown */
                             }
                         }

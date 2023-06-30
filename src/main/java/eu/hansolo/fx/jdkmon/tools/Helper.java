@@ -17,6 +17,8 @@
 package eu.hansolo.fx.jdkmon.tools;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.Constants.CVE;
 import eu.hansolo.fx.jdkmon.Main;
@@ -25,6 +27,7 @@ import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -53,6 +56,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -298,7 +303,7 @@ public class Helper {
         }
     }
 
-    public static void untar(final String compressedFilename, final String targetFolder) {
+    public static final void untar(final String compressedFilename, final String targetFolder) {
         if (!compressedFilename.toLowerCase().endsWith("tar.gz")) { System.out.println("File must be zip format"); return; }
         if (!new File(compressedFilename).exists() || new File(compressedFilename).isDirectory()) { System.out.println("Given file either doesn't exist or is folder"); return; }
         try (GzipCompressorInputStream archive = new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(compressedFilename)))) {
@@ -343,7 +348,7 @@ public class Helper {
         }
     }
 
-    public static void unzip(final String compressedFilename, final String targetFolder) {
+    public static final void unzip(final String compressedFilename, final String targetFolder) {
         if (!compressedFilename.toLowerCase().endsWith("zip")) { System.out.println("File must be zip format"); return; }
         if (!new File(compressedFilename).exists() || new File(compressedFilename).isDirectory()) { System.out.println("Given file either doesn't exist or is folder"); return; }
         // Create zip file stream.
@@ -367,7 +372,7 @@ public class Helper {
         }
     }
 
-    public static Set<PosixFilePermission> parsePerms(int perms) {
+    public static final Set<PosixFilePermission> parsePerms(int perms) {
         final char[] ds = Integer.toString(perms).toCharArray();
         final char[] ss = {'-','-','-','-','-','-','-','-','-'};
         for (int i = ds.length-1; i >= 0; i--) {
@@ -389,6 +394,37 @@ public class Helper {
         String sperms = new String(ss);
         //System.out.printf("%d -> %s\n", perms, sperms);
         return PosixFilePermissions.fromString(sperms);
+    }
+
+    public static final Map<Integer, List<VersionNumber>> getAvailableVersions() {
+        final Map<Integer, List<VersionNumber>> availableVersions = new HashMap<>();
+        final HttpResponse<String> response = get (Constants.MAJOR_VERSIONS_URI);
+        if (null == response) { return availableVersions; }
+        final String bodyText = response.body();
+        if (null == bodyText || bodyText.isEmpty()) { return availableVersions; }
+        final Gson        gson    = new Gson();
+        final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+        if (element instanceof JsonObject) {
+            final List<MinimizedPkg> pkgs       = new ArrayList<>();
+            final JsonObject         jsonObject = element.getAsJsonObject();
+            final JsonArray          jsonArray  = jsonObject.getAsJsonArray("result");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                try {
+                    final JsonObject json = jsonArray.get(i).getAsJsonObject();
+                    final int majorVersion = json.get("major_version").getAsInt();
+                    final JsonArray versionArray = json.getAsJsonArray("versions");
+                    if (versionArray.isEmpty()) { continue; }
+                    availableVersions.put(majorVersion, new ArrayList<>());
+                    for (int j = 0 ; j < versionArray.size() ; j++) {
+                        VersionNumber versionNumber = VersionNumber.fromText(versionArray.get(j).getAsString());
+                        availableVersions.get(majorVersion).add(versionNumber);
+                    }
+                } catch (Exception e) {
+                    //System.out.println(e);
+                }
+            }
+        }
+        return availableVersions;
     }
 
 

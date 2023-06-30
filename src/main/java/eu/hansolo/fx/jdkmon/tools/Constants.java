@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 public class Constants {
     public static final String  RELEASES_URI                           = "https://github.com/HanSolo/JDKMon/releases/latest";
+    public static final String  MAJOR_VERSIONS_URI                     = "https://api.foojay.io/disco/v3.0/major_versions/?ga=true&include_build=false";
     public static final long    INITIAL_DELAY_IN_SECONDS               = 30;
     public static final long    RESCAN_INTERVAL_IN_SECONDS             = 3600;
     public static final long    INITIAL_CVE_DELAY_IN_MINUTES           = 2;

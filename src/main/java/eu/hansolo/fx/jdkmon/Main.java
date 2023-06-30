@@ -66,6 +66,7 @@ import eu.hansolo.jdktools.LibCType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
+import eu.hansolo.jdktools.ReleaseStatus;
 import eu.hansolo.jdktools.Verification;
 import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
@@ -186,147 +187,148 @@ import static eu.hansolo.jdktools.ReleaseStatus.GA;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber             VERSION                = PropertyManager.INSTANCE.getVersionNumber();
-    private static final PseudoClass               DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
-    private final        Image                     dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
-    private final        Image                     dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
-    private              OperatingSystem           operatingSystem        = Finder.detectOperatingSystem();
-    private              Architecture              architecture           = Finder.detectArchitecture();
-    private              SysInfo                   sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
-    private              boolean                   isWindows              = OperatingSystem.WINDOWS == operatingSystem;
-    private              CveScanner                cveScanner             = new CveScanner();
-    private              List<CVE>                 cves                   = new CopyOnWriteArrayList<>();
-    private              List<CVE>                 cvesGraalVM            = new CopyOnWriteArrayList<>();
-    private              String                    cssFile;
-    private              Notification.Notifier     notifier;
-    private              BooleanProperty           darkMode;
-    private              MacosAccentColor          accentColor;
-    private              AnchorPane                headerPane;
-    private              MacosWindowButton         closeMacWindowButton;
-    private              WinWindowButton           closeWinWindowButton;
-    private              Label                     windowTitle;
-    private              StackPane                 pane;
-    private              BorderPane                mainPane;
-    private              ScheduledExecutorService  executor;
-    private              boolean                   hideMenu;
-    private              Stage                     stage;
-    private              ObservableList<Distro>    distros;
-    private              Finder                    finder;
-    private              Label                     titleLabel;
-    private              Label                     searchPathLabel;
-    private              MacProgress               macProgressIndicator;
-    private              WinProgress               winProgressIndicator;
-    private              VBox                      titleBox;
-    private              Separator                 separator;
-    private              VBox                      distroBox;
-    private              VBox                      vBox;
-    private              List<String>              searchPaths;
-    private              List<String>              javafxSearchPaths;
-    private              DirectoryChooser          directoryChooser;
-    private              ProgressBar               progressBar;
-    private              DiscoClient               discoclient;
-    private              BooleanProperty           blocked;
-    private              AtomicBoolean             checkingForUpdates;
-    private              boolean                   trayIconSupported;
-    private              ContextMenu               contextMenu;
-    private              Worker<Boolean>           worker;
-    private              Dialog                    aboutDialog;
-    private              Dialog                    downloadJDKDialog;
-    private              Dialog                    downloadGraalDialog;
-    private              Dialog                    cveDialog;
-    private              ObservableList<Hyperlink> cveLinks;
-    private              Stage                     cveStage;
-    private              AnchorPane                cveHeaderPane;
-    private              Label                     cveWindowTitle;
-    private              MacosWindowButton         cveCloseMacWindowButton;
-    private              WinWindowButton           cveCloseWinWindowButton;
-    private              StackPane                 cvePane;
-    private              VBox                      cveBox;
-    private              Button                    cveCloseButton;
-    private              Timeline                  timeline;
-    private              boolean                   isUpdateAvailable;
-    private              VersionNumber             latestVersion;
-    private              Map<String, Popup>        popups;
+    public static final  VersionNumber                     VERSION                = PropertyManager.INSTANCE.getVersionNumber();
+    private static final PseudoClass                       DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
+    private final        Image                             dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private final        Image                             dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
+    private              OperatingSystem                   operatingSystem        = Finder.detectOperatingSystem();
+    private              Architecture                      architecture           = Finder.detectArchitecture();
+    private              SysInfo                           sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
+    private              boolean                           isWindows              = OperatingSystem.WINDOWS == operatingSystem;
+    private              CveScanner                        cveScanner             = new CveScanner();
+    private              List<CVE>                         cves                   = new CopyOnWriteArrayList<>();
+    private              List<CVE>                         cvesGraalVM            = new CopyOnWriteArrayList<>();
+    private              String                            cssFile;
+    private              Notification.Notifier             notifier;
+    private              BooleanProperty                   darkMode;
+    private              MacosAccentColor                  accentColor;
+    private              AnchorPane                        headerPane;
+    private              MacosWindowButton                 closeMacWindowButton;
+    private              WinWindowButton                   closeWinWindowButton;
+    private              Label                             windowTitle;
+    private              StackPane                         pane;
+    private              BorderPane                        mainPane;
+    private              ScheduledExecutorService          executor;
+    private              boolean                           hideMenu;
+    private              Stage                             stage;
+    private              ObservableList<Distro>            distros;
+    private              Finder                            finder;
+    private              Label                             titleLabel;
+    private              Label                             searchPathLabel;
+    private              MacProgress                       macProgressIndicator;
+    private              WinProgress                       winProgressIndicator;
+    private              VBox                              titleBox;
+    private              Separator                         separator;
+    private              VBox                              distroBox;
+    private              VBox                              vBox;
+    private              List<String>                      searchPaths;
+    private              List<String>                      javafxSearchPaths;
+    private              DirectoryChooser                  directoryChooser;
+    private              ProgressBar                       progressBar;
+    private              DiscoClient                       discoclient;
+    private              BooleanProperty                   blocked;
+    private              AtomicBoolean                     checkingForUpdates;
+    private              boolean                           trayIconSupported;
+    private              ContextMenu                       contextMenu;
+    private              Worker<Boolean>                   worker;
+    private              Dialog                            aboutDialog;
+    private              Dialog                            downloadJDKDialog;
+    private              Dialog                            downloadGraalDialog;
+    private              Dialog                            cveDialog;
+    private              ObservableList<Hyperlink>         cveLinks;
+    private              Stage                             cveStage;
+    private              AnchorPane                        cveHeaderPane;
+    private              Label                             cveWindowTitle;
+    private              MacosWindowButton                 cveCloseMacWindowButton;
+    private              WinWindowButton                   cveCloseWinWindowButton;
+    private              StackPane                         cvePane;
+    private              VBox                              cveBox;
+    private              Button                            cveCloseButton;
+    private              Timeline                          timeline;
+    private              boolean                           isUpdateAvailable;
+    private              VersionNumber                     latestVersion;
+    private              Map<String, Popup>                popups;
+    private              Map<Integer, List<VersionNumber>> availableVersions;
 
-    private              Stage                     downloadJDKStage;
-    private              AnchorPane                downloadJDKHeaderPane;
-    private              Label                     downloadJDKWindowTitle;
-    private              MacosWindowButton         downloadJDKCloseMacWindowButton;
-    private              WinWindowButton           downloadJDKCloseWinWindowButton;
-    private              StackPane                 downloadJDKPane;
-    private              CheckBox                  downloadJDKBundledWithFXCheckBox;
-    private              Label                     downloadAutoExtractLabel;
-    private              ComboBox<MajorVersion>    downloadJDKMajorVersionComboBox;
-    private              ComboBox<Semver>          downloadJDKUpdateLevelComboBox;
-    private              ComboBox<Distribution>    downloadJDKDistributionComboBox;
-    private              ComboBox<OperatingSystem> downloadJDKOperatingSystemComboBox;
-    private              ComboBox<Architecture>    downloadJDKArchitectureComboBox;
-    private              ComboBox<LibCType>        downloadJDKLibCTypeComboBox;
-    private              ComboBox<ArchiveType>     downloadJDKArchiveTypeComboBox;
-    private              Label                     downloadJDKFilenameLabel;
-    private              Label                     alreadyDownloadedLabel;
-    private              Set<MajorVersion>         downloadJDKMaintainedVersions;
-    private              List<MinimizedPkg>        downloadJDKSelectedPkgs;
-    private              MinimizedPkg              downloadJDKSelectedPkg;
-    private              List<MinimizedPkg>        downloadJDKSelectedPkgsForMajorVersion;
-    private              List<MinimizedPkg>        downloadJDKMinimizedPkgs;
-    private              boolean                   downloadJDKJavafxBundled;
-    private              MajorVersion              downloadJDKSelectedMajorVersion;
-    private              Semver                    downloadJDKSelectedVersionNumber;
-    private              Distribution              downloadJDKSelectedDistribution;
-    private              OperatingSystem           downloadJDKSelectedOperatingSystem;
-    private              LibCType                  downloadJDKSelectedLibCType;
-    private              Architecture              downloadJDKSelectedArchitecture;
-    private              ArchiveType               downloadJDKSelectedArchiveType;
-    private              Set<OperatingSystem>      downloadJDKOperatingSystems;
-    private              Set<LibCType>             downloadJDKLibCTypes;
-    private              Set<Architecture>         downloadJDKArchitectures;
-    private              Set<ArchiveType>          downloadJDKArchiveTypes;
-    private              ProgressBar               downloadJDKProgressBar;
+    private              Stage                             downloadJDKStage;
+    private              AnchorPane                        downloadJDKHeaderPane;
+    private              Label                             downloadJDKWindowTitle;
+    private              MacosWindowButton                 downloadJDKCloseMacWindowButton;
+    private              WinWindowButton                   downloadJDKCloseWinWindowButton;
+    private              StackPane                         downloadJDKPane;
+    private              CheckBox                          downloadJDKBundledWithFXCheckBox;
+    private              Label                             downloadAutoExtractLabel;
+    private              ComboBox<MajorVersion>            downloadJDKMajorVersionComboBox;
+    private              ComboBox<Semver>                  downloadJDKUpdateLevelComboBox;
+    private              ComboBox<Distribution>            downloadJDKDistributionComboBox;
+    private              ComboBox<OperatingSystem>         downloadJDKOperatingSystemComboBox;
+    private              ComboBox<Architecture>            downloadJDKArchitectureComboBox;
+    private              ComboBox<LibCType>                downloadJDKLibCTypeComboBox;
+    private              ComboBox<ArchiveType>             downloadJDKArchiveTypeComboBox;
+    private              Label                             downloadJDKFilenameLabel;
+    private              Label                             alreadyDownloadedLabel;
+    private              Set<MajorVersion>                 downloadJDKMaintainedVersions;
+    private              List<MinimizedPkg>                downloadJDKSelectedPkgs;
+    private              MinimizedPkg                      downloadJDKSelectedPkg;
+    private              List<MinimizedPkg>                downloadJDKSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>                downloadJDKMinimizedPkgs;
+    private              boolean                           downloadJDKJavafxBundled;
+    private              MajorVersion                      downloadJDKSelectedMajorVersion;
+    private              Semver                            downloadJDKSelectedVersionNumber;
+    private              Distribution                      downloadJDKSelectedDistribution;
+    private              OperatingSystem                   downloadJDKSelectedOperatingSystem;
+    private              LibCType                          downloadJDKSelectedLibCType;
+    private              Architecture                      downloadJDKSelectedArchitecture;
+    private              ArchiveType                       downloadJDKSelectedArchiveType;
+    private              Set<OperatingSystem>              downloadJDKOperatingSystems;
+    private              Set<LibCType>                     downloadJDKLibCTypes;
+    private              Set<Architecture>                 downloadJDKArchitectures;
+    private              Set<ArchiveType>                  downloadJDKArchiveTypes;
+    private              ProgressBar                       downloadJDKProgressBar;
 
-    private              Stage                     downloadGraalStage;
-    private              AnchorPane                downloadGraalHeaderPane;
-    private              Label                     downloadGraalWindowTitle;
-    private              MacosWindowButton         downloadGraalCloseMacWindowButton;
-    private              WinWindowButton           downloadGraalCloseWinWindowButton;
-    private              StackPane                 downloadGraalPane;
-    private              ComboBox<MajorVersion>    downloadGraalMajorVersionComboBox;
-    private              ComboBox<Semver>          downloadGraalUpdateLevelComboBox;
-    private              ComboBox<Distribution>    downloadGraalDistributionComboBox;
-    private              ComboBox<OperatingSystem> downloadGraalOperatingSystemComboBox;
-    private              ComboBox<Architecture>    downloadGraalArchitectureComboBox;
-    private              ComboBox<ArchiveType>     downloadGraalArchiveTypeComboBox;
-    private              Label                     downloadGraalFilenameLabel;
-    private              Label                     alreadyGraalDownloadedLabel;
-    private              Set<MajorVersion>         downloadGraalMajorVersions;
-    private              Set<Semver>               downloadGraalVersions;
-    private              List<MinimizedPkg>        downloadGraalSelectedPkgs;
-    private              MinimizedPkg              downloadGraalSelectedPkg;
-    private              List<MinimizedPkg>        downloadGraalSelectedPkgsForMajorVersion;
-    private              List<MinimizedPkg>        downloadGraalMinimizedPkgs;
-    private              boolean                   downloadGraalJavafxBundled;
-    private              MajorVersion              downloadGraalSelectedMajorVersion;
-    private              Semver                    downloadGraalSelectedVersionNumber;
-    private              Distribution              downloadGraalSelectedDistribution;
-    private              OperatingSystem           downloadGraalSelectedOperatingSystem;
-    private              Architecture              downloadGraalSelectedArchitecture;
-    private              ArchiveType               downloadGraalSelectedArchiveType;
-    private              Set<OperatingSystem>      downloadGraalOperatingSystems;
-    private              Set<Architecture>         downloadGraalArchitectures;
-    private              Set<ArchiveType>          downloadGraalArchiveTypes;
-    private              ProgressBar               downloadGraalProgressBar;
+    private              Stage                             downloadGraalStage;
+    private              AnchorPane                        downloadGraalHeaderPane;
+    private              Label                             downloadGraalWindowTitle;
+    private              MacosWindowButton                 downloadGraalCloseMacWindowButton;
+    private              WinWindowButton                   downloadGraalCloseWinWindowButton;
+    private              StackPane                         downloadGraalPane;
+    private              ComboBox<MajorVersion>            downloadGraalMajorVersionComboBox;
+    private              ComboBox<Semver>                  downloadGraalUpdateLevelComboBox;
+    private              ComboBox<Distribution>            downloadGraalDistributionComboBox;
+    private              ComboBox<OperatingSystem>         downloadGraalOperatingSystemComboBox;
+    private              ComboBox<Architecture>            downloadGraalArchitectureComboBox;
+    private              ComboBox<ArchiveType>             downloadGraalArchiveTypeComboBox;
+    private              Label                             downloadGraalFilenameLabel;
+    private              Label                             alreadyGraalDownloadedLabel;
+    private              Set<MajorVersion>                 downloadGraalMajorVersions;
+    private              Set<Semver>                       downloadGraalVersions;
+    private              List<MinimizedPkg>                downloadGraalSelectedPkgs;
+    private              MinimizedPkg                      downloadGraalSelectedPkg;
+    private              List<MinimizedPkg>                downloadGraalSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>                downloadGraalMinimizedPkgs;
+    private              boolean                           downloadGraalJavafxBundled;
+    private              MajorVersion                      downloadGraalSelectedMajorVersion;
+    private              Semver                            downloadGraalSelectedVersionNumber;
+    private              Distribution                      downloadGraalSelectedDistribution;
+    private              OperatingSystem                   downloadGraalSelectedOperatingSystem;
+    private              Architecture                      downloadGraalSelectedArchitecture;
+    private              ArchiveType                       downloadGraalSelectedArchiveType;
+    private              Set<OperatingSystem>              downloadGraalOperatingSystems;
+    private              Set<Architecture>                 downloadGraalArchitectures;
+    private              Set<ArchiveType>                  downloadGraalArchiveTypes;
+    private              ProgressBar                       downloadGraalProgressBar;
 
-    private              ImageView                 sdkmanImgVw;
-    private              ImageView                 tckTestedTag;
-    private              ImageView                 aqavitTestedTag;
-    private              Hyperlink                 tckTestedLink;
-    private              Hyperlink                 aqavitTestedLink;
-    private              Button                    downloadJDKCancelButton;
-    private              Button                    downloadJDKDownloadButton;
-    private              Button                    downloadGraalCancelButton;
-    private              Button                    downloadGraalDownloadButton;
+    private              ImageView                         sdkmanImgVw;
+    private              ImageView                         tckTestedTag;
+    private              ImageView                         aqavitTestedTag;
+    private              Hyperlink                         tckTestedLink;
+    private              Hyperlink                         aqavitTestedLink;
+    private              Button                            downloadJDKCancelButton;
+    private              Button                            downloadJDKDownloadButton;
+    private              Button                            downloadGraalCancelButton;
+    private              Button                            downloadGraalDownloadButton;
 
-    private              AtomicBoolean             online;
+    private              AtomicBoolean                     online;
 
     public record SemverUri(Semver semver, String uri) {}
 
@@ -335,6 +337,7 @@ public class Main extends Application {
         isUpdateAvailable = false;
         latestVersion     = VERSION;
         popups            = new HashMap<>();
+        availableVersions = new HashMap<>();
         online            = new AtomicBoolean(false);
 
         switch (operatingSystem) {
@@ -444,6 +447,7 @@ public class Main extends Application {
         executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(true); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> {
+            updateAvailableVersions();
             updateDownloadJDKPkgs();
             updateDownloadGraalPkgs();
         }, Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
@@ -1379,6 +1383,7 @@ public class Main extends Application {
                 URLConnection connection = url.openConnection();
                 connection.connect();
                 online.set(true);
+                updateAvailableVersions();
                 updateDownloadJDKPkgs();
                 updateDownloadGraalPkgs();
                 rescan();
@@ -1386,6 +1391,10 @@ public class Main extends Application {
         } catch (IOException e) {
             online.set(false);
         }
+    }
+
+    private void updateAvailableVersions() {
+        this.availableVersions = Helper.getAvailableVersions();
     }
 
     private void updateCves() {
@@ -1670,8 +1679,24 @@ public class Main extends Application {
         HBox hBox = new HBox(5, distroBox);
         hBox.setMinWidth(360);
 
-        // Filter ubuntu and debian distribution related JDK's because they cannot be updated by JDKMon
-        if (distribution.getApiString().equals("ubuntu") || distribution.getApiString().equals("debian")) { return hBox; }
+        // Filter ubuntu, debian and homebrew distribution related JDK's because they cannot be updated by JDKMon
+        if (distribution.getApiString().equals("ubuntu") ||
+            distribution.getApiString().equals("debian") ||
+            distribution.getApiString().equals("homebrew")) {
+            List<VersionNumber> versions = availableVersions.get(Integer.parseInt(distribution.getJdkMajorVersion()));
+            Collections.sort(versions, Collections.reverseOrder());
+            if (!versions.isEmpty()) {
+                VersionNumber latestVersion = versions.get(0);
+                if (latestVersion.getUpdate().getAsInt() > distribution.getVersionNumber().getUpdate().getAsInt()) {
+                    Label arrowLabel   = new Label(" -> ");
+                    Label versionLabel = new Label(latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
+                    versionLabel.setMinWidth(56);
+                    Label infoLabel    = new Label("(no download via JDKMon)");
+                    hBox.getChildren().addAll(arrowLabel, versionLabel, infoLabel);
+                }
+            }
+            return hBox;
+        }
 
         if (pkgs.isEmpty()) { return hBox; }
 
