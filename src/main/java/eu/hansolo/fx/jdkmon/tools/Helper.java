@@ -262,7 +262,7 @@ public class Helper {
                                  .timeout(Duration.ofSeconds(3))
                                  .build();
         } catch (Exception e) {
-            System.out.println(uri);
+            //System.out.println(uri);
             return false;
         }
         try {
