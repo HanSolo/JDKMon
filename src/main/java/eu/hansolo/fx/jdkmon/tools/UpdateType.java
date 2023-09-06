@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 by Gerrit Grunwald
+ * Copyright (c) 2023 by Gerrit Grunwald
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,6 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.jdktools.Architecture;
-import eu.hansolo.jdktools.OperatingMode;
-import eu.hansolo.jdktools.OperatingSystem;
-
-import java.time.LocalDate;
-
-
-public class Records {
-
-    public record SysInfo(OperatingSystem operatingSystem, Architecture architecture, OperatingMode operatingMode) {}
-
-    public record JdkInfo(String createdBy, String buildJdk) {}
-
-    public record JDKUpdate(LocalDate date, long remainingDays, UpdateType type) {}
+public enum UpdateType {
+    UPDATE, RELEASE
 }

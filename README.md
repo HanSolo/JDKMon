@@ -150,7 +150,7 @@ and Liberica 11.0.13 installed ony your machine, JDKMon will show you the vulner
 OpenJDK 11.0.13 for both distributions. So there is no guarantee that your installed distribution is really
 affected by the CVE's found in the NVD but you at least get the info that there are vulnerabilities for 11.0.13.
 
-![vulnerability](https://i.ibb.co/JRTjp7R/JDKMon.png)
+![JDKMon](https://i.ibb.co/y0MfxRP/JDKMon.png")
 
 When you click on the yellow circle a window will open which shows the CVE's found. 
 You can click on each CVE to open it in a browser with more detailled information.

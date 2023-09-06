@@ -748,6 +748,11 @@
 }
 
 
+.separator:horizontal .line {
+    -fx-border-color: -fx-text-box-border transparent transparent transparent, transparent, transparent transparent transparent;
+}
+
+
 .jdk-mon .combo-box-base,
 .jdk-mon .combo-box-base:focused {
     -fx-background-color : linear-gradient(to bottom, #cac7c7, #b3b0b0), white;

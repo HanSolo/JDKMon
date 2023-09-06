@@ -28,7 +28,6 @@ import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
-import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -436,25 +435,47 @@ public class Helper {
         return availableVersions;
     }
 
-    public static final Optional<JDKUpdate> getNextUpdate() {
+    public static final Optional<JDKUpdate> getNextRelease() {
         final LocalDate now             = LocalDate.now();
         final LocalDate updateMarch     = LocalDate.of(now.getYear(), Month.MARCH, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
-        final LocalDate updateJune      = LocalDate.of(now.getYear(), Month.JUNE, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
         final LocalDate updateSeptember = LocalDate.of(now.getYear(), Month.SEPTEMBER, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
-        final LocalDate updateDecember  = LocalDate.of(now.getYear(), Month.DECEMBER, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateNextMarch = LocalDate.of(now.getYear() + 1, Month.MARCH, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
 
         final long daysToUpdateMarch     = ChronoUnit.DAYS.between(now, updateMarch);
-        final long daysToUpdateJune      = ChronoUnit.DAYS.between(now, updateJune);
         final long daysToUpdateSeptember = ChronoUnit.DAYS.between(now, updateSeptember);
-        final long daysToUpdateDecember  = ChronoUnit.DAYS.between(now, updateDecember);
+        final long daysToUpdateNextMarch = ChronoUnit.DAYS.between(now, updateNextMarch);
 
         final Map<LocalDate, Long> remainingDays = new HashMap<>(4);
         remainingDays.put(updateMarch, daysToUpdateMarch);
-        remainingDays.put(updateJune, daysToUpdateJune);
         remainingDays.put(updateSeptember, daysToUpdateSeptember);
-        remainingDays.put(updateDecember, daysToUpdateDecember);
+        remainingDays.put(updateNextMarch, daysToUpdateNextMarch);
 
-        Optional<JDKUpdate> optJDKUpdate = remainingDays.entrySet().stream().filter(d -> d.getValue() >= 0).sorted(Comparator.comparing(Entry::getValue)).map(entry -> new JDKUpdate(entry.getKey(), entry.getValue())).findFirst();
+        Optional<JDKUpdate> optJDKUpdate = remainingDays.entrySet().stream().filter(d -> d.getValue() >= 0).sorted(Comparator.comparing(Entry::getValue)).map(entry -> new JDKUpdate(entry.getKey(), entry.getValue(), UpdateType.RELEASE)).findFirst();
+        return optJDKUpdate;
+    }
+
+    public static final Optional<JDKUpdate> getNextUpdate() {
+        final LocalDate now               = LocalDate.now();
+        final LocalDate updateJanuary     = LocalDate.of(now.getYear(), Month.JANUARY, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateApril       = LocalDate.of(now.getYear(), Month.APRIL, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateJuly        = LocalDate.of(now.getYear(), Month.JULY, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateOctober     = LocalDate.of(now.getYear(), Month.OCTOBER, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateNextJanuary = LocalDate.of(now.getYear() + 1, Month.JANUARY, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+
+        final long daysToUpdateJanuary     = ChronoUnit.DAYS.between(now, updateJanuary);
+        final long daysToUpdateApril       = ChronoUnit.DAYS.between(now, updateApril);
+        final long daysToUpdateJuly        = ChronoUnit.DAYS.between(now, updateJuly);
+        final long daysToUpdateOctober     = ChronoUnit.DAYS.between(now, updateOctober);
+        final long daysToUpdateNextJanuary = ChronoUnit.DAYS.between(now, updateNextJanuary);
+
+        final Map<LocalDate, Long> remainingDays = new HashMap<>(4);
+        remainingDays.put(updateJanuary, daysToUpdateJanuary);
+        remainingDays.put(updateApril, daysToUpdateApril);
+        remainingDays.put(updateJuly, daysToUpdateJuly);
+        remainingDays.put(updateOctober, daysToUpdateOctober);
+        remainingDays.put(updateNextJanuary, daysToUpdateNextJanuary);
+
+        Optional<JDKUpdate> optJDKUpdate = remainingDays.entrySet().stream().filter(d -> d.getValue() >= 0).sorted(Comparator.comparing(Entry::getValue)).map(entry -> new JDKUpdate(entry.getKey(), entry.getValue(), UpdateType.UPDATE)).findFirst();
         return optJDKUpdate;
     }
 

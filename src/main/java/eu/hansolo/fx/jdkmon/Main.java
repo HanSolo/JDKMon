@@ -67,7 +67,6 @@ import eu.hansolo.jdktools.LibCType;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.PackageType;
-import eu.hansolo.jdktools.ReleaseStatus;
 import eu.hansolo.jdktools.Verification;
 import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
@@ -217,6 +216,7 @@ public class Main extends Application {
     private              Label                             titleLabel;
     private              Label                             searchPathLabel;
     private              Label                             nextOpenJDKUpdateLabel;
+    private              Label                             nextOpenJDKReleaseLabel;
     private              MacProgress                       macProgressIndicator;
     private              WinProgress                       winProgressIndicator;
     private              VBox                              titleBox;
@@ -499,10 +499,23 @@ public class Main extends Application {
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
+        Separator sep = new Separator(Orientation.HORIZONTAL);
+        VBox.setMargin(sep, new Insets(1, 0, 1, 0));
+
+        // Updates and releases
         nextOpenJDKUpdateLabel = new Label("");
         nextOpenJDKUpdateLabel.getStyleClass().add("small-label");
 
-        titleBox = new VBox(5, titleProgressBox, searchPathLabel, nextOpenJDKUpdateLabel);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        nextOpenJDKReleaseLabel = new Label("");
+        nextOpenJDKReleaseLabel.getStyleClass().add("small-label");
+
+        HBox updateBox = new HBox(nextOpenJDKUpdateLabel, spacer, nextOpenJDKReleaseLabel);
+
+
+        titleBox = new VBox(5, titleProgressBox, searchPathLabel, sep, updateBox);
 
         sdkmanImgVw = new ImageView(new Image(Main.class.getResourceAsStream("sdkman.png")));
         sdkmanImgVw.setPreserveRatio(true);
@@ -1535,8 +1548,12 @@ public class Main extends Application {
     }
 
     private void updateDaysToNextUpdate() {
-        Optional<JDKUpdate> optOpenJDKUpdate = Helper.getNextUpdate();
-        Platform.runLater(() -> nextOpenJDKUpdateLabel.setText(optOpenJDKUpdate.isPresent() ? "Next OpenJDK release in " + optOpenJDKUpdate.get().remainingDays() + " days" : ""));
+        Optional<JDKUpdate> optOpenJDKRelease = Helper.getNextRelease();
+        Optional<JDKUpdate> optOpenJDKUpdate  = Helper.getNextUpdate();
+        Platform.runLater(() -> {
+            nextOpenJDKUpdateLabel.setText(optOpenJDKUpdate.isPresent() ? "Next OpenJDK update in " + optOpenJDKUpdate.get().remainingDays() + " days" : "");
+            nextOpenJDKReleaseLabel.setText(optOpenJDKRelease.isPresent() ? "Next OpenJDK release in " + optOpenJDKRelease.get().remainingDays() + " days" : "");
+        });
     }
 
     private void rescan() {
