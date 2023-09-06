@@ -57,6 +57,7 @@ import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
 import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
 import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
 import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
@@ -215,6 +216,7 @@ public class Main extends Application {
     private              Finder                            finder;
     private              Label                             titleLabel;
     private              Label                             searchPathLabel;
+    private              Label                             nextOpenJDKUpdateLabel;
     private              MacProgress                       macProgressIndicator;
     private              WinProgress                       winProgressIndicator;
     private              VBox                              titleBox;
@@ -497,8 +499,10 @@ public class Main extends Application {
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
-        titleBox = new VBox(5, titleProgressBox, searchPathLabel);
+        nextOpenJDKUpdateLabel = new Label("");
+        nextOpenJDKUpdateLabel.getStyleClass().add("small-label");
 
+        titleBox = new VBox(5, titleProgressBox, searchPathLabel, nextOpenJDKUpdateLabel);
 
         sdkmanImgVw = new ImageView(new Image(Main.class.getResourceAsStream("sdkman.png")));
         sdkmanImgVw.setPreserveRatio(true);
@@ -1530,7 +1534,13 @@ public class Main extends Application {
         });
     }
 
+    private void updateDaysToNextUpdate() {
+        Optional<JDKUpdate> optOpenJDKUpdate = Helper.getNextUpdate();
+        Platform.runLater(() -> nextOpenJDKUpdateLabel.setText(optOpenJDKUpdate.isPresent() ? "Next OpenJDK release in " + optOpenJDKUpdate.get().remainingDays() + " days" : ""));
+    }
+
     private void rescan() {
+        updateDaysToNextUpdate();
         Platform.runLater(() -> {
             checkForLatestJDKMonVersion();
             if (checkingForUpdates.get()) { return; }

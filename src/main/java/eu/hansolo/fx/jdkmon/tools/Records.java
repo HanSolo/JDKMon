@@ -20,10 +20,14 @@ import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
 
+import java.time.LocalDate;
+
 
 public class Records {
 
     public record SysInfo(OperatingSystem operatingSystem, Architecture architecture, OperatingMode operatingMode) {}
 
     public record JdkInfo(String createdBy, String buildJdk) {}
+
+    public record JDKUpdate(LocalDate date, long remainingDays) {}
 }

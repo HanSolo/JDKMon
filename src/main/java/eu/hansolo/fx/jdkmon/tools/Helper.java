@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.Constants.CVE;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
@@ -55,11 +56,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -425,6 +434,28 @@ public class Helper {
             }
         }
         return availableVersions;
+    }
+
+    public static final Optional<JDKUpdate> getNextUpdate() {
+        final LocalDate now             = LocalDate.now();
+        final LocalDate updateMarch     = LocalDate.of(now.getYear(), Month.MARCH, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateJune      = LocalDate.of(now.getYear(), Month.JUNE, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateSeptember = LocalDate.of(now.getYear(), Month.SEPTEMBER, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+        final LocalDate updateDecember  = LocalDate.of(now.getYear(), Month.DECEMBER, 1).with(TemporalAdjusters.dayOfWeekInMonth(3, DayOfWeek.TUESDAY));
+
+        final long daysToUpdateMarch     = ChronoUnit.DAYS.between(now, updateMarch);
+        final long daysToUpdateJune      = ChronoUnit.DAYS.between(now, updateJune);
+        final long daysToUpdateSeptember = ChronoUnit.DAYS.between(now, updateSeptember);
+        final long daysToUpdateDecember  = ChronoUnit.DAYS.between(now, updateDecember);
+
+        final Map<LocalDate, Long> remainingDays = new HashMap<>(4);
+        remainingDays.put(updateMarch, daysToUpdateMarch);
+        remainingDays.put(updateJune, daysToUpdateJune);
+        remainingDays.put(updateSeptember, daysToUpdateSeptember);
+        remainingDays.put(updateDecember, daysToUpdateDecember);
+
+        Optional<JDKUpdate> optJDKUpdate = remainingDays.entrySet().stream().filter(d -> d.getValue() >= 0).sorted(Comparator.comparing(Entry::getValue)).map(entry -> new JDKUpdate(entry.getKey(), entry.getValue())).findFirst();
+        return optJDKUpdate;
     }
 
 
