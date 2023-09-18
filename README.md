@@ -4,12 +4,6 @@
 
 [![Github all releases](https://img.shields.io/github/downloads/HanSolo/JDKMon/total.svg)](https://GitHub.com/HanSolo/JDKMon/releases/)
 
-[![Windows](https://svgshare.com/i/ZhY.svg)](https://svgshare.com/i/ZhY.svg)
-[![macOS](https://svgshare.com/i/ZjP.svg)](https://svgshare.com/i/ZjP.svg)
-[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
-
-[![GitHub license](https://badgen.net/github/license/HanSolo/JDKMon)](https://github.com/HanSolo/JDKMon/blob/master/LICENSE)
-
 [![JFXCentral](https://img.shields.io/badge/Find_me_on-JFXCentral-blue?logo=googlechrome&logoColor=white)](https://www.jfx-central.com/downloads/jdkmon)
 
 
