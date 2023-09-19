@@ -1333,7 +1333,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setAlwaysOnTop(true);
-        stage.setMaxWidth(850);
+        stage.setMaxWidth(700);
         stage.show();
         stage.getIcons().add(dukeStageIcon);
         stage.centerOnScreen();
@@ -1551,8 +1551,26 @@ public class Main extends Application {
         Optional<JDKUpdate> optOpenJDKRelease = Helper.getNextRelease();
         Optional<JDKUpdate> optOpenJDKUpdate  = Helper.getNextUpdate();
         Platform.runLater(() -> {
-            nextOpenJDKUpdateLabel.setText(optOpenJDKUpdate.isPresent() ? "Next OpenJDK update in " + optOpenJDKUpdate.get().remainingDays() + " days" : "");
-            nextOpenJDKReleaseLabel.setText(optOpenJDKRelease.isPresent() ? "Next OpenJDK release in " + optOpenJDKRelease.get().remainingDays() + " days" : "");
+            int remainingDaysToUpdate  = (int) (optOpenJDKUpdate.isPresent()  ? optOpenJDKUpdate.get().remainingDays()  : -1);
+            String nextOpenJDKUpdateText;
+            switch (remainingDaysToUpdate) {
+                case -1 -> nextOpenJDKUpdateText = "";
+                case 0  -> nextOpenJDKUpdateText = "Next OpenJDK update is available TODAY";
+                case 1  -> nextOpenJDKUpdateText = "Next OpenJDK update is tomorrow";
+                default -> nextOpenJDKUpdateText = "Next OpenJDK update in " + remainingDaysToUpdate + " days";
+            }
+
+            int remainingDaysToRelease = (int) (optOpenJDKRelease.isPresent() ? optOpenJDKRelease.get().remainingDays() : -1);
+            String nextOpenJDKReleaseText;
+            switch (remainingDaysToRelease) {
+                case -1 -> nextOpenJDKReleaseText = "";
+                case 0  -> nextOpenJDKReleaseText = "Next OpenJDK release is available TODAY";
+                case 1  -> nextOpenJDKReleaseText = "Next OpenJDK release is tomorrow";
+                default -> nextOpenJDKReleaseText = "Next OpenJDK release in " + remainingDaysToUpdate + " days";
+            }
+
+            nextOpenJDKUpdateLabel.setText(nextOpenJDKUpdateText);
+            nextOpenJDKReleaseLabel.setText(nextOpenJDKReleaseText);
         });
     }
 
