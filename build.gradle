@@ -113,7 +113,7 @@ task Main(type: JavaExec) {
 // create properties file including the version
 task createProperties(dependsOn: processResources) {
     doLast {
-        new File("$buildDir//classes/java/main/eu/hansolo/fx/jdkmon/version.properties").withWriter { w ->
+        new File("${projectDir}//build/classes/java/main/eu/hansolo/fx/jdkmon/version.properties").withWriter { w ->
             Properties p = new Properties()
             p['version'] = project.version.toString()
             p.store w, null
