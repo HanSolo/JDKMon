@@ -1566,7 +1566,7 @@ public class Main extends Application {
                 case -1 -> nextOpenJDKReleaseText = "";
                 case 0  -> nextOpenJDKReleaseText = "Next OpenJDK release is available TODAY";
                 case 1  -> nextOpenJDKReleaseText = "Next OpenJDK release is tomorrow";
-                default -> nextOpenJDKReleaseText = "Next OpenJDK release in " + remainingDaysToUpdate + " days";
+                default -> nextOpenJDKReleaseText = "Next OpenJDK release in " + remainingDaysToRelease + " days";
             }
 
             nextOpenJDKUpdateLabel.setText(nextOpenJDKUpdateText);
