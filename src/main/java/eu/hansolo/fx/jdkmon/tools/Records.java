@@ -19,6 +19,7 @@ package eu.hansolo.fx.jdkmon.tools;
 import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.OperatingMode;
 import eu.hansolo.jdktools.OperatingSystem;
+import eu.hansolo.jdktools.versioning.VersionNumber;
 
 import java.time.LocalDate;
 
@@ -30,4 +31,6 @@ public class Records {
     public record JdkInfo(String createdBy, String buildJdk) {}
 
     public record JDKUpdate(LocalDate date, long remainingDays, UpdateType type) {}
+
+    public record JDKMonUpdate(VersionNumber latestVersion, boolean isUpdateAvailable) {}
 }

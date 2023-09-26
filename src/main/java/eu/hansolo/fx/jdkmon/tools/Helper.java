@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import eu.hansolo.cvescanner.Constants.CVE;
 import eu.hansolo.fx.jdkmon.Main;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKMonUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
@@ -237,23 +238,24 @@ public class Helper {
 
     public static final String colorToCss(final Color color) { return color.toString().replace("0x", "#"); }
 
-    public static CompletableFuture<HttpResponse<String>> checkForJDKMonUpdateAsync() {
-        return io.foojay.api.discoclient.util.Helper.getAsync(Constants.RELEASES_URI, "JDKMon");
-    }
-
-    public static boolean isUpdateAvailable() {
-        final HttpResponse<String> response = io.foojay.api.discoclient.util.Helper.get(Constants.RELEASES_URI, "JDKMon");
+    public static JDKMonUpdate checkForJDKMonUpdate() {
+        HttpResponse<String> response = io.foojay.api.discoclient.util.Helper.get(Constants.RELEASES_URI, "JDKMon");
         if (null == response || null == response.body() || response.body().isEmpty()) {
-            return false;
+            return new JDKMonUpdate(Main.VERSION, false);
         } else {
             final Gson       gson       = new Gson();
             final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
             if (jsonObject.has("tag_name")) {
-                VersionNumber latestVersion = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
-                return latestVersion.compareTo(Main.VERSION) > 0;
+                final VersionNumber latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
+                if (latestVersion.compareTo(Main.VERSION) > 0) {
+                    return new JDKMonUpdate(latestVersion, true);
+                } else {
+                    return new JDKMonUpdate(Main.VERSION, false);
+                }
+            } else {
+                return new JDKMonUpdate(Main.VERSION, false);
             }
         }
-        return false;
     }
 
     public static final boolean isUriValid(final String uri) {

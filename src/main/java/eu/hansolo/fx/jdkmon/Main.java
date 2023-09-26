@@ -57,6 +57,7 @@ import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
 import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
 import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
 import eu.hansolo.fx.jdkmon.tools.PropertyManager;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKMonUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
 import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
@@ -2470,18 +2471,9 @@ public class Main extends Application {
 
     private void checkForLatestJDKMonVersion() {
         if (!online.get()) { return; }
-        Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
-            if (null == response || null == response.body() || response.body().isEmpty()) {
-                isUpdateAvailable = false;
-            } else {
-                final Gson       gson       = new Gson();
-                final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
-                if (jsonObject.has("tag_name")) {
-                    latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
-                    isUpdateAvailable = latestVersion.compareTo(Main.VERSION) > 0;
-                }
-            }
-        });
+        JDKMonUpdate jdkMonUpdate = Helper.checkForJDKMonUpdate();
+        isUpdateAvailable = jdkMonUpdate.isUpdateAvailable();
+        latestVersion     = jdkMonUpdate.latestVersion();
     }
 
     private Dialog createCveDialog() {
