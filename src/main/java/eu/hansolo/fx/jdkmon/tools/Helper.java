@@ -29,6 +29,8 @@ import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -479,6 +481,13 @@ public class Helper {
 
         Optional<JDKUpdate> optJDKUpdate = remainingDays.entrySet().stream().filter(d -> d.getValue() >= 0).sorted(Comparator.comparing(Entry::getValue)).map(entry -> new JDKUpdate(entry.getKey(), entry.getValue(), UpdateType.UPDATE)).findFirst();
         return optJDKUpdate;
+    }
+
+    public static final void copyToClipBoard(final String text) {
+        Clipboard        clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content   = new ClipboardContent();
+        content.putString(text);
+        clipboard.setContent(content);
     }
 
 

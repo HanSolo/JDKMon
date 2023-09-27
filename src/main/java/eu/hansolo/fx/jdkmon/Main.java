@@ -2171,7 +2171,9 @@ public class Main extends Application {
             updateNode = updateLabel;
         }
 
-        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater helps you keeping track of your installed OpenJDK distributions.");
+        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater");
+        Hyperlink link = new Hyperlink(Constants.JDKMON_RELEASES_URI);
+        link.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> Helper.copyToClipBoard(Constants.JDKMON_RELEASES_URI));
         if (isWindows) {
             descriptionLabel.setFont(Fonts.segoeUi(11));
         } else if (OperatingSystem.MACOS == operatingSystem) {
@@ -2182,8 +2184,9 @@ public class Main extends Application {
         descriptionLabel.setTextAlignment(TextAlignment.LEFT);
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);
+        VBox descriptionBox = new VBox(5, descriptionLabel, link);
 
-        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, environmentLabel, updateNode, descriptionLabel);
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, environmentLabel, updateNode, descriptionBox);
 
         HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
         aboutBox.setAlignment(Pos.CENTER);
