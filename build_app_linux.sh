@@ -61,7 +61,7 @@ $JAVA_HOME/bin/jlink \
   --no-man-pages  \
   --compress=2  \
   --strip-debug \
-  --module-path ./jmods/javafx-jmods-21.0.1-linux-xh64/ \
+  --module-path ./jmods/javafx-jmods-21.0.1-linux-x64/ \
   --add-modules "${detected_modules},${manual_modules}" \
   --include-locales=en,de \
   --output build/java-runtime
