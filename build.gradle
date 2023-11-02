@@ -9,26 +9,30 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
-        classpath 'org.javamodularity:moduleplugin:1.8.12'
+        //classpath 'org.javamodularity:moduleplugin:1.8.12'
     }
 }
 
 plugins {
-    id 'java'
+    //id 'java'
     id 'application'
+    id 'org.openjfx.javafxplugin'         version '0.1.0'
+    id 'com.github.johnrengelman.shadow'  version '8.1.1'
     id 'signing'
-    id 'com.google.osdetector'           version '1.7.3'
-    id 'org.javamodularity.moduleplugin' version '1.8.12'
-    id 'net.nemerosa.versioning'         version '3.0.0'
+    id 'com.google.osdetector'            version '1.7.3'
+    //id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'net.nemerosa.versioning'          version '3.0.0'
 }
 
 apply plugin: 'signing'
 
+/*
 normalization {
     runtimeClasspath {
         ignore('/META-INF/MANIFEST.MF')
     }
 }
+*/
 
 repositories {
     mavenCentral()
@@ -56,32 +60,24 @@ dependencies {
     implementation 'io.foojay.api:discoclient:2.0.39'
     implementation 'eu.hansolo:jdktools:17.0.39'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
-    //implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.1.0'
-    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
+    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.0.1'
     implementation 'org.apache.commons:commons-compress:1.23.0'
     implementation 'org.tukaani:xz:1.9'
-    implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
-    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
 }
 
 
 application.mainModule = 'eu.hansolo.fx.jdkmon'
-mainClassName          = 'eu.hansolo.fx.jdkmon.Launcher'
+mainClassName          = 'eu.hansolo.fx.jdkmon.Main'
 description            = 'JDKMon is a little tool written in JavaFX that will help you to keep track of updates for your installed distributions of OpenJDK'
 
 
+javafx {
+    version = "21.0.1"
+    modules = [ 'javafx.controls' ]
+}
+
 jar {
-
-    from {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        configurations.runtimeClasspath.collect {  it.isDirectory() ? it : zipTree(it)  }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
-
     manifest {
         attributes(
                 'Built-By'              : System.properties['user.name'],
@@ -98,17 +94,19 @@ jar {
                 'Bundle-Description'    : description,
                 'Bundle-SymbolicName'   : 'eu.hansolo.fx.jdkmon',
                 'Class-Path'            : '${project.name}-${project.version}.jar',
-                'Main-Class'            : 'eu.hansolo.fx.jdkmon.Launcher'
+                'Main-Class'            : 'eu.hansolo.fx.jdkmon.Main'
         )
     }
 }
 
 
-// start the from gradle
+
+/* start the from gradle
 task Main(type: JavaExec) {
-    mainClass = "eu.hansolo.fx.jdkmon.Launcher"
-    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "eu.hansolo.fx.jdkmon.Main"
+    //classpath = sourceSets.main.runtimeClasspath
 }
+*/
 
 // create properties file including the version
 task createProperties(dependsOn: processResources) {
@@ -132,6 +130,7 @@ sourceSets {
     }
 }
 
+/*
 run {
     inputs.property("moduleName", moduleName)
     doFirst {
@@ -139,9 +138,10 @@ run {
                 '--module-path', classpath.asPath,
                 '--module', mainClassName
         ]
-        classpath = files()
+        //classpath = files()
     }
 }
+*/
 
 /*
 signing {

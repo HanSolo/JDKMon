@@ -1,7 +1,7 @@
 @ECHO OFF
 
 set JAVA_VERSION=17
-set MAIN_JAR=JDKMon-17.0.77.jar
+set MAIN_JAR=JDKMon-17.0.77-all.jar
 set APP_VERSION=17.0.77
 
 rem ------ SETUP DIRECTORIES AND FILES ----------------------------------------
@@ -37,7 +37,7 @@ rem otherwise HTTPS does not work.
 rem
 rem See: https://bugs.openjdk.java.net/browse/JDK-8221674
 
-set manual_modules=jdk.crypto.ec
+set manual_modules=jdk.crypto.ec,javafx.controls
 echo manual modules: %manual_modules%
 
 rem ------ RUNTIME IMAGE ------------------------------------------------------
@@ -53,6 +53,7 @@ call "%JAVA_HOME%\bin\jlink" ^
   --no-man-pages ^
   --compress=2 ^
   --strip-debug ^
+  --module-path .\jmods\javafx-jmods-21.0.1-windows-x64/ ^
   --add-modules %detected_modules%,%manual_modules% ^
   --output build\java-runtime
 
@@ -80,7 +81,7 @@ for %%s in ("msi" "exe") do call "%JAVA_HOME%\bin\jpackage" ^
   --app-version %APP_VERSION% ^
   --vendor "Gerrit Grunwald" ^
   --copyright "Copyright © 2021 Gerrit Grunwald" ^
-  --description "Your friendly JDK distribution updater" ^
+  --description "Your friendly JDK updater" ^
 
 
 rem ------ CHECKSUM FILE ------------------------------------------------------

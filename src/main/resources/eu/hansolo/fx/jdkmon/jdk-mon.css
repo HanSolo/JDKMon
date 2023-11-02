@@ -744,8 +744,7 @@
 .hyperlink:focused {
     -fx-border-color: transparent;
     -fx-border-style: none;
-    -fx-border-width: 0;cveCloseButton  = new Button("Close");
-    cveCloseButton.getStyleClass().addAll("jdk-mon", "cve-close-button");
+    -fx-border-width: 0;
 }
 
 

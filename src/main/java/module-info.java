@@ -5,8 +5,6 @@ module eu.hansolo.fx.jdkmon {
     requires java.desktop;
 
     // Java-FX
-    requires javafx.base;
-    requires javafx.graphics;
     requires javafx.controls;
 
     // 3rd Party
@@ -14,10 +12,11 @@ module eu.hansolo.fx.jdkmon {
     requires transitive eu.hansolo.jdktools;
     requires io.foojay.api.discoclient;
     requires eu.hansolo.cvescanner;
-    //requires com.dustinredmond.fxtrayicon;
-    requires FXTrayIcon;
+    requires com.dustinredmond.fxtrayicon;
     requires org.apache.commons.compress;
     requires org.tukaani.xz;
+
+    opens eu.hansolo.fx.jdkmon to javafx.controls;
 
     exports eu.hansolo.fx.jdkmon;
     exports eu.hansolo.fx.jdkmon.tools;

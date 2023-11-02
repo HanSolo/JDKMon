@@ -1,7 +1,7 @@
 #!/bin/bash
 
 JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.77.jar"
+MAIN_JAR="JDKMon-17.0.77-all.jar"
 APP_VERSION=17.0.77
 
 echo "java home: $JAVA_HOME"
@@ -46,7 +46,7 @@ echo "detected modules: ${detected_modules}"
 # This can be reduced to the actually needed locales via a jlink paramter,
 # e.g., --include-locales=en,de.
 
-manual_modules=jdk.crypto.ec,jdk.localedata
+manual_modules=jdk.crypto.ec,jdk.localedata,javafx.controls
 echo "manual modules: ${manual_modules}"
 
 # ------ RUNTIME IMAGE ------------------------------------------------------
@@ -61,6 +61,7 @@ $JAVA_HOME/bin/jlink \
   --no-man-pages  \
   --compress=2  \
   --strip-debug \
+  --module-path ./jmods/javafx-jmods-21.0.1-linux-xh64/ \
   --add-modules "${detected_modules},${manual_modules}" \
   --include-locales=en,de \
   --output build/java-runtime
@@ -78,10 +79,9 @@ do
   --dest build/installer \
   --input build/installer/input/libs \
   --name JDKMon \
-  --main-class eu.hansolo.fx.jdkmon.Launcher \
+  --main-class eu.hansolo.fx.jdkmon.Main \
   --main-jar ${MAIN_JAR} \
   --java-options -Xmx2048m \
-  --java-options '--enable-preview' \
   --java-options '-Djdk.gtk.version=2' \
   --runtime-image build/java-runtime \
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon128x128.png \
@@ -90,10 +90,9 @@ do
   --app-version ${APP_VERSION} \
   --vendor "Gerrit Grunwald" \
   --copyright "Copyright © 2021 Gerrit Grunwald" \
-  --description "Your friendly JDK distribution updater" \
+  --description "Your friendly JDK updater" \
 
 done
-
 
 # ------ CHECKSUM FILE --------------------------------------------------------
 arch_name="$(uname -m)"
