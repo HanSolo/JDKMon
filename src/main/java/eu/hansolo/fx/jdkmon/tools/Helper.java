@@ -29,6 +29,9 @@ import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
+import javafx.application.Application;
+import javafx.application.HostServices;
+import javafx.concurrent.Task;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
@@ -47,12 +50,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,16 +72,19 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import static eu.hansolo.jdktools.Constants.NEW_LINE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class Helper {
@@ -488,6 +496,68 @@ public class Helper {
         ClipboardContent content   = new ClipboardContent();
         content.putString(text);
         clipboard.setContent(content);
+    }
+
+    public static final String unescapeHTML(final String source) {
+        String result = source;
+        for (Entry<String,String> entry : Constants.HTML_ENTITIES.entrySet()) {
+            result = result.replaceAll(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    public static final String getTextFromUrl(final String uri, final Charset charset) {
+        try (var stream = URI.create(uri).toURL().openStream()) {
+            return new String(stream.readAllBytes(), charset);
+        } catch(Exception e) {
+            return "";
+        }
+    }
+
+    public static final List<JEP> getJepsFromHtml() {
+        final String   html      = Helper.getTextFromUrl(Constants.JEP_BASE_URL, UTF_8);
+        final Set<JEP> jepsFound = new HashSet<>();
+        Constants.JEP_MATCHER.reset(html);
+        while (Constants.JEP_MATCHER.find()) {
+            final int    id          = Integer.parseInt(Constants.JEP_MATCHER.group(2));
+            final String description = unescapeHTML(Constants.JEP_MATCHER.group(4));
+            final String url         = Constants.JEP_URL + id;
+            jepsFound.add(new JEP(id, description, url, id > 999_999));
+        }
+        return jepsFound.stream().sorted(Comparator.comparing(JEP::id)).collect(Collectors.toList());
+    }
+
+    public static final List<JSR> getJsrsFromHtml() {
+        final String   html      = Helper.getTextFromUrl(Constants.JSR_BASE_URL, UTF_8);
+        final Set<JSR> jsrsFound = new HashSet<>();
+        Constants.JSR_TM_MATCHER.reset(html);
+        final String txt = Constants.JSR_TM_MATCHER.replaceAll("");
+        Constants.JSR_MATCHER.reset(txt);
+        while (Constants.JSR_MATCHER.find()) {
+            final int    id          = Integer.parseInt(Constants.JSR_MATCHER.group(2));
+            final String description = unescapeHTML(Constants.JSR_MATCHER.group(4));
+            final String url         = Constants.JSR_URL + id;
+            jsrsFound.add(new JSR(id, description, url));
+        }
+        return jsrsFound.stream().sorted(Comparator.comparing(JSR::id)).collect(Collectors.toList());
+    }
+
+    public static final List<Project> getProjectsFromHtml() {
+        final String       html          = Helper.getTextFromUrl(Constants.OPENJDK_PROJECT_URL, UTF_8);
+        final Set<Project> projectsFound = new HashSet<>();
+        Constants.PROJECT_MATCHER.reset(html);
+        while (Constants.PROJECT_MATCHER.find()) {
+            final String description = unescapeHTML(Constants.PROJECT_MATCHER.group(2));
+            final String url         = Constants.OPENJDK_PROJECT_URL + Constants.PROJECT_MATCHER.group(1);
+            if (!description.equals("archive")) {
+                projectsFound.add(new Project(description, url));
+            }
+        }
+        return projectsFound.stream().sorted(Comparator.comparing(Project::description)).collect(Collectors.toList());
+    }
+
+    public static final void openInDefaultBrowser(final Application app, final String url) {
+        app.getHostServices().showDocument(url);
     }
 
 

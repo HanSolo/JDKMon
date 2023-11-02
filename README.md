@@ -215,6 +215,18 @@ OpenJDK 64-Bit Server VM Zulu11.64+19-CA (build 11.0.19+7-LTS, mixed mode)
 This script enables you to switch to a JDK of your choice for the current shell session.
 
 
+### Installation
+#### Linux
+Install the deb pkg via
+```sudo dpkg -i jdkmon_17.0.77-1_amd64.deb```
+
+#### Windows
+Make sure that you unblocked the msi package and set the rights correctly before you
+execute the msi installer
+
+#### MacOS
+Install the pkg and make sure it is not unblocked because it comes from an unknown source.
+
 ### Installation problems
 #### Linux
 Make sure that you have the following programs installed before you execute build_appLinux.sh:
