@@ -19,7 +19,7 @@ jobs:
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Create Distribution
-        run: .\build_app_windows.bat
+        run: .\build_app_windows_x64.bat
       - uses: actions/upload-artifact@v3
         with:
           name: JDKMon Windows
@@ -70,10 +70,10 @@ jobs:
         run: ./gradlew build
         env:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Grant execute permission for build_app_linux.sh
-        run: chmod +x ./build_app_linux.sh
+      - name: Grant execute permission for build_app_linux_x64.sh
+        run: chmod +x ./build_app_linux_x64.sh
       - name: Create Distribution
-        run: ./build_app_linux.sh
+        run: ./build_app_linux_x64.sh
       - uses: actions/upload-artifact@v3
         with:
           name: JDKMon Linux

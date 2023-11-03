@@ -9,7 +9,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
-        //classpath 'org.javamodularity:moduleplugin:1.8.12'
     }
 }
 
@@ -20,19 +19,10 @@ plugins {
     id 'com.github.johnrengelman.shadow'  version '8.1.1'
     id 'signing'
     id 'com.google.osdetector'            version '1.7.3'
-    //id 'org.javamodularity.moduleplugin' version '1.8.12'
     id 'net.nemerosa.versioning'          version '3.0.0'
 }
-
 apply plugin: 'signing'
 
-/*
-normalization {
-    runtimeClasspath {
-        ignore('/META-INF/MANIFEST.MF')
-    }
-}
-*/
 
 repositories {
     mavenCentral()
@@ -100,14 +90,6 @@ jar {
 }
 
 
-
-/* start the from gradle
-task Main(type: JavaExec) {
-    mainClass = "eu.hansolo.fx.jdkmon.Main"
-    //classpath = sourceSets.main.runtimeClasspath
-}
-*/
-
 // create properties file including the version
 task createProperties(dependsOn: processResources) {
     doLast {
@@ -129,23 +111,3 @@ sourceSets {
         output.setResourcesDir(java.classesDirectory)
     }
 }
-
-/*
-run {
-    inputs.property("moduleName", moduleName)
-    doFirst {
-        jvmArgs = [
-                '--module-path', classpath.asPath,
-                '--module', mainClassName
-        ]
-        //classpath = files()
-    }
-}
-*/
-
-/*
-signing {
-    useGpgCmd()
-    sign configurations.archives
-}
-*/
