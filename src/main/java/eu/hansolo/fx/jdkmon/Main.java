@@ -64,7 +64,11 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.IntegerPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.StringPropertyBase;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -92,10 +96,12 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
@@ -222,6 +228,7 @@ public class Main extends Application {
 
     private              Dialog                            cveDialog;
     private              ObservableList<Hyperlink>         cveLinks;
+    private              StringProperty                    cveWindowTitleText;
     private              Stage                             cveStage;
     private              AnchorPane                        cveHeaderPane;
     private              Label                             cveWindowTitle;
@@ -386,6 +393,7 @@ public class Main extends Application {
                 downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadGraalPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 searchablePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                cvePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cveCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
             }
             @Override public Object getBean() { return Main.this; }
@@ -681,6 +689,13 @@ public class Main extends Application {
         timeline = new Timeline();
 
         cveLinks                               = FXCollections.observableArrayList();
+        cveWindowTitleText                     = new StringPropertyBase("Vulnerabilities found") {
+            @Override protected void invalidated() {
+                System.out.println("No of CVE's found: " + get());
+            }
+            @Override public Object getBean() { return Main.this; }
+            @Override public String getName() { return "cveWindowTitleText"; }
+        };
 
         downloadJDKMaintainedVersions          = new LinkedHashSet<>();
         downloadJDKSelectedPkgs                = new ArrayList<>();
@@ -1852,6 +1867,7 @@ public class Main extends Application {
             attentionIndicator.setVisible(true);
             attentionIndicator.setOnMousePressed(e -> {
                 cveLinks.setAll(cveLinksFound);
+                cveWindowTitleText.set(cveLinksFound.size() + " Vulnerabilities found");
                 cveBox.getChildren().setAll(cveLinks);
                 cveDialog.showAndWait();
             });
@@ -2619,7 +2635,8 @@ public class Main extends Application {
         cveCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         cveCloseWinWindowButton.setDarkMode(isDarkMode);
 
-        cveWindowTitle = new Label("Vulnerabilities found");
+        cveWindowTitle = new Label();
+        cveWindowTitle.textProperty().bind(cveWindowTitleText);
         if (isWindows) {
             cveWindowTitle.setFont(Fonts.segoeUi(9));
             cveWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));

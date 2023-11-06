@@ -387,7 +387,6 @@ public class Finder {
                 String       architecture     = "";
                 Feature      feature          = Feature.NONE;
                 Boolean      fxBundled        = Boolean.FALSE;
-                //FPU          fpu              = FPU.UNKNOWN;
                 List<String> modules          = new ArrayList<>();
                 
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
@@ -435,7 +434,6 @@ public class Finder {
                         buildScope = BuildScope.BUILD_OF_GRAALVM;
                     }
                 }
-
                 if (line2.contains("Zulu")) {
                     name      = "Zulu";
                     apiString = "zulu";
