@@ -117,7 +117,7 @@ a menu will appear where you can select
 
 <b>ATTENTION:</b><br>
 When running the application via `java -jar` on Linux you might have to
-add `-Djdk.gtk.version=2` to make it work correctly e.g. `java -Djdk.gtk.version=2 -jar JDKMon-linux-17.0.69.jar`
+add `-Djdk.gtk.version=2` to make it work correctly e.g. `java -Djdk.gtk.version=2 -jar JDKMon-linux-17.0.79.jar`
 
 On Mac and Windows the dark mode will be detected automatically and the user interface will
 adjust it's design to either dark or light mode. On Linux you can change the variable "dark_mode" in the
@@ -145,6 +145,9 @@ OpenJDK 11.0.13 for both distributions. So there is no guarantee that your insta
 affected by the CVE's found in the NVD but you at least get the info that there are vulnerabilities for 11.0.13.
 
 ![JDKMon](https://i.ibb.co/8MB9Lmx/JDKMon.png)
+
+If you hover over a distribution, a tooltip will pop up that shows you the path where the distribution is installed,
+the number of modules the distribution comes with if it is modular and the size of the folder it is installed in.
 
 When you click on the yellow circle a window will open which shows the CVE's found. 
 You can click on each CVE to open it in a browser with more detailled information.
@@ -218,7 +221,7 @@ This script enables you to switch to a JDK of your choice for the current shell 
 ### Installation
 #### Linux
 Install the deb pkg via
-```sudo dpkg -i jdkmon_17.0.77-1_amd64.deb```
+```sudo dpkg -i jdkmon_17.0.79-1_amd64.deb```
 
 #### Windows
 Make sure that you unblocked the msi package and set the rights correctly before you

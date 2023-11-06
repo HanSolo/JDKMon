@@ -16,8 +16,24 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-public interface Searchable {
-    String url();
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.ListCell;
 
-    String dscr();
+
+public class SearchableCell extends ListCell<Searchable> {
+
+    @Override protected void updateItem(final Searchable searchable, final boolean empty) {
+        super.updateItem(searchable, empty);
+
+        if (empty || null == searchable) {
+            setText(null);
+            setGraphic(null);
+        } else {
+            setText(searchable.toString());
+        }
+    }
+
+    @Override public String toString() {
+        return getItem().toString();
+    }
 }

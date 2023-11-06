@@ -20,6 +20,14 @@ import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.pkg.Feature;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static eu.hansolo.jdktools.Constants.COMMA;
+import static eu.hansolo.jdktools.Constants.NEW_LINE;
+
 
 public class Distro {
     private final String        name;
@@ -36,6 +44,7 @@ public class Distro {
     private final boolean       handledBySdkman;
     private final String        path;
     private       boolean       inUse;
+    private final List<String>  modules;
 
 
     public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final Feature feature, final BuildScope buildScope, final boolean handledBySdkman, final String path) {
@@ -53,6 +62,7 @@ public class Distro {
         this.handledBySdkman = handledBySdkman;
         this.path            = path;
         this.inUse           = false;
+        this.modules         = new ArrayList<>();
     }
 
 
@@ -84,6 +94,41 @@ public class Distro {
 
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }
+
+    public long getSize() {
+        long size;
+        try {
+            size = Helper.getFolderSize(getPath());
+        } catch (IOException e) {
+            size = -1;
+        }
+        return size;
+    }
+
+    public List<String> getModules() { return modules; }
+    public void setModules(final List<String> modules) {
+        this.modules.clear();
+        this.modules.addAll(modules);
+    }
+
+    public String getModulesText(final boolean includeModules) {
+        if (getVersionNumber().getFeature().isPresent()) {
+            if (getVersionNumber().getFeature().getAsInt() < 9) { return "(No modular JDK)"; }
+        }
+        if (this.modules.isEmpty()) { return "No modules found"; }
+        StringBuilder msgBuilder = new StringBuilder();
+        msgBuilder.append(this.modules.size()).append(" modules");
+        if (this.modules.size() <= 45) { msgBuilder.append(" (Probably JLink JRE)"); }
+        if (includeModules) {
+            msgBuilder.append(NEW_LINE);
+            for (int i = 0; i < modules.size(); i++) {
+                msgBuilder.append(modules.get(i)).append(COMMA);
+                if (i > 4 && i % 5 == 0) { msgBuilder.append(NEW_LINE); }
+            }
+            msgBuilder.setLength(msgBuilder.length() - 1);
+        }
+        return msgBuilder.toString();
+    }
 
     @Override public String toString() {
         return new StringBuilder().append("{")

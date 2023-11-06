@@ -56,8 +56,12 @@ public class Constants {
     public static final Matcher JSR_MATCHER                            = JSR_PATTERN.matcher("");
     public static final Pattern JSR_TM_PATTERN                         = Pattern.compile("(<sup><font size=\"-2\">TM<\\/font><\\/sup>)|(<font size=\"-2\"><sup>TM<\\/sup><\\/font>)");
     public static final Matcher JSR_TM_MATCHER                         = JSR_TM_PATTERN.matcher("");
+
     public static final Pattern PROJECT_PATTERN                        = Pattern.compile("href=\"\\/projects\\/([a-zA-Z0-9_\\-]+)\">([a-zA-Z0-9_\\:\\.\\-\\(\\)]+)<");
     public static final Matcher PROJECT_MATCHER                        = PROJECT_PATTERN.matcher("");
+
+    public static final String  OS_NAME_PROPERTY                       = System.getProperty("os.name");
+    public static final String  OS_ARCH_PROPERTY                       = System.getProperty("os.arch");
 
     public static final long    INITIAL_CHECK_DELAY_IN_SECONDS         = 5;
 

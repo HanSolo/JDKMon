@@ -202,7 +202,7 @@ public class Finder {
     public Architecture getArchitecture() { return architecture; }
 
     public static final OperatingSystem detectOperatingSystem() {
-        final String os = System.getProperty("os.name").toLowerCase();
+        final String os = Constants.OS_NAME_PROPERTY.toLowerCase();
         if (os.indexOf("win") >= 0) {
             return OperatingSystem.WINDOWS;
         } else if (os.indexOf("mac") >= 0) {
@@ -251,7 +251,7 @@ public class Finder {
             }
 
             // If not found yet try via system property
-            final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+            final String arch = Constants.OS_ARCH_PROPERTY.toLowerCase(Locale.ENGLISH);
             if (arch.contains("sparc")) return Architecture.SPARC;
             if (arch.contains("amd64") || arch.contains("86_64")) return Architecture.AMD64;
             if (arch.contains("86")) return Architecture.X86;
@@ -388,6 +388,7 @@ public class Finder {
                 Feature      feature          = Feature.NONE;
                 Boolean      fxBundled        = Boolean.FALSE;
                 //FPU          fpu              = FPU.UNKNOWN;
+                List<String> modules          = new ArrayList<>();
                 
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
                     inUse.set(true);
@@ -469,6 +470,9 @@ public class Finder {
                 } else if (line2.contains("Homebrew")) {
                     name      = "Homebrew";
                     apiString = "homebrew";
+                } else if (line2.startsWith("Java(TM) SE")) {
+                    name      = "Oracle";
+                    apiString = "oracle";
                 }
 
                 if (null == version) {
@@ -520,9 +524,20 @@ public class Finder {
                                 case "N/A"               -> { }/* Unknown */
                             }
                         }
+
                         if (releaseProperties.containsKey("OS_ARCH")) {
                             architecture = releaseProperties.getProperty("OS_ARCH").toLowerCase().replaceAll("\"", "");
                         }
+                        
+                        if (releaseProperties.containsKey("BUILD_TYPE")) {
+                            switch(releaseProperties.getProperty("BUILD_TYPE").replaceAll("\"", "")) {
+                                case "commercial" -> {
+                                    name      = "Oracle";
+                                    apiString = "oracle";
+                                }
+                            }
+                        }
+                        
                         if (releaseProperties.containsKey("JVM_VARIANT")) {
                             if (name == "Adopt OpenJDK") {
                                 String jvmVariant = releaseProperties.getProperty("JVM_VARIANT").toLowerCase().replaceAll("\"", "");
@@ -535,6 +550,7 @@ public class Finder {
                                 }
                             }
                         }
+
                         if (releaseProperties.containsKey("OS_NAME")) {
                             switch(releaseProperties.getProperty("OS_NAME").toLowerCase().replaceAll("\"", "")) {
                                 case "darwin"  -> operatingSystem = "macos";
@@ -544,6 +560,8 @@ public class Finder {
                         }
                         if (releaseProperties.containsKey("MODULES") && !fxBundled) {
                             fxBundled = (releaseProperties.getProperty("MODULES").contains("javafx"));
+                            String[] modulesArray = releaseProperties.getProperty("MODULES").split("\s");
+                            modules.addAll(Arrays.asList(modulesArray));
                         }
                         /*
                         if (releaseProperties.containsKey("SUN_ARCH_ABI")) {
@@ -673,6 +691,7 @@ public class Finder {
                 }
 
                 Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
+                distributionFound.setModules(modules);
                 if (inUse.get()) { distributionFound.setInUse(true); }
 
                 distros.add(distributionFound);

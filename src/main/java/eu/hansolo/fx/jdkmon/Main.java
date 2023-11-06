@@ -65,6 +65,8 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -157,6 +159,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static eu.hansolo.jdktools.Constants.NEW_LINE;
 import static eu.hansolo.jdktools.ReleaseStatus.EA;
 import static eu.hansolo.jdktools.ReleaseStatus.GA;
 
@@ -229,12 +232,9 @@ public class Main extends Application {
     private              Button                            cveCloseButton;
 
     private              Dialog                            searchableDialog;
-    private              ObservableList<Hyperlink>         jepLinks;
-    private              ObservableList<Hyperlink>         jsrLinks;
-    private              ObservableList<Hyperlink>         projectLinks;
-    private              ComboBox<Hyperlink>               jepComboBox;
-    private              ComboBox<Hyperlink>               jsrComboBox;
-    private              ComboBox<Hyperlink>               projectComboBox;
+    private              ComboBox<Searchable>              jepComboBox;
+    private              ComboBox<Searchable>              jsrComboBox;
+    private              ComboBox<Searchable>              projectComboBox;
     private              Stage                             searchableStage;
     private              AnchorPane                        searchableHeaderPane;
     private              Label                             searchableWindowTitle;
@@ -370,11 +370,14 @@ public class Main extends Application {
         cveCloseButton  = new Button("Close");
         cveCloseButton.getStyleClass().addAll("jdk-mon", "cve-close-button");
 
-        searchableCloseButton  = new Button("Close");
-        searchableCloseButton.getStyleClass().addAll("jdk-mon", "cve-close-button");
         jepComboBox     = new ComboBox<>();
+        jepComboBox.setPromptText("JEP");
+
         jsrComboBox     = new ComboBox<>();
+        jsrComboBox.setPromptText("JSR");
+
         projectComboBox = new ComboBox<>();
+        projectComboBox.setPromptText("Project");
 
 
         darkMode = new BooleanPropertyBase(false) {
@@ -382,6 +385,7 @@ public class Main extends Application {
                 pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadGraalPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                searchablePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cveCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
             }
             @Override public Object getBean() { return Main.this; }
@@ -483,14 +487,22 @@ public class Main extends Application {
             }
         };
 
-        jepTask.setOnSucceeded(e -> Platform.runLater(() -> this.jeps.addAll((jepTask.getValue()))));
-        jsrTask.setOnSucceeded(e -> Platform.runLater(() -> this.jsrs.addAll((jsrTask.getValue()))));
-        prjTask.setOnSucceeded(e -> Platform.runLater(() -> this.prjs.addAll((prjTask.getValue()))));
+        jepTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.jeps.addAll((jepTask.getValue()));
+            this.jepComboBox.getItems().setAll(this.jeps);
+        }));
+        jsrTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.jsrs.addAll((jsrTask.getValue()));
+            this.jsrComboBox.getItems().setAll(this.jsrs);
+        }));
+        prjTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.prjs.addAll((prjTask.getValue()));
+            this.projectComboBox.getItems().setAll(this.prjs);
+        }));
 
         executor.schedule(jepTask, Constants.INITIAL_JEP_TASK_DELAY, TimeUnit.SECONDS);
         executor.schedule(jsrTask, Constants.INITIAL_JSR_TASK_DELAY, TimeUnit.SECONDS);
         executor.schedule(prjTask, Constants.INITIAL_PROJECT_TASK_DELAY, TimeUnit.SECONDS);
-
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -669,9 +681,6 @@ public class Main extends Application {
         timeline = new Timeline();
 
         cveLinks                               = FXCollections.observableArrayList();
-        jepLinks                               = FXCollections.observableArrayList();
-        jsrLinks                               = FXCollections.observableArrayList();
-        projectLinks                           = FXCollections.observableArrayList();
 
         downloadJDKMaintainedVersions          = new LinkedHashSet<>();
         downloadJDKSelectedPkgs                = new ArrayList<>();
@@ -703,67 +712,6 @@ public class Main extends Application {
             switch(e.type()) {
                 case UPDATED -> updateCves();
             }
-        });
-
-        jeps.addListener((ListChangeListener<JEP>) c -> {
-            jepLinks.clear();
-            while (c.next()) {
-                if (c.wasAdded()) {
-                    c.getAddedSubList().forEach(jep -> {
-                        Hyperlink jepLink = new Hyperlink();
-                        jepLink.setTooltip(new Tooltip(jep.toString()));
-                        jepLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                        jepLink.setText(jep.toString());
-                        jepLink.setOnAction(e -> {
-                            Helper.openInDefaultBrowser(Main.this, jep.url());
-                        });
-                        jepLink.setTextFill(Color.WHITE);
-                        jepLink.setBackground(new Background(new BackgroundFill(Color.GRAY, new CornerRadii(5), Insets.EMPTY)));
-                        jepLinks.add(jepLink);
-                    });
-                }
-            }
-            jepComboBox.getItems().setAll(jepLinks);
-        });
-        jsrs.addListener((ListChangeListener<JSR>) c -> {
-            jsrLinks.clear();
-            while (c.next()) {
-                if (c.wasAdded()) {
-                    c.getAddedSubList().forEach(jsr -> {
-                        Hyperlink jsrLink = new Hyperlink();
-                        jsrLink.setTooltip(new Tooltip(jsr.toString()));
-                        jsrLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                        jsrLink.setText(jsr.toString());
-                        jsrLink.setOnAction(e -> {
-                            Helper.openInDefaultBrowser(Main.this, jsr.url());
-                        });
-                        jsrLink.setTextFill(Color.WHITE);
-                        jsrLink.setBackground(new Background(new BackgroundFill(Color.GRAY, new CornerRadii(5), Insets.EMPTY)));
-                        jsrLinks.add(jsrLink);
-                    });
-                }
-            }
-            jsrComboBox.getItems().setAll(jsrLinks);
-        });
-        prjs.addListener((ListChangeListener<Project>) c -> {
-            projectLinks.clear();
-            while (c.next()) {
-                if (c.wasAdded()) {
-                    c.getAddedSubList().forEach(project -> {
-                        Hyperlink projectLink = new Hyperlink();
-                        projectLink.setTooltip(new Tooltip(project.toString()));
-                        projectLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                        projectLink.setText(project.toString());
-                        projectLink.setOnAction(e -> {
-                            Helper.openInDefaultBrowser(Main.this, project.url());
-                        });
-                        projectLink.setTextFill(Color.WHITE);
-                        projectLink.setBackground(new Background(new BackgroundFill(Color.GRAY, new CornerRadii(5), Insets.EMPTY)));
-                        projectLinks.add(projectLink);
-                    });
-                }
-            }
-            projectComboBox.getItems().setAll(projectLinks);
         });
 
         headerPane.setOnMousePressed(press -> headerPane.setOnMouseDragged(drag -> {
@@ -1210,14 +1158,18 @@ public class Main extends Application {
                 downloadGraalCloseWinWindowButton.setDisable(true);
             }
         });
+
+        jepComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
+        jsrComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
+        projectComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
     }
 
     private void initOnFXApplicationThread() {
         aboutDialog         = createAboutDialog();
         downloadJDKDialog   = createDownloadJDKDialog();
         downloadGraalDialog = createDownloadGraalDialog();
-        cveDialog           = createCveDialog();
         searchableDialog    = createSearchableDialog();
+        cveDialog           = createCveDialog();
 
         registerListeners();
         if (online.get()) {
@@ -1841,7 +1793,14 @@ public class Main extends Application {
             distroLabel.setGraphic(sdkmanImgVw);
         }
 
-        distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
+        //distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
+        StringBuilder msgBuilder = new StringBuilder();
+        msgBuilder.append(distribution.getModulesText(false));
+        if (distribution.getSize() > 0) {
+            msgBuilder.append(" -> ").append(Helper.shortenNumber(distribution.getSize()));
+        }
+        msgBuilder.append(NEW_LINE).append(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation());
+        distroLabel.setTooltip(new Tooltip(msgBuilder.toString()));
         distroLabel.setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown()) {
                 openDistribution(distribution);
@@ -2305,38 +2264,20 @@ public class Main extends Application {
 
         Node updateNode;
         if (isUpdateAvailable) {
-            Hyperlink updateLink = new Hyperlink();
-            updateLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-            updateLink.setText("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
-            updateLink.setOnAction(e -> {
-                if (Desktop.isDesktopSupported()) {
-                    try {
-                        Desktop.getDesktop().browse(new URI(Constants.RELEASES_URI));
-                    } catch (IOException | URISyntaxException ex) {
-                        ex.printStackTrace();
-                    }
-                } else {
-                    if (OperatingSystem.LINUX == operatingSystem) {
-                        Runtime runtime = Runtime.getRuntime();
-                        try {
-                            runtime.exec(new String[] { "xdg-open", Constants.RELEASES_URI });
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            });
+            Label updateLabel = new Label("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
+            updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+            updateLabel.setOnMousePressed(e -> Helper.openInDefaultBrowser(Main.this, Constants.RELEASES_URI));
             if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
                 if (isDarkMode) {
-                    updateLink.setTextFill(accentColor.getColorDark());
+                    updateLabel.setTextFill(accentColor.getColorDark());
                 } else {
-                    updateLink.setTextFill(accentColor.getColorAqua());
+                    updateLabel.setTextFill(accentColor.getColorAqua());
                 }
             } else {
-                updateLink.setTextFill(accentColor.getColorAqua());
+                updateLabel.setTextFill(accentColor.getColorAqua());
             }
 
-            updateNode = updateLink;
+            updateNode = updateLabel;
         } else {
             Label updateLabel = new Label("Latest version installed");
             updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
@@ -2868,30 +2809,36 @@ public class Main extends Application {
             searchableHeaderPane.getChildren().addAll(searchableCloseMacWindowButton, searchableWindowTitle);
         }
 
-        //jepComboBox.setCellFactory(distributionListView -> isWindows ? new DistributionCell() : new MacosDistributionCell());
-        jepComboBox.setMinWidth(150);
-        jepComboBox.setMaxWidth(150);
-        jepComboBox.setPrefWidth(150);
-        //jepComboBox.getItems().setAll(jepLinks);
+        jepComboBox = new ComboBox<>();
+        jepComboBox.setPromptText("JEP");
+        jepComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        jepComboBox.setMinWidth(200);
+        jepComboBox.setMaxWidth(200);
+        jepComboBox.setPrefWidth(200);
 
-        //jsrComboBox.setCellFactory(distributionListView -> isWindows ? new DistributionCell() : new MacosDistributionCell());
-        jsrComboBox.setMinWidth(150);
-        jsrComboBox.setMaxWidth(150);
-        jsrComboBox.setPrefWidth(150);
-        //jsrComboBox.getItems().setAll(jsrLinks);
+        jsrComboBox = new ComboBox<>();
+        jsrComboBox.setPromptText("JSR");
+        jsrComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        jsrComboBox.setMinWidth(200);
+        jsrComboBox.setMaxWidth(200);
+        jsrComboBox.setPrefWidth(200);
 
-        //projectComboBox.setCellFactory(distributionListView -> isWindows ? new DistributionCell() : new MacosDistributionCell());
-        projectComboBox.setMinWidth(150);
-        projectComboBox.setMaxWidth(150);
-        projectComboBox.setPrefWidth(150);
-        //projectComboBox.getItems().setAll(projectLinks);
+        projectComboBox = new ComboBox<>();
+        projectComboBox.setPromptText("Project");
+        projectComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        projectComboBox.setMinWidth(200);
+        projectComboBox.setMaxWidth(200);
+        projectComboBox.setPrefWidth(200);
+
+        searchableCloseButton  = new Button("Close");
 
         VBox searchableVBox = new VBox(15, jepComboBox, jsrComboBox, projectComboBox, searchableCloseButton);
-        searchableVBox.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+        searchableVBox.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
         searchableVBox.setAlignment(Pos.TOP_CENTER);
         searchableVBox.setAlignment(Pos.CENTER);
 
         searchablePane.getChildren().add(searchableVBox);
+        searchablePane.getStyleClass().add("jdk-mon");
         searchablePane.setPadding(new Insets(10));
 
         BorderPane searchableMainPane = new BorderPane();
@@ -2907,7 +2854,7 @@ public class Main extends Application {
         } else {
             StackPane searchableGlassPane = new StackPane(searchableMainPane);
             searchableGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-            searchableGlassPane.setMinSize(300, isWindows ? 150 : 150);
+            searchableGlassPane.setMinSize(300, isWindows ? 200 : 200);
             searchableGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
             searchableMainPane.setOnMousePressed(press -> searchableMainPane.setOnMouseDragged(drag -> {
                 searchableDialog.setX(drag.getScreenX() - press.getSceneX());
