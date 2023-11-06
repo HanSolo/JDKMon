@@ -154,11 +154,20 @@ You can click on each CVE to open it in a browser with more detailled informatio
 
 ![Vulnerabilities](https://i.ibb.co/M50z992/vulnerabilities.png)
 
+In the menu you will find an entry named "JEP's, JSR's, Projects". This will open a dialog with 3 drop down boxes
+as you can see in the following image.
+
+![JepJsrProject](https://i.ibb.co/BPZwX98/Xnip2023-11-06-12-42-15.png)
+
+When selecting one item of those boxes, it will open the related JEP, JSR or project in your
+default browser so that you can read more about it.
+
+
+#### User Interface
 How it looks on MacOS and Linux (light/dark mode):
 ![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
 
 ![Download](https://i.ibb.co/DbYK1F3/download-mac-linux.png)
-
 
 How it looks on Windows (light/dark mode):
 
