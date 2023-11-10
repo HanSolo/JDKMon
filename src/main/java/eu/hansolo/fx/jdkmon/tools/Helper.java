@@ -30,9 +30,7 @@ import eu.hansolo.jdktools.TermOfSupport;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import javafx.application.Application;
-import javafx.application.HostServices;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
@@ -51,7 +49,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
@@ -80,7 +77,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
@@ -599,6 +595,17 @@ public class Helper {
         formatter.setMinimumFractionDigits(1);
         formatter.setMaximumFractionDigits(1);
         return hasDecimal ? formatter.format(truncated / 10d) + suffix : (truncated / 10) + suffix;
+    }
+
+    public static final List<Searchable> searchFor(final String searchText, final List<JEP> jeps, final List<JSR> jsrs, final List<Project> projects) {
+        List<JEP>        jepsFound     = jeps.stream().filter(jep -> jep.toString().toLowerCase().contains(searchText.toLowerCase())).findAny().stream().toList();
+        List<JSR>        jsrsFound     = jsrs.stream().filter(jsr -> jsr.toString().toLowerCase().contains(searchText.toLowerCase())).findAny().stream().toList();
+        List<Project>    projectsFound = projects.stream().filter(project -> project.toString().toLowerCase().contains(searchText.toLowerCase())).findAny().stream().toList();
+        List<Searchable> results       = new ArrayList<>();
+        results.addAll(jepsFound);
+        results.addAll(jsrsFound);
+        results.addAll(projectsFound);
+        return results;
     }
 
 
