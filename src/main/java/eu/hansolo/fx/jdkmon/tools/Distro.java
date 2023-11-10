@@ -118,7 +118,11 @@ public class Distro {
         if (this.modules.isEmpty()) { return "No modules found"; }
         StringBuilder msgBuilder = new StringBuilder();
         msgBuilder.append(this.modules.size()).append(" modules");
-        if (this.modules.size() <= 45) { msgBuilder.append(" (Probably JLink JRE)"); }
+        if (this.modules.size() <= 45) {
+            msgBuilder.append(" (Probably JLink JRE)");
+        } else if (this.modules.size() < 60) {
+            msgBuilder.append(" (Probably JRE)");
+        }
         if (includeModules) {
             msgBuilder.append(NEW_LINE);
             for (int i = 0; i < modules.size(); i++) {
@@ -142,7 +146,8 @@ public class Distro {
                                   .append("\"feature\":\"").append(getFeature()).append("\",")
                                   .append("\"handled_by_sdkman\":").append(isHandledBySdkman()).append(",")
                                   .append("\"path\":\"").append(path).append("\",")
-                                  .append("\"in_use\":").append(isInUse())
+                                  .append("\"in_use\":").append(isInUse()).append(",")
+                                  .append("\"modules\":\"").append(getModulesText(true)).append("\"")
                                   .append("}")
                                   .toString();
     }
