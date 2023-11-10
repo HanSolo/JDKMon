@@ -946,3 +946,26 @@
 .separator:horizontal .line {
     -fx-border-color: -fx-text-box-border transparent transparent transparent, transparent, transparent transparent transparent;
 }
+
+
+/* Search text field */
+.search-icon {
+    -fx-background-color : rgb(170, 168, 169);
+    -fx-background-insets: 2 4 2 4;
+    -fx-scale-shape      : true;
+    -fx-shape            : "M0,9.791c0,5.403 4.387,9.775 9.791,9.775c2.078,0 3.987,-0.646 5.573,-1.755l5.726,5.743c0.324,0.307 0.724,0.446 1.14,0.446c0.893,-0 1.539,-0.677 1.539,-1.57c0,-0.431 -0.169,-0.816 -0.431,-1.109l-5.696,-5.711c1.216,-1.632 1.924,-3.633 1.924,-5.819c0,-5.404 -4.372,-9.791 -9.775,-9.791c-5.404,-0 -9.791,4.387 -9.791,9.791Zm2.371,-0c-0,-4.11 3.31,-7.42 7.42,-7.42c4.095,-0 7.42,3.31 7.42,7.42c0,4.095 -3.325,7.42 -7.42,7.42c-4.11,0 -7.42,-3.325 -7.42,-7.42Z";
+}
+
+.search-text {
+    -fx-background-insets: 2 4 7 10;
+    -fx-fill             : rgb(170, 168, 169);
+    -fx-font-family      : 'SF Pro';
+    -fx-font-size        : 12;
+}
+
+.close-icon {
+    -fx-background-color : rgb(170, 168, 169);
+    -fx-background-insets: 2 4 2 4;
+    -fx-scale-shape      : true;
+    -fx-shape            : "M22.989,30.733l-22.989,-22.989l7.744,-7.744l22.989,22.989l22.99,-22.989l7.743,7.744l-22.989,22.989l22.989,22.99l-7.743,7.743l-22.99,-22.989l-22.989,22.989l-7.744,-7.743l22.989,-22.99Z";
+}
