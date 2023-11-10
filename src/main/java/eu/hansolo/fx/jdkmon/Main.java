@@ -28,6 +28,7 @@ import eu.hansolo.cvescanner.CveScanner;
 import eu.hansolo.fx.jdkmon.controls.AttentionIndicator;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
 import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
+import eu.hansolo.fx.jdkmon.controls.SearchTextField;
 import eu.hansolo.fx.jdkmon.controls.WinProgress;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -64,15 +65,10 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.IntegerPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
@@ -96,14 +92,13 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
@@ -134,8 +129,8 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
-import java.awt.Desktop;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -2826,30 +2821,41 @@ public class Main extends Application {
             searchableHeaderPane.getChildren().addAll(searchableCloseMacWindowButton, searchableWindowTitle);
         }
 
+        SearchTextField searchField = new SearchTextField();
+        searchField.setPromptText(isWindows ? "Type here to search" : "Search");
+        searchField.setOnAction(e -> {
+            if (searchField.getText().isEmpty()) { return; }
+            List<Searchable> results = Helper.searchFor(searchField.getText(), this.jeps, this.jsrs, this.prjs);
+            // TODO: Show popup with results
+        });
+        searchField.setMinWidth(280);
+        searchField.setMaxWidth(280);
+        searchField.setPrefWidth(280);
+
         jepComboBox = new ComboBox<>();
         jepComboBox.setPromptText("JEP");
         jepComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
-        jepComboBox.setMinWidth(200);
-        jepComboBox.setMaxWidth(200);
-        jepComboBox.setPrefWidth(200);
+        jepComboBox.setMinWidth(280);
+        jepComboBox.setMaxWidth(280);
+        jepComboBox.setPrefWidth(280);
 
         jsrComboBox = new ComboBox<>();
         jsrComboBox.setPromptText("JSR");
         jsrComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
-        jsrComboBox.setMinWidth(200);
-        jsrComboBox.setMaxWidth(200);
-        jsrComboBox.setPrefWidth(200);
+        jsrComboBox.setMinWidth(280);
+        jsrComboBox.setMaxWidth(280);
+        jsrComboBox.setPrefWidth(280);
 
         projectComboBox = new ComboBox<>();
         projectComboBox.setPromptText("Project");
         projectComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
-        projectComboBox.setMinWidth(200);
-        projectComboBox.setMaxWidth(200);
-        projectComboBox.setPrefWidth(200);
+        projectComboBox.setMinWidth(280);
+        projectComboBox.setMaxWidth(280);
+        projectComboBox.setPrefWidth(280);
 
         searchableCloseButton  = new Button("Close");
 
-        VBox searchableVBox = new VBox(15, jepComboBox, jsrComboBox, projectComboBox, searchableCloseButton);
+        VBox searchableVBox = new VBox(15, searchField, jepComboBox, jsrComboBox, projectComboBox, searchableCloseButton);
         searchableVBox.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
         searchableVBox.setAlignment(Pos.TOP_CENTER);
         searchableVBox.setAlignment(Pos.CENTER);
