@@ -962,13 +962,13 @@
 }
 
 .jdk-mon:dark .text-input {
-    -fx-background-color : rgb(69, 59, 76);
+    -fx-background-color : rgb(46, 46, 47);
     -fx-background-radius: 24px;
     -fx-border-color     : transparent;
     -fx-prompt-text-fill : rgb(170, 168, 169);
 }
 .jdk-mon:dark .text-input:focused {
-    -fx-background-color: rgb(32, 29, 34);
+    -fx-background-color: transparent;
     -fx-border-color    : -dark-border-color;
     -fx-border-radius   : 24px;
 }
@@ -989,7 +989,7 @@
 
 .close-icon {
     -fx-background-color : rgb(170, 168, 169);
-    -fx-background-insets: 4 6 4 6;
+    -fx-background-insets: 4 7 4 6;
     -fx-scale-shape      : true;
     -fx-shape            : "M22.989,30.733l-22.989,-22.989l7.744,-7.744l22.989,22.989l22.99,-22.989l7.743,7.744l-22.989,22.989l22.989,22.99l-7.743,7.743l-22.99,-22.989l-22.989,22.989l-7.744,-7.743l22.989,-22.99Z";
 }
