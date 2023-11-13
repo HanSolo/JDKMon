@@ -82,7 +82,8 @@ do
   --main-jar ${MAIN_JAR} \
   --java-options -Xmx2048m \
   --java-options '--enable-preview' \
-  --java-options '-Djdk.gtk.version=2' \
+  --java-options '-Djdk.gtk.verbose=true' \
+  --java-options '-Djdk.gtk.version=3' \
   --runtime-image build/java-runtime \
   --icon src/main/resources/eu/hansolo/fx/jdkmon/icon128x128.png \
   --linux-shortcut \
