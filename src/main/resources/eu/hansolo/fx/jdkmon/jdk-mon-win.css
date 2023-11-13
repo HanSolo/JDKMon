@@ -949,6 +949,28 @@
 
 
 /* Search text field */
+.jdk-mon .text-input {
+    -fx-background-color : rgb(213, 211, 212);
+    -fx-background-radius: 5;
+    -fx-border-color     : transparent;
+}
+.jdk-mon .text-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color    : -light-border-color;
+    -fx-border-radius   : 5px;
+}
+
+.jdk-mon:dark .text-input {
+    -fx-background-color : rgb(46, 46, 47);
+    -fx-background-radius: 5;
+    -fx-border-color     : transparent;
+}
+.jdk-mon:dark .text-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color    : -dark-border-color;
+    -fx-border-radius   : 5px;
+}
+
 .search-icon {
     -fx-background-color : rgb(170, 168, 169);
     -fx-background-insets: 2 4 2 4;

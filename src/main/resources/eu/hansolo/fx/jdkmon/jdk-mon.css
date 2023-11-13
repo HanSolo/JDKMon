@@ -1014,3 +1014,66 @@
     -fx-scale-shape      : true;
     -fx-shape            : "M13,0c7.175,0 13,5.825 13,13c0,7.175 -5.825,13 -13,13c-7.175,0 -13,-5.825 -13,-13c0,-7.175 5.825,-13 13,-13Zm-1.202,13l-3.533,3.533c-0.389,0.389 -0.389,1.021 0,1.41c0.389,0.389 1.021,0.389 1.41,-0l3.533,-3.533l3.533,3.533c0.389,0.389 1.021,0.389 1.41,-0c0.389,-0.389 0.389,-1.021 -0,-1.41l-3.533,-3.533l3.533,-3.533c0.389,-0.389 0.389,-1.021 -0,-1.41c-0.389,-0.389 -1.021,-0.389 -1.41,0l-3.533,3.533l-3.533,-3.533c-0.389,-0.389 -1.021,-0.389 -1.41,0c-0.389,0.389 -0.389,1.021 0,1.41l3.533,3.533Z";
 }
+
+.search-result-popup {
+    -fx-background-color: transparent;
+    -fx-padding         : 10;
+}
+
+.jdk-mon .search-result-popup > .list-view {
+    -fx-background-color : rgb(215, 215, 215);
+    -fx-padding          : 0px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius    : 5;
+    -fx-border-insets    : 0;
+    -fx-border-color     : rgb(215, 215, 215);
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 8);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : black;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+}
+
+.jdk-mon:dark .search-result-popup > .list-view {
+    -fx-background-color : -dark-main-background;
+    -fx-padding          : 0px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius    : 5;
+    -fx-border-insets    : 0;
+    -fx-border-color     : rgb(79, 78, 76);
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 8);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: rgb(47, 46, 47);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : white;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : rgb(47, 46, 47);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+}

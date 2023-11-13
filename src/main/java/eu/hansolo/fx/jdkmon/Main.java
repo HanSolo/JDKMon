@@ -63,6 +63,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -74,6 +75,7 @@ import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -92,6 +94,7 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -104,6 +107,8 @@ import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -244,6 +249,9 @@ public class Main extends Application {
     private              WinWindowButton                   searchableCloseWinWindowButton;
     private              StackPane                         searchablePane;
     private              Button                            searchableCloseButton;
+    private              Popup                             searchResultPopup;
+    private              ListView<Searchable>              searchResultList;
+    private              StackPane                         searchResultPane;
 
     private              Timeline                          timeline;
     private              boolean                           isUpdateAvailable;
@@ -364,6 +372,7 @@ public class Main extends Application {
         cvePane           = new StackPane();
 
         searchablePane    = new StackPane();
+        searchableCloseButton = new Button("Close");
 
         downloadJDKPane   = new StackPane();
 
@@ -381,13 +390,13 @@ public class Main extends Application {
         projectComboBox = new ComboBox<>();
         projectComboBox.setPromptText("Project");
 
-
         darkMode = new BooleanPropertyBase(false) {
             @Override protected void invalidated() {
                 pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadGraalPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 searchablePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                searchableCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cvePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cveCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
             }
@@ -916,6 +925,15 @@ public class Main extends Application {
             });
             downloadGraalCloseWinWindowButton.setOnMouseEntered(e -> downloadGraalCloseWinWindowButton.setHovered(true));
             downloadGraalCloseWinWindowButton.setOnMouseExited(e -> downloadGraalCloseWinWindowButton.setHovered(false));
+
+            searchableCloseWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (searchableDialog.isShowing()) {
+                    searchableDialog.setResult(Boolean.TRUE);
+                    searchableDialog.close();
+                }
+            });
+            searchableCloseWinWindowButton.setOnMouseEntered(e -> searchableCloseWinWindowButton.setHovered(true));
+            searchableCloseWinWindowButton.setOnMouseExited(e -> searchableCloseWinWindowButton.setHovered(false));
         } else {
             cveCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
                 if (cveDialog.isShowing()) {
@@ -943,6 +961,15 @@ public class Main extends Application {
             });
             downloadGraalCloseMacWindowButton.setOnMouseEntered(e -> downloadGraalCloseMacWindowButton.setHovered(true));
             downloadGraalCloseMacWindowButton.setOnMouseExited(e -> downloadGraalCloseMacWindowButton.setHovered(false));
+
+            searchableCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (searchableDialog.isShowing()) {
+                    searchableDialog.setResult(Boolean.TRUE);
+                    searchableDialog.close();
+                }
+            });
+            searchableCloseMacWindowButton.setOnMouseEntered(e -> searchableCloseMacWindowButton.setHovered(true));
+            searchableCloseMacWindowButton.setOnMouseExited(e -> searchableCloseMacWindowButton.setHovered(false));
         }
 
         downloadJDKBundledWithFXCheckBox.selectedProperty().addListener((o, ov, nv) -> {
@@ -1178,8 +1205,10 @@ public class Main extends Application {
         aboutDialog         = createAboutDialog();
         downloadJDKDialog   = createDownloadJDKDialog();
         downloadGraalDialog = createDownloadGraalDialog();
-        searchableDialog    = createSearchableDialog();
         cveDialog           = createCveDialog();
+        searchableDialog    = createSearchableDialog();
+        searchResultPopup   = new Popup();
+        searchResultPopup.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
         registerListeners();
         if (online.get()) {
@@ -2825,8 +2854,46 @@ public class Main extends Application {
         searchField.setPromptText(isWindows ? "Type here to search" : "Search");
         searchField.setOnAction(e -> {
             if (searchField.getText().isEmpty()) { return; }
-            List<Searchable> results = Helper.searchFor(searchField.getText(), this.jeps, this.jsrs, this.prjs);
-            // TODO: Show popup with results
+            ObservableList<Searchable> results = FXCollections.observableArrayList(Helper.searchFor(searchField.getText(), this.jeps, this.jsrs, this.prjs));
+            if (results.isEmpty()) { return; }
+            searchResultList = new ListView<>(results);
+            searchResultList.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+            searchResultList.getStyleClass().addAll("jdk-mon", "search-result-popup");
+            searchResultList.addEventFilter(KeyEvent.KEY_PRESSED, evt -> searchResultPopup.hide());
+            searchResultList.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+                if (null != nv) {
+                    Helper.openInDefaultBrowser(Main.this, nv.url());
+                    searchResultPopup.hide();
+                    if (searchableDialog.isShowing()) {
+                        searchableDialog.setResult(Boolean.TRUE);
+                        searchableDialog.close();
+                    }
+                }
+            });
+
+            searchResultPane = new StackPane(searchResultList);
+            searchResultPane.getStyleClass().add("jdk-mon");
+            searchResultPane.setPadding(new Insets(10));
+            searchResultPopup.setAutoHide(true);
+            searchResultPopup.setAutoFix(true);
+            searchResultPopup.setHideOnEscape(true);
+            searchResultPopup.getContent().setAll(searchResultPane);
+            searchResultPopup.getScene().addEventFilter(KeyEvent.KEY_PRESSED, evt -> {
+                if (KeyCode.ESCAPE == evt.getCode()) {
+                    searchResultPopup.hide();
+                    searchableDialog.close();
+                }
+            });
+
+            if (darkMode.get()) {
+                searchResultList.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, darkMode.get());
+                searchResultPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, darkMode.get());
+            }
+
+            Bounds screenBounds = searchField.localToScreen(searchField.getBoundsInLocal());
+            searchResultPopup.setX(screenBounds.getMinX());
+            searchResultPopup.setY(screenBounds.getMaxY());
+            searchResultPopup.show(stage);
         });
         searchField.setMinWidth(280);
         searchField.setMaxWidth(280);
@@ -2852,8 +2919,6 @@ public class Main extends Application {
         projectComboBox.setMinWidth(280);
         projectComboBox.setMaxWidth(280);
         projectComboBox.setPrefWidth(280);
-
-        searchableCloseButton  = new Button("Close");
 
         VBox searchableVBox = new VBox(15, searchField, jepComboBox, jsrComboBox, projectComboBox, searchableCloseButton);
         searchableVBox.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));

@@ -124,6 +124,7 @@ public class Finder {
 
     public Set<Distro> getDistributions(final List<String> searchPaths) {
         Set<Distro> distros = new HashSet<>();
+
         if (null == searchPaths || searchPaths.isEmpty()) { return distros; }
 
         if (service.isShutdown()) {
@@ -134,7 +135,8 @@ public class Finder {
             final Path       path            = Paths.get(searchPath);
             final boolean    handledBySdkman = searchPath.equals(Detector.SDKMAN_FOLDER);
             final List<Path> javaFiles       = findByFileName(path, javaFile);
-            javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
+            //javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
+            javaFiles.stream().forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
         });
         service.shutdown();
         try {
@@ -691,7 +693,6 @@ public class Finder {
                 Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
                 distributionFound.setModules(modules);
                 if (inUse.get()) { distributionFound.setInUse(true); }
-
                 distros.add(distributionFound);
             });
             service.submit(streamer);

@@ -18,7 +18,6 @@ package eu.hansolo.fx.jdkmon.tools;
 
 import eu.hansolo.fx.jdkmon.controls.MacosComboBoxCell;
 import eu.hansolo.jdktools.versioning.Semver;
-import javafx.scene.control.ListCell;
 
 
 public class MacosUpdateLevelCell extends MacosComboBoxCell<Semver> {
