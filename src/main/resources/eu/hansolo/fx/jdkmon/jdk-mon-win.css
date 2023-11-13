@@ -993,3 +993,127 @@
     -fx-scale-shape      : true;
     -fx-shape            : "M22.989,30.733l-22.989,-22.989l7.744,-7.744l22.989,22.989l22.99,-22.989l7.743,7.744l-22.989,22.989l22.989,22.99l-7.743,7.743l-22.99,-22.989l-22.989,22.989l-7.744,-7.743l22.989,-22.99Z";
 }
+
+.jdk-mon .search-result-popup > .list-view {
+    -fx-background-color : #f2f2f2;
+    -fx-background       : #f2f2f2;
+    -fx-padding          : 1px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius    : 0;
+    -fx-border-insets    : -2 0 0 0;
+    -fx-border-width     : 0 2 2 2;
+    -fx-border-color     : #7a7a7a;
+    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-background : #f2f2f2;
+    -fx-padding    : 4 8 4 8;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
+    -fx-background       : #dedede;
+    -fx-background-color : #dedede;
+    -fx-background-radius: 0;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background       : -selection-color;
+    -fx-background-color : -selection-color;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill        : -dark-text-color;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected > .label {
+    -fx-background      : -selection-color;
+    -fx-background-color: -selection-color;
+    -fx-text-fill       : -dark-text-color;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell > .label {
+    -fx-text-fill: -dark-text-color;
+    -fx-padding  : 0;
+}
+.jdk-mon .search-result-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: -dark-text-color;
+    -fx-padding  : 0;
+}
+.jdk-mon .search-result-popup > .list-view .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height     : 10px;
+}
+.jdk-mon .search-result-popup > .list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width      : 10px;
+}
+.jdk-mon .search-result-popup > .list-view .increment-button,
+.jdk-mon .search-result-popup > .list-view .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding         : 0;
+}
+.jdk-mon .search-result-popup > .list-view .scroll-bar:horizontal .thumb,
+.jdk-mon .search-result-popup > .list-view .scroll-bar:vertical .thumb {
+    -fx-background-color : derive(#f2f2f2, -30%);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.jdk-mon:dark .search-result-popup > .list-view {
+    -fx-background-color : #2b2b2b;
+    -fx-background       : #2b2b2b;
+    -fx-padding          : 1px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius    : 0;
+    -fx-border-insets    : -2 0 0 0;
+    -fx-border-width     : 0 2 2 2;
+    -fx-border-color     : #858585;
+    -fx-effect           : dropshadow( gaussian , rgba(0,0,0,0.2) , 8, 0 , 0 , 8 );
+}
+.jdk-mon:dark .search-result-popup> .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-background : #2b2b2b;
+    -fx-padding    : 4 8 4 8;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
+    -fx-background       : #545454;
+    -fx-background-color : #545454;
+    -fx-background-radius: 0;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background       : -selection-color;
+    -fx-background-color : -selection-color;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill        : -text-color;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected > .label {
+    -fx-background      : -selection-color;
+    -fx-background-color: -selection-color;
+    -fx-text-fill       : -text-color;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell > .label {
+    -fx-text-fill: -text-color;
+    -fx-padding  : 0;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: -text-color;
+    -fx-padding  : 0;
+}
+.jdk-mon:dark .search-result-popup > .list-view .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height     : 10px;
+}
+.jdk-mon:dark .search-result-popup > .list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width      : 10px;
+}
+.jdk-mon:dark .search-result-popup > .list-view .increment-button,
+.jdk-mon:dark .search-result-popup > .list-view .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding         : 0;
+}
+.jdk-mon:dark .search-result-popup > .list-view .scroll-bar:horizontal .thumb,
+.jdk-mon:dark .search-result-popup > .list-view .scroll-bar:vertical .thumb {
+    -fx-background-color : derive(-dark-main-background, 30%);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
