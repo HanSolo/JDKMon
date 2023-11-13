@@ -2851,7 +2851,6 @@ public class Main extends Application {
         }
 
         SearchTextField searchField = new SearchTextField();
-        searchField.setPromptText("Search");
         searchField.setOnAction(e -> {
             if (searchField.getText().isEmpty()) { return; }
             ObservableList<Searchable> results = FXCollections.observableArrayList(Helper.searchFor(searchField.getText(), this.jeps, this.jsrs, this.prjs));

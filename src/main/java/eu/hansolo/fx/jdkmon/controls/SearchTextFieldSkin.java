@@ -22,9 +22,9 @@ import javafx.scene.text.Text;
 
 
 public class SearchTextFieldSkin extends TextFieldSkin {
-    private Region searchIcon;
-    private Text   searchText;
-    private Region closeIcon;
+    private Region  searchIcon;
+    private Text    searchText;
+    private Region  closeIcon;
 
 
     public SearchTextFieldSkin(final SearchTextField control){

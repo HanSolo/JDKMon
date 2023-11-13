@@ -951,7 +951,7 @@
 /* Search text field */
 .jdk-mon .text-input {
     -fx-background-color : rgb(213, 211, 212);
-    -fx-background-radius: 5;
+    -fx-background-radius: 24;
     -fx-border-color     : transparent;
     -fx-prompt-text-fill : rgb(170, 168, 169);
 }
@@ -963,7 +963,7 @@
 
 .jdk-mon:dark .text-input {
     -fx-background-color : rgb(46, 46, 47);
-    -fx-background-radius: 5;
+    -fx-background-radius: 24;
     -fx-border-color     : transparent;
     -fx-prompt-text-fill : rgb(170, 168, 169);
 }
