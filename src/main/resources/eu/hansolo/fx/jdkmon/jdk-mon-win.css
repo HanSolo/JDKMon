@@ -962,13 +962,13 @@
 }
 
 .jdk-mon:dark .text-input {
-    -fx-background-color : rgb(46, 46, 47);
+    -fx-background-color : rgb(69, 59, 76);
     -fx-background-radius: 24px;
     -fx-border-color     : transparent;
     -fx-prompt-text-fill : rgb(170, 168, 169);
 }
 .jdk-mon:dark .text-input:focused {
-    -fx-background-color: transparent;
+    -fx-background-color: rgb(32, 29, 34);
     -fx-border-color    : -dark-border-color;
     -fx-border-radius   : 24px;
 }
