@@ -92,7 +92,7 @@ public class Finder {
     private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
     private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
     private static final String[]        MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
-    private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/usr/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/bin/sh", "-c", "echo $JAVA_HOME" };
     private static final String[]        WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
     private static final String[]        DETECT_ALPINE_CMDS        = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
     private static final String[]        UX_DETECT_ARCH_CMDS       = { "/bin/sh", "-c", "uname -m" };

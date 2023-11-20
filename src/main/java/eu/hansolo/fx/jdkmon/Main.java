@@ -63,7 +63,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -101,7 +100,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
@@ -1588,11 +1586,11 @@ public class Main extends Application {
         if (cvesFound.isEmpty()) { return; }
         cves.clear();
         cvesFound.forEach(cve -> {
-            final String       id               = cve.id();
-            final double       score            = cve.score();
-            final CVSS         cvss             = cve.cvss();
-            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
-            final List<String> affectedVersions = cve.affectedVersions();
+            final String              id               = cve.id();
+            final double              score            = cve.score();
+            final CVSS                cvss             = cve.cvss();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions();
             cves.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
@@ -1600,11 +1598,11 @@ public class Main extends Application {
         if (cvesGraalVMFound.isEmpty()) { return; }
         cvesGraalVM.clear();
         cvesGraalVMFound.forEach(cve -> {
-            final String       id               = cve.id();
-            final double       score            = cve.score();
-            final CVSS         cvss             = cve.cvss();
-            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
-            final List<String> affectedVersions = cve.affectedVersions();
+            final String              id               = cve.id();
+            final double              score            = cve.score();
+            final CVSS                cvss             = cve.cvss();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions();
             cvesGraalVM.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
@@ -1860,7 +1858,7 @@ public class Main extends Application {
                 Hyperlink cveLink = new Hyperlink();
                 cveLink.setTooltip(new Tooltip(distribution.getName() + " " + distribution.getVersion() + " might be affected by " + cve.id()));
                 cveLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                cveLink.setText(cve.id() + " (" + cve.cvss().name() + " Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
+                cveLink.setText(cve.id() + " (" + cve.cvss().getUiString() + " Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
                 cveLink.setOnAction(e -> {
                     Helper.openInDefaultBrowser(Main.this, cve.url());
                     /*

@@ -294,8 +294,7 @@ public class Helper {
     }
 
     public static final List<CVE> getCVEsForVersion(final List<CVE> cves, final VersionNumber versionNumber) {
-        final String version = versionNumber.toString(OutputFormat.REDUCED_COMPRESSED, true, false);
-        return cves.stream().filter(cve -> cve.affectedVersions().contains(version)).collect(Collectors.toList());
+        return cves.stream().filter(cve -> cve.affectedVersions().contains(versionNumber)).collect(Collectors.toList());
     }
 
     public static final Color getColorForCVE(final CVE cve, final boolean darkMode) {
@@ -309,7 +308,7 @@ public class Helper {
                     default              : return darkMode ? MacosAccentColor.BLUE.colorDark   : MacosAccentColor.BLUE.colorAqua;
                 }
             }
-            case CVSSV3 -> {
+            case CVSSV30, CVSSV31, CVSSV40 -> {
                 switch (cve.severity()) {
                     case LOW             : return darkMode ? MacosAccentColor.GREEN.colorDark  : MacosAccentColor.GREEN.colorAqua;
                     case MEDIUM          : return darkMode ? MacosAccentColor.YELLOW.colorDark : MacosAccentColor.YELLOW.colorAqua;

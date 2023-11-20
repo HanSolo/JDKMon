@@ -17,6 +17,8 @@ on your machine and will inform you about new updates and vulnerabilities of eac
 In addition JDKMon is also able to monitor JavaFX SDK versions that are installed on your
 machine.
 
+(On MacOS you need at least version 11.0 to run JDKMon)
+
 At the moment the following distributions will be identified:
 - AdoptOpenJDK
 - AdoptOpenJDK J9
