@@ -135,8 +135,9 @@ public class Finder {
             final Path       path            = Paths.get(searchPath);
             final boolean    handledBySdkman = searchPath.equals(Detector.SDKMAN_FOLDER);
             final List<Path> javaFiles       = findByFileName(path, javaFile);
-            //javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
-            javaFiles.stream().forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
+            // TODO: make sure that no duplicates are detected e.g. Zulu JDK+FX also detects a JRE in the subfolder, check for existing folders
+            javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
+            //javaFiles.stream().forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
         });
         service.shutdown();
         try {

@@ -1889,7 +1889,7 @@ public class Main extends Application {
             attentionIndicator.setVisible(true);
             attentionIndicator.setOnMousePressed(e -> {
                 cveLinks.setAll(cveLinksFound);
-                cveWindowTitleText.set(cveLinksFound.size() + " Vulnerabilities found");
+                cveWindowTitleText.set(cveLinksFound.size() + " CVE's found in " + distroLabelBuilder);
                 cveBox.getChildren().setAll(cveLinks);
                 cveDialog.showAndWait();
             });
