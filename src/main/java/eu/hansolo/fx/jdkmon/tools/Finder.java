@@ -109,6 +109,7 @@ public class Finder {
     private              String          javafxPropertiesFile      = "javafx.properties";
     private              boolean         isAlpine                  = false;
     private              DiscoClient     discoclient;
+    private final        List<ProcessInfo> usedDistros;
 
 
     public Finder() {
@@ -116,6 +117,7 @@ public class Finder {
     }
     public Finder(final DiscoClient discoclient) {
         this.discoclient = discoclient;
+        this.usedDistros = getUsedDistros();
         getJavaHome();
         if (this.javaHome.isEmpty()) { this.javaHome = System.getProperties().get("java.home").toString(); }
         checkIfAlpineLinux();
@@ -369,7 +371,8 @@ public class Finder {
     }
 
     private void checkForDistribution(final String java, final Set<Distro> distros, final boolean handledBySdkman) {
-        AtomicBoolean inUse = new AtomicBoolean(false);
+        AtomicBoolean inUse  = new AtomicBoolean(false);
+        List<String>  usedBy = new ArrayList<>();
         try {
             List<String> commands = new ArrayList<>();
             commands.add(java);
@@ -449,6 +452,7 @@ public class Finder {
                 } else if(line2.contains("Zing") || line2.contains("Prime")) {
                     name      = "ZuluPrime";
                     apiString = "zulu_prime";
+                    ZULU_BUILD_MATCHER.reset(line2);
                     final List<MatchResult> results = ZULU_BUILD_MATCHER.results().collect(Collectors.toList());
                     if (!results.isEmpty()) {
                         MatchResult result = results.get(0);
@@ -691,6 +695,15 @@ public class Finder {
                     apiString = "oracle_open_jdk";
                 }
 
+                // Check if found distro is in use
+                for (ProcessInfo processInfo : usedDistros) {
+                    if (java.contains(processInfo.cmd())) {
+                        inUse.set(true);
+                        usedBy.add(processInfo.cmdLine());
+                        break;
+                    }
+                }
+
                 Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
                 distributionFound.setModules(modules);
                 if (inUse.get()) { distributionFound.setInUse(true); }
@@ -853,6 +866,18 @@ public class Finder {
             e.printStackTrace();
         }
         return availableOpenJfxVersions;
+    }
+
+    public List<ProcessInfo> getUsedDistros() {
+        final long              currentPid  = ProcessHandle.current().pid();
+        final List<ProcessInfo> usedDistros = ProcessHandle.allProcesses()
+                                                           .filter(process -> process.pid() != currentPid)
+                                                           .filter(process -> process.info().command().isPresent())
+                                                           .filter(process -> process.info().command().get().endsWith(this.javaFile))
+                                                           .filter(process -> !Files.isSymbolicLink(Path.of(process.info().command().get())))
+                                                           .map(process -> new ProcessInfo(process.pid(), process.info().command().get(), process.info().commandLine().isPresent() ? process.info().commandLine().get() : "unknown"))
+                                                           .collect(Collectors.toList());
+        return usedDistros;
     }
 
     private class Streamer implements Runnable {

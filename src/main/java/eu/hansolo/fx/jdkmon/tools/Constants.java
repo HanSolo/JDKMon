@@ -60,6 +60,9 @@ public class Constants {
     public static final Pattern PROJECT_PATTERN                        = Pattern.compile("href=\"\\/projects\\/([a-zA-Z0-9_\\-]+)\">([a-zA-Z0-9_\\:\\.\\-\\(\\)]+)<");
     public static final Matcher PROJECT_MATCHER                        = PROJECT_PATTERN.matcher("");
 
+    public static final Pattern JAVA_PATH_PATTERN                      = Pattern.compile("^(.*/java)\\s");
+    public static final Pattern JAVA_PATH_PATTERN_WIN                  = Pattern.compile("^(.*\\\\java\\.exe)\\s");
+
     public static final String  OS_NAME_PROPERTY                       = System.getProperty("os.name");
     public static final String  OS_ARCH_PROPERTY                       = System.getProperty("os.arch");
 

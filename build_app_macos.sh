@@ -1,8 +1,8 @@
 #!/bin/bash
 
 JAVA_VERSION=21
-MAIN_JAR="JDKMon-21.0.0.jar"
-APP_VERSION=21.0.0
+MAIN_JAR="JDKMon-21.0.1.jar"
+APP_VERSION=21.0.1
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
