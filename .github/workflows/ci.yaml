@@ -28,7 +28,7 @@ jobs:
             build/libs
 
 
-  build-mac-x64:
+  build-mac:
     runs-on: [ macos-latest ]
     steps:
       - uses: actions/checkout@v4
