@@ -49,7 +49,7 @@ jobs:
         run: ./build_app_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Mac
+          name: JDKMon Mac X64
           path: |
             build/installer
             build/libs
@@ -75,7 +75,7 @@ jobs:
         run: ./build_app_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Mac
+          name: JDKMon Mac AARCH64
           path: |
             build/installer
             build/libs
