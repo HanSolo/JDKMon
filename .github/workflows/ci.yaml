@@ -22,7 +22,7 @@ jobs:
         run: .\build_app_windows.bat
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Windows
+          name: JDKMon-windows-x64
           path: |          
             build/installer
             build/libs
@@ -49,7 +49,7 @@ jobs:
         run: ./build_app_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Mac X64
+          name: JDKMon-macos-x64
           path: |
             build/installer
             build/libs
@@ -75,7 +75,7 @@ jobs:
         run: ./build_app_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Mac AARCH64
+          name: JDKMon-macos-aarch64
           path: |
             build/installer
             build/libs
@@ -101,7 +101,7 @@ jobs:
         run: ./build_app_linux.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JDKMon Linux
+          name: JDKMon-linux-x64
           path: |
             build/installer
             build/libs
