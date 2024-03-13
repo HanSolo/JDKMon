@@ -1,6 +1,7 @@
 # JDKMon 
 
 [![GitHub stars](https://badgen.net/github/stars/HanSolo/JDKMon)](https://GitHub.com/HanSolo/JDKMon/stargazers/)
+[![Project Map](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/hansolojdkmon/)
 
 [![Github all releases](https://img.shields.io/github/downloads/HanSolo/JDKMon/total.svg)](https://GitHub.com/HanSolo/JDKMon/releases/)
 
