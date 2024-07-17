@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 
 public class Constants {
-    public static final String  RELEASES_URI                           = "https://github.com/HanSolo/JDKMon/releases/latest";
+    public static final String  RELEASES_URI                           = "https://api.github.com/repos/HanSolo/JDKMon/releases/latest";
     public static final String  MAJOR_VERSIONS_URI                     = "https://api.foojay.io/disco/v3.0/major_versions/?ga=true&include_build=false";
     public static final String  JDKMON_RELEASES_URI                    = "https://github.com/HanSolo/JDKMon/releases";
     public static final String  JEP_BASE_URL                           = "https://openjdk.org/jeps/0";

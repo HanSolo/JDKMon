@@ -1,8 +1,8 @@
 #!/bin/bash
 
 JAVA_VERSION=21
-MAIN_JAR="JDKMon-21.0.3.jar"
-APP_VERSION=21.0.3
+MAIN_JAR="JDKMon-21.0.5.jar"
+APP_VERSION=21.0.5
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
@@ -100,9 +100,9 @@ done
 arch_name="$(uname -m)"
 
 if [ "${arch_name}" = "aarch64" ]; then
-    sha256sum "build/installer/jdkmon_$APP_VERSION-1_arm64.deb" > "build/installer/jdkmon_$APP_VERSION-1_arm64.deb.sha256"
-    sha256sum "build/installer/jdkmon-$APP_VERSION-1.aarch64.rpm" > "build/installer/jdkmon-$APP_VERSION-1.aarch64.rpm.sha256"
+    sha256sum "build/installer/jdkmon_${APP_VERSION}_arm64.deb" > "build/installer/jdkmon_${APP_VERSION}_arm64.deb.sha256"
+    sha256sum "build/installer/jdkmon-${APP_VERSION}-1.aarch64.rpm" > "build/installer/jdkmon-${APP_VERSION}-1.aarch64.rpm.sha256"
 else
-    sha256sum "build/installer/jdkmon_${APP_VERSION}-1_amd64.deb" > "build/installer/jdkmon_${APP_VERSION}-1_amd64.deb.sha256"
+    sha256sum "build/installer/jdkmon_${APP_VERSION}_amd64.deb" > "build/installer/jdkmon_${APP_VERSION}_amd64.deb.sha256"
     sha256sum "build/installer/jdkmon-${APP_VERSION}-1.x86_64.rpm" > "build/installer/jdkmon-${APP_VERSION}-1.x86_64.rpm.sha256"
 fi

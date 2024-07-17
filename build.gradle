@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
-        classpath 'org.javamodularity:moduleplugin:1.8.12'
+        classpath 'org.javamodularity:moduleplugin:1.8.15'
     }
 }
 
@@ -18,8 +18,8 @@ plugins {
     id 'application'
     id 'signing'
     id 'com.google.osdetector'           version '1.7.3'
-    id 'org.javamodularity.moduleplugin' version '1.8.12'
-    id 'net.nemerosa.versioning'         version '3.0.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.15'
+    id 'net.nemerosa.versioning'         version '3.1.0'
 }
 
 apply plugin: 'signing'
@@ -53,12 +53,12 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'io.foojay.api:discoclient:21.0.0'
-    implementation 'eu.hansolo:jdktools:21.0.0'
+    //implementation 'io.foojay.api:discoclient:21.0.1'
+    implementation 'eu.hansolo:jdktools:21.0.9'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
     //implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.1.0'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
-    implementation 'org.apache.commons:commons-compress:1.23.0'
+    implementation 'org.apache.commons:commons-compress:1.26.2'
     implementation 'org.tukaani:xz:1.9'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"

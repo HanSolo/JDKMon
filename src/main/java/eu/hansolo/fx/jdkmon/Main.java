@@ -182,7 +182,7 @@ public class Main extends Application {
     private              Architecture                      architecture           = Finder.detectArchitecture();
     private              SysInfo                           sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
     private              boolean                           isWindows              = OperatingSystem.WINDOWS == operatingSystem;
-    private              CveScanner                        cveScanner             = new CveScanner();
+    private              CveScanner                        cveScanner             = new CveScanner("9dfa6028-179b-46ba-84f5-ab19ed3053cd", 6);
     private              List<CVE>                         cves                   = new CopyOnWriteArrayList<>();
     private              List<CVE>                         cvesGraalVM            = new CopyOnWriteArrayList<>();
     private              String                            cssFile;
@@ -727,7 +727,8 @@ public class Main extends Application {
     private void registerListeners() {
         cveScanner.addCveEvtConsumer(e -> {
             switch(e.type()) {
-                case UPDATED -> updateCves();
+                case UPDATED_OPENJDK -> updateCves();
+                case UPDATED_GRAALVM -> updateCves();
             }
         });
 
