@@ -52,14 +52,14 @@ ext {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
     //implementation 'io.foojay.api:discoclient:21.0.1'
     implementation 'eu.hansolo:jdktools:21.0.9'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
-    //implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.1.0'
-    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
-    implementation 'org.apache.commons:commons-compress:1.26.2'
-    implementation 'org.tukaani:xz:1.9'
+    implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.2.0'
+    //implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
+    implementation 'org.apache.commons:commons-compress:1.27.0'
+    implementation 'org.tukaani:xz:1.10'
     implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
     implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
