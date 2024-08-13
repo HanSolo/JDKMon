@@ -105,13 +105,14 @@ jar {
 
 
 // start the from gradle
-task Main(type: JavaExec) {
+tasks.register('Main', JavaExec) {
     mainClass = "eu.hansolo.fx.jdkmon.Launcher"
     classpath = sourceSets.main.runtimeClasspath
 }
 
 // create properties file including the version
-task createProperties(dependsOn: processResources) {
+tasks.register('createProperties') {
+    dependsOn processResources
     doLast {
         new File("${projectDir}//build/classes/java/main/eu/hansolo/fx/jdkmon/version.properties").withWriter { w ->
             Properties p = new Properties()
