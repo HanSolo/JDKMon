@@ -1,8 +1,8 @@
 #!/bin/bash
 
-JAVA_VERSION=17
-MAIN_JAR="JDKMon-17.0.65.jar"
-APP_VERSION=17.0.65
+JAVA_VERSION=21
+MAIN_JAR="JDKMon-21.0.5.jar"
+APP_VERSION=21.0.5
 
 echo "java home: $JAVA_HOME"
 echo "project version: $PROJECT_VERSION"
@@ -71,7 +71,7 @@ $JAVA_HOME/bin/jlink \
 
 # Somehow before signing there needs to be another step: xattr -cr build/installer/JDKMon.app
 
-for type in "app-image" "dmg" "pkg"
+for type in "app-image" "pkg"
 do
   echo "Creating installer of type ... $type"
 

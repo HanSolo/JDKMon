@@ -28,6 +28,7 @@ import eu.hansolo.cvescanner.CveScanner;
 import eu.hansolo.fx.jdkmon.controls.AttentionIndicator;
 import eu.hansolo.fx.jdkmon.controls.MacProgress;
 import eu.hansolo.fx.jdkmon.controls.MacosWindowButton;
+import eu.hansolo.fx.jdkmon.controls.SearchTextField;
 import eu.hansolo.fx.jdkmon.controls.WinProgress;
 import eu.hansolo.fx.jdkmon.controls.WinWindowButton;
 import eu.hansolo.fx.jdkmon.controls.WindowButtonSize;
@@ -35,31 +36,11 @@ import eu.hansolo.fx.jdkmon.controls.WindowButtonType;
 import eu.hansolo.fx.jdkmon.notification.Notification;
 import eu.hansolo.fx.jdkmon.notification.NotificationBuilder;
 import eu.hansolo.fx.jdkmon.notification.NotifierBuilder;
-import eu.hansolo.fx.jdkmon.tools.ArchitectureCell;
-import eu.hansolo.fx.jdkmon.tools.ArchiveTypeCell;
-import eu.hansolo.fx.jdkmon.tools.Constants;
-import eu.hansolo.fx.jdkmon.tools.Detector;
+import eu.hansolo.fx.jdkmon.tools.*;
 import eu.hansolo.fx.jdkmon.tools.Detector.MacosAccentColor;
-import eu.hansolo.fx.jdkmon.tools.DistributionCell;
-import eu.hansolo.fx.jdkmon.tools.Distro;
-import eu.hansolo.fx.jdkmon.tools.Finder;
-import eu.hansolo.fx.jdkmon.tools.Fonts;
-import eu.hansolo.fx.jdkmon.tools.Helper;
-import eu.hansolo.fx.jdkmon.tools.LibCTypeCell;
-import eu.hansolo.fx.jdkmon.tools.MacosArchitectureCell;
-import eu.hansolo.fx.jdkmon.tools.MacosArchiveTypeCell;
-import eu.hansolo.fx.jdkmon.tools.MacosDistributionCell;
-import eu.hansolo.fx.jdkmon.tools.MacosLibCTypeCell;
-import eu.hansolo.fx.jdkmon.tools.MacosMajorVersionCell;
-import eu.hansolo.fx.jdkmon.tools.MacosOperatingSystemCell;
-import eu.hansolo.fx.jdkmon.tools.MacosUpdateLevelCell;
-import eu.hansolo.fx.jdkmon.tools.MajorVersionCell;
-import eu.hansolo.fx.jdkmon.tools.MinimizedPkg;
-import eu.hansolo.fx.jdkmon.tools.OperatingSystemCell;
-import eu.hansolo.fx.jdkmon.tools.PropertyManager;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKMonUpdate;
+import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.SysInfo;
-import eu.hansolo.fx.jdkmon.tools.ResizeHelper;
-import eu.hansolo.fx.jdkmon.tools.UpdateLevelCell;
 import eu.hansolo.jdktools.Architecture;
 import eu.hansolo.jdktools.ArchiveType;
 import eu.hansolo.jdktools.LibCType;
@@ -85,12 +66,15 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.StringPropertyBase;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -109,6 +93,7 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -120,6 +105,8 @@ import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -145,8 +132,8 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
-import java.awt.Desktop;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -176,6 +163,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static eu.hansolo.jdktools.Constants.NEW_LINE;
 import static eu.hansolo.jdktools.ReleaseStatus.EA;
 import static eu.hansolo.jdktools.ReleaseStatus.GA;
 
@@ -186,147 +174,171 @@ import static eu.hansolo.jdktools.ReleaseStatus.GA;
  * Time: 15:35
  */
 public class Main extends Application {
-    public  static final VersionNumber             VERSION                = PropertyManager.INSTANCE.getVersionNumber();
-    private static final PseudoClass               DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
-    private final        Image                     dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
-    private final        Image                     dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
-    private              OperatingSystem           operatingSystem        = Finder.detectOperatingSystem();
-    private              Architecture              architecture           = Finder.detectArchitecture();
-    private              SysInfo                   sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
-    private              boolean                   isWindows              = OperatingSystem.WINDOWS == operatingSystem;
-    private              CveScanner                cveScanner             = new CveScanner();
-    private              List<CVE>                 cves                   = new CopyOnWriteArrayList<>();
-    private              List<CVE>                 cvesGraalVM            = new CopyOnWriteArrayList<>();
-    private              String                    cssFile;
-    private              Notification.Notifier     notifier;
-    private              BooleanProperty           darkMode;
-    private              MacosAccentColor          accentColor;
-    private              AnchorPane                headerPane;
-    private              MacosWindowButton         closeMacWindowButton;
-    private              WinWindowButton           closeWinWindowButton;
-    private              Label                     windowTitle;
-    private              StackPane                 pane;
-    private              BorderPane                mainPane;
-    private              ScheduledExecutorService  executor;
-    private              boolean                   hideMenu;
-    private              Stage                     stage;
-    private              ObservableList<Distro>    distros;
-    private              Finder                    finder;
-    private              Label                     titleLabel;
-    private              Label                     searchPathLabel;
-    private              MacProgress               macProgressIndicator;
-    private              WinProgress               winProgressIndicator;
-    private              VBox                      titleBox;
-    private              Separator                 separator;
-    private              VBox                      distroBox;
-    private              VBox                      vBox;
-    private              List<String>              searchPaths;
-    private              List<String>              javafxSearchPaths;
-    private              DirectoryChooser          directoryChooser;
-    private              ProgressBar               progressBar;
-    private              DiscoClient               discoclient;
-    private              BooleanProperty           blocked;
-    private              AtomicBoolean             checkingForUpdates;
-    private              boolean                   trayIconSupported;
-    private              ContextMenu               contextMenu;
-    private              Worker<Boolean>           worker;
-    private              Dialog                    aboutDialog;
-    private              Dialog                    downloadJDKDialog;
-    private              Dialog                    downloadGraalDialog;
-    private              Dialog                    cveDialog;
-    private              ObservableList<Hyperlink> cveLinks;
-    private              Stage                     cveStage;
-    private              AnchorPane                cveHeaderPane;
-    private              Label                     cveWindowTitle;
-    private              MacosWindowButton         cveCloseMacWindowButton;
-    private              WinWindowButton           cveCloseWinWindowButton;
-    private              StackPane                 cvePane;
-    private              VBox                      cveBox;
-    private              Button                    cveCloseButton;
-    private              Timeline                  timeline;
-    private              boolean                   isUpdateAvailable;
-    private              VersionNumber             latestVersion;
-    private              Map<String, Popup>        popups;
+    public static final  VersionNumber                     VERSION                = PropertyManager.INSTANCE.getVersionNumber();
+    private static final PseudoClass                       DARK_MODE_PSEUDO_CLASS = PseudoClass.getPseudoClass("dark");
+    private final        Image                             dukeNotificationIcon   = new Image(Main.class.getResourceAsStream("duke_notification.png"));
+    private final        Image                             dukeStageIcon          = new Image(Main.class.getResourceAsStream("icon128x128.png"));
+    private              OperatingSystem                   operatingSystem        = Finder.detectOperatingSystem();
+    private              Architecture                      architecture           = Finder.detectArchitecture();
+    private              SysInfo                           sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
+    private              boolean                           isWindows              = OperatingSystem.WINDOWS == operatingSystem;
+    private              CveScanner                        cveScanner             = new CveScanner("9dfa6028-179b-46ba-84f5-ab19ed3053cd", 6);
+    private              List<CVE>                         cves                   = new CopyOnWriteArrayList<>();
+    private              List<CVE>                         cvesGraalVM            = new CopyOnWriteArrayList<>();
+    private              String                            cssFile;
+    private              Notification.Notifier             notifier;
+    private              BooleanProperty                   darkMode;
+    private              MacosAccentColor                  accentColor;
+    private              AnchorPane                        headerPane;
+    private              MacosWindowButton                 closeMacWindowButton;
+    private              WinWindowButton                   closeWinWindowButton;
+    private              Label                             windowTitle;
+    private              StackPane                         pane;
+    private              BorderPane                        mainPane;
+    private              ScheduledExecutorService          executor;
+    private              boolean                           hideMenu;
+    private              Stage                             stage;
+    private              ObservableList<Distro>            distros;
+    private              Finder                            finder;
+    private              Label                             titleLabel;
+    private              Label                             searchPathLabel;
+    private              Label                             nextOpenJDKUpdateLabel;
+    private              Label                             nextOpenJDKReleaseLabel;
+    private              MacProgress                       macProgressIndicator;
+    private              WinProgress                       winProgressIndicator;
+    private              VBox                              titleBox;
+    private              Separator                         separator;
+    private              VBox                              distroBox;
+    private              VBox                              vBox;
+    private              List<String>                      searchPaths;
+    private              List<String>                      javafxSearchPaths;
+    private              DirectoryChooser                  directoryChooser;
+    private              ProgressBar                       progressBar;
+    private              DiscoClient                       discoclient;
+    private              BooleanProperty                   blocked;
+    private              AtomicBoolean                     checkingForUpdates;
+    private              boolean                           trayIconSupported;
+    private              ContextMenu                       contextMenu;
+    private              Worker<Boolean>                   worker;
+    private              Dialog                            aboutDialog;
+    private              Dialog                            downloadJDKDialog;
+    private              Dialog                            downloadGraalDialog;
 
-    private              Stage                     downloadJDKStage;
-    private              AnchorPane                downloadJDKHeaderPane;
-    private              Label                     downloadJDKWindowTitle;
-    private              MacosWindowButton         downloadJDKCloseMacWindowButton;
-    private              WinWindowButton           downloadJDKCloseWinWindowButton;
-    private              StackPane                 downloadJDKPane;
-    private              CheckBox                  downloadJDKBundledWithFXCheckBox;
-    private              Label                     downloadAutoExtractLabel;
-    private              ComboBox<MajorVersion>    downloadJDKMajorVersionComboBox;
-    private              ComboBox<Semver>          downloadJDKUpdateLevelComboBox;
-    private              ComboBox<Distribution>    downloadJDKDistributionComboBox;
-    private              ComboBox<OperatingSystem> downloadJDKOperatingSystemComboBox;
-    private              ComboBox<Architecture>    downloadJDKArchitectureComboBox;
-    private              ComboBox<LibCType>        downloadJDKLibCTypeComboBox;
-    private              ComboBox<ArchiveType>     downloadJDKArchiveTypeComboBox;
-    private              Label                     downloadJDKFilenameLabel;
-    private              Label                     alreadyDownloadedLabel;
-    private              Set<MajorVersion>         downloadJDKMaintainedVersions;
-    private              List<MinimizedPkg>        downloadJDKSelectedPkgs;
-    private              MinimizedPkg              downloadJDKSelectedPkg;
-    private              List<MinimizedPkg>        downloadJDKSelectedPkgsForMajorVersion;
-    private              List<MinimizedPkg>        downloadJDKMinimizedPkgs;
-    private              boolean                   downloadJDKJavafxBundled;
-    private              MajorVersion              downloadJDKSelectedMajorVersion;
-    private              Semver                    downloadJDKSelectedVersionNumber;
-    private              Distribution              downloadJDKSelectedDistribution;
-    private              OperatingSystem           downloadJDKSelectedOperatingSystem;
-    private              LibCType                  downloadJDKSelectedLibCType;
-    private              Architecture              downloadJDKSelectedArchitecture;
-    private              ArchiveType               downloadJDKSelectedArchiveType;
-    private              Set<OperatingSystem>      downloadJDKOperatingSystems;
-    private              Set<LibCType>             downloadJDKLibCTypes;
-    private              Set<Architecture>         downloadJDKArchitectures;
-    private              Set<ArchiveType>          downloadJDKArchiveTypes;
-    private              ProgressBar               downloadJDKProgressBar;
+    private              Dialog                            cveDialog;
+    private              ObservableList<Hyperlink>         cveLinks;
+    private              StringProperty                    cveWindowTitleText;
+    private              Stage                             cveStage;
+    private              AnchorPane                        cveHeaderPane;
+    private              Label                             cveWindowTitle;
+    private              MacosWindowButton                 cveCloseMacWindowButton;
+    private              WinWindowButton                   cveCloseWinWindowButton;
+    private              StackPane                         cvePane;
+    private              VBox                              cveBox;
+    private              Button                            cveCloseButton;
 
-    private              Stage                     downloadGraalStage;
-    private              AnchorPane                downloadGraalHeaderPane;
-    private              Label                     downloadGraalWindowTitle;
-    private              MacosWindowButton         downloadGraalCloseMacWindowButton;
-    private              WinWindowButton           downloadGraalCloseWinWindowButton;
-    private              StackPane                 downloadGraalPane;
-    private              ComboBox<MajorVersion>    downloadGraalMajorVersionComboBox;
-    private              ComboBox<Semver>          downloadGraalUpdateLevelComboBox;
-    private              ComboBox<Distribution>    downloadGraalDistributionComboBox;
-    private              ComboBox<OperatingSystem> downloadGraalOperatingSystemComboBox;
-    private              ComboBox<Architecture>    downloadGraalArchitectureComboBox;
-    private              ComboBox<ArchiveType>     downloadGraalArchiveTypeComboBox;
-    private              Label                     downloadGraalFilenameLabel;
-    private              Label                     alreadyGraalDownloadedLabel;
-    private              Set<MajorVersion>         downloadGraalMajorVersions;
-    private              Set<Semver>               downloadGraalVersions;
-    private              List<MinimizedPkg>        downloadGraalSelectedPkgs;
-    private              MinimizedPkg              downloadGraalSelectedPkg;
-    private              List<MinimizedPkg>        downloadGraalSelectedPkgsForMajorVersion;
-    private              List<MinimizedPkg>        downloadGraalMinimizedPkgs;
-    private              boolean                   downloadGraalJavafxBundled;
-    private              MajorVersion              downloadGraalSelectedMajorVersion;
-    private              Semver                    downloadGraalSelectedVersionNumber;
-    private              Distribution              downloadGraalSelectedDistribution;
-    private              OperatingSystem           downloadGraalSelectedOperatingSystem;
-    private              Architecture              downloadGraalSelectedArchitecture;
-    private              ArchiveType               downloadGraalSelectedArchiveType;
-    private              Set<OperatingSystem>      downloadGraalOperatingSystems;
-    private              Set<Architecture>         downloadGraalArchitectures;
-    private              Set<ArchiveType>          downloadGraalArchiveTypes;
-    private              ProgressBar               downloadGraalProgressBar;
+    private              Dialog                            searchableDialog;
+    private              ComboBox<Searchable>              jepComboBox;
+    private              ComboBox<Searchable>              jsrComboBox;
+    private              ComboBox<Searchable>              projectComboBox;
+    private              Stage                             searchableStage;
+    private              AnchorPane                        searchableHeaderPane;
+    private              Label                             searchableWindowTitle;
+    private              MacosWindowButton                 searchableCloseMacWindowButton;
+    private              WinWindowButton                   searchableCloseWinWindowButton;
+    private              StackPane                         searchablePane;
+    private              Button                            searchableCloseButton;
+    private              Popup                             searchResultPopup;
+    private              ListView<Searchable>              searchResultList;
+    private              StackPane                         searchResultPane;
 
-    private              ImageView                 sdkmanImgVw;
-    private              ImageView                 tckTestedTag;
-    private              ImageView                 aqavitTestedTag;
-    private              Hyperlink                 tckTestedLink;
-    private              Hyperlink                 aqavitTestedLink;
-    private              Button                    downloadJDKCancelButton;
-    private              Button                    downloadJDKDownloadButton;
-    private              Button                    downloadGraalCancelButton;
-    private              Button                    downloadGraalDownloadButton;
+    private              Timeline                          timeline;
+    private              boolean                           isUpdateAvailable;
+    private              VersionNumber                     latestVersion;
+    private              Map<String, Popup>                popups;
+    private              Map<Integer, List<VersionNumber>> availableVersions;
+    private              ObservableList<JEP>               jeps;
+    private              ObservableList<JSR>               jsrs;
+    private              ObservableList<Project>           prjs;
 
-    private              AtomicBoolean             online;
+    private              Stage                             downloadJDKStage;
+    private              AnchorPane                        downloadJDKHeaderPane;
+    private              Label                             downloadJDKWindowTitle;
+    private              MacosWindowButton                 downloadJDKCloseMacWindowButton;
+    private              WinWindowButton                   downloadJDKCloseWinWindowButton;
+    private              StackPane                         downloadJDKPane;
+    private              CheckBox                          downloadJDKBundledWithFXCheckBox;
+    private              Label                             downloadAutoExtractLabel;
+    private              ComboBox<MajorVersion>            downloadJDKMajorVersionComboBox;
+    private              ComboBox<Semver>                  downloadJDKUpdateLevelComboBox;
+    private              ComboBox<Distribution>            downloadJDKDistributionComboBox;
+    private              ComboBox<OperatingSystem>         downloadJDKOperatingSystemComboBox;
+    private              ComboBox<Architecture>            downloadJDKArchitectureComboBox;
+    private              ComboBox<LibCType>                downloadJDKLibCTypeComboBox;
+    private              ComboBox<ArchiveType>             downloadJDKArchiveTypeComboBox;
+    private              Label                             downloadJDKFilenameLabel;
+    private              Label                             alreadyDownloadedLabel;
+    private              Set<MajorVersion>                 downloadJDKMaintainedVersions;
+    private              List<MinimizedPkg>                downloadJDKSelectedPkgs;
+    private              MinimizedPkg                      downloadJDKSelectedPkg;
+    private              List<MinimizedPkg>                downloadJDKSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>                downloadJDKMinimizedPkgs;
+    private              boolean                           downloadJDKJavafxBundled;
+    private              MajorVersion                      downloadJDKSelectedMajorVersion;
+    private              Semver                            downloadJDKSelectedVersionNumber;
+    private              Distribution                      downloadJDKSelectedDistribution;
+    private              OperatingSystem                   downloadJDKSelectedOperatingSystem;
+    private              LibCType                          downloadJDKSelectedLibCType;
+    private              Architecture                      downloadJDKSelectedArchitecture;
+    private              ArchiveType                       downloadJDKSelectedArchiveType;
+    private              Set<OperatingSystem>              downloadJDKOperatingSystems;
+    private              Set<LibCType>                     downloadJDKLibCTypes;
+    private              Set<Architecture>                 downloadJDKArchitectures;
+    private              Set<ArchiveType>                  downloadJDKArchiveTypes;
+    private              ProgressBar                       downloadJDKProgressBar;
+
+    private              Stage                             downloadGraalStage;
+    private              AnchorPane                        downloadGraalHeaderPane;
+    private              Label                             downloadGraalWindowTitle;
+    private              MacosWindowButton                 downloadGraalCloseMacWindowButton;
+    private              WinWindowButton                   downloadGraalCloseWinWindowButton;
+    private              StackPane                         downloadGraalPane;
+    private              ComboBox<MajorVersion>            downloadGraalMajorVersionComboBox;
+    private              ComboBox<Semver>                  downloadGraalUpdateLevelComboBox;
+    private              ComboBox<Distribution>            downloadGraalDistributionComboBox;
+    private              ComboBox<OperatingSystem>         downloadGraalOperatingSystemComboBox;
+    private              ComboBox<Architecture>            downloadGraalArchitectureComboBox;
+    private              ComboBox<ArchiveType>             downloadGraalArchiveTypeComboBox;
+    private              Label                             downloadGraalFilenameLabel;
+    private              Label                             alreadyGraalDownloadedLabel;
+    private              Set<MajorVersion>                 downloadGraalMajorVersions;
+    private              Set<Semver>                       downloadGraalVersions;
+    private              List<MinimizedPkg>                downloadGraalSelectedPkgs;
+    private              MinimizedPkg                      downloadGraalSelectedPkg;
+    private              List<MinimizedPkg>                downloadGraalSelectedPkgsForMajorVersion;
+    private              List<MinimizedPkg>                downloadGraalMinimizedPkgs;
+    private              boolean                           downloadGraalJavafxBundled;
+    private              MajorVersion                      downloadGraalSelectedMajorVersion;
+    private              Semver                            downloadGraalSelectedVersionNumber;
+    private              Distribution                      downloadGraalSelectedDistribution;
+    private              OperatingSystem                   downloadGraalSelectedOperatingSystem;
+    private              Architecture                      downloadGraalSelectedArchitecture;
+    private              ArchiveType                       downloadGraalSelectedArchiveType;
+    private              Set<OperatingSystem>              downloadGraalOperatingSystems;
+    private              Set<Architecture>                 downloadGraalArchitectures;
+    private              Set<ArchiveType>                  downloadGraalArchiveTypes;
+    private              ProgressBar                       downloadGraalProgressBar;
+
+    private              ImageView                         sdkmanImgVw;
+    private              ImageView                         tckTestedTag;
+    private              ImageView                         aqavitTestedTag;
+    private              Hyperlink                         tckTestedLink;
+    private              Hyperlink                         aqavitTestedLink;
+    private              Button                            downloadJDKCancelButton;
+    private              Button                            downloadJDKDownloadButton;
+    private              Button                            downloadGraalCancelButton;
+    private              Button                            downloadGraalDownloadButton;
+
+    private              AtomicBoolean                     online;
 
     public record SemverUri(Semver semver, String uri) {}
 
@@ -335,6 +347,10 @@ public class Main extends Application {
         isUpdateAvailable = false;
         latestVersion     = VERSION;
         popups            = new HashMap<>();
+        availableVersions = new HashMap<>();
+        jeps              = FXCollections.observableArrayList();
+        jsrs              = FXCollections.observableArrayList();
+        prjs              = FXCollections.observableArrayList();
         online            = new AtomicBoolean(false);
 
         switch (operatingSystem) {
@@ -353,6 +369,9 @@ public class Main extends Application {
 
         cvePane           = new StackPane();
 
+        searchablePane    = new StackPane();
+        searchableCloseButton = new Button("Close");
+
         downloadJDKPane   = new StackPane();
 
         downloadGraalPane = new StackPane();
@@ -360,11 +379,23 @@ public class Main extends Application {
         cveCloseButton  = new Button("Close");
         cveCloseButton.getStyleClass().addAll("jdk-mon", "cve-close-button");
 
+        jepComboBox     = new ComboBox<>();
+        jepComboBox.setPromptText("JEP");
+
+        jsrComboBox     = new ComboBox<>();
+        jsrComboBox.setPromptText("JSR");
+
+        projectComboBox = new ComboBox<>();
+        projectComboBox.setPromptText("Project");
+
         darkMode = new BooleanPropertyBase(false) {
             @Override protected void invalidated() {
                 pane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadJDKPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 downloadGraalPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                searchablePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                searchableCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
+                cvePane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
                 cveCloseButton.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, get());
             }
             @Override public Object getBean() { return Main.this; }
@@ -444,9 +475,44 @@ public class Main extends Application {
         executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(true); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> isOnline(), Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> {
+            updateAvailableVersions();
             updateDownloadJDKPkgs();
             updateDownloadGraalPkgs();
         }, Constants.INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES, Constants.UPDATE_PKGS_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+
+        // Get JEP's, JSR's and OpenJDK Projects
+        Task<List<JEP>>     jepTask = new Task<>() {
+            @Override protected List<JEP> call() {
+                return Helper.getJepsFromHtml();
+            }
+        };
+        Task<List<JSR>>     jsrTask = new Task<>() {
+            @Override protected List<JSR> call() {
+                return Helper.getJsrsFromHtml();
+            }
+        };
+        Task<List<Project>> prjTask = new Task<>() {
+            @Override protected List<Project> call() {
+                return Helper.getProjectsFromHtml();
+            }
+        };
+
+        jepTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.jeps.addAll((jepTask.getValue()));
+            this.jepComboBox.getItems().setAll(this.jeps);
+        }));
+        jsrTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.jsrs.addAll((jsrTask.getValue()));
+            this.jsrComboBox.getItems().setAll(this.jsrs);
+        }));
+        prjTask.setOnSucceeded(e -> Platform.runLater(() -> {
+            this.prjs.addAll((prjTask.getValue()));
+            this.projectComboBox.getItems().setAll(this.prjs);
+        }));
+
+        executor.schedule(jepTask, Constants.INITIAL_JEP_TASK_DELAY, TimeUnit.SECONDS);
+        executor.schedule(jsrTask, Constants.INITIAL_JSR_TASK_DELAY, TimeUnit.SECONDS);
+        executor.schedule(prjTask, Constants.INITIAL_PROJECT_TASK_DELAY, TimeUnit.SECONDS);
 
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
@@ -493,8 +559,23 @@ public class Main extends Application {
         searchPathLabel = new Label(searchPaths.stream().collect(Collectors.joining(",")));
         searchPathLabel.getStyleClass().add("small-label");
 
-        titleBox = new VBox(5, titleProgressBox, searchPathLabel);
+        Separator sep = new Separator(Orientation.HORIZONTAL);
+        VBox.setMargin(sep, new Insets(1, 0, 1, 0));
 
+        // Updates and releases
+        nextOpenJDKUpdateLabel = new Label("");
+        nextOpenJDKUpdateLabel.getStyleClass().add("small-label");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        nextOpenJDKReleaseLabel = new Label("");
+        nextOpenJDKReleaseLabel.getStyleClass().add("small-label");
+
+        HBox updateBox = new HBox(nextOpenJDKUpdateLabel, spacer, nextOpenJDKReleaseLabel);
+
+
+        titleBox = new VBox(5, titleProgressBox, searchPathLabel, sep, updateBox);
 
         sdkmanImgVw = new ImageView(new Image(Main.class.getResourceAsStream("sdkman.png")));
         sdkmanImgVw.setPreserveRatio(true);
@@ -610,6 +691,13 @@ public class Main extends Application {
         timeline = new Timeline();
 
         cveLinks                               = FXCollections.observableArrayList();
+        cveWindowTitleText                     = new StringPropertyBase("Vulnerabilities found") {
+            @Override protected void invalidated() {
+                System.out.println("No of CVE's found: " + get());
+            }
+            @Override public Object getBean() { return Main.this; }
+            @Override public String getName() { return "cveWindowTitleText"; }
+        };
 
         downloadJDKMaintainedVersions          = new LinkedHashSet<>();
         downloadJDKSelectedPkgs                = new ArrayList<>();
@@ -639,7 +727,8 @@ public class Main extends Application {
     private void registerListeners() {
         cveScanner.addCveEvtConsumer(e -> {
             switch(e.type()) {
-                case UPDATED -> updateCves();
+                case UPDATED_OPENJDK -> updateCves();
+                case UPDATED_GRAALVM -> updateCves();
             }
         });
 
@@ -757,6 +846,57 @@ public class Main extends Application {
             }
         });
 
+        searchableStage.focusedProperty().addListener((o, ov, nv) -> {
+            if (nv) {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#dddddd"));
+                    }
+                } else {
+                    if (isWindows) {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#000000"));
+                    } else {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#000000"));
+                    }
+                }
+                searchableCloseMacWindowButton.setDisable(false);
+                searchableCloseWinWindowButton.setDisable(false);
+            } else {
+                if (darkMode.get()) {
+                    if (isWindows) {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#000000"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#969696"));
+                    } else {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#282927"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#696a68"));
+                    }
+                } else {
+                    if (isWindows) {
+                        searchableCloseWinWindowButton.setStyle("-fx-fill: #969696;");
+                    } else {
+                        searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#e5e7e7"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                        searchableWindowTitle.setTextFill(Color.web("#a9a6a6"));
+                        searchableCloseMacWindowButton.setStyle("-fx-fill: #ceccca;");
+                    }
+                }
+                searchableCloseMacWindowButton.setDisable(true);
+                searchableCloseWinWindowButton.setDisable(true);
+            }
+        });
+
+        searchableCloseButton.setOnAction(e -> {
+            if (searchableDialog.isShowing()) {
+                searchableDialog.setResult(Boolean.TRUE);
+                searchableDialog.close();
+            }
+        });
+
         if (isWindows) {
             cveCloseWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
                 if (cveDialog.isShowing()) {
@@ -784,6 +924,15 @@ public class Main extends Application {
             });
             downloadGraalCloseWinWindowButton.setOnMouseEntered(e -> downloadGraalCloseWinWindowButton.setHovered(true));
             downloadGraalCloseWinWindowButton.setOnMouseExited(e -> downloadGraalCloseWinWindowButton.setHovered(false));
+
+            searchableCloseWinWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (searchableDialog.isShowing()) {
+                    searchableDialog.setResult(Boolean.TRUE);
+                    searchableDialog.close();
+                }
+            });
+            searchableCloseWinWindowButton.setOnMouseEntered(e -> searchableCloseWinWindowButton.setHovered(true));
+            searchableCloseWinWindowButton.setOnMouseExited(e -> searchableCloseWinWindowButton.setHovered(false));
         } else {
             cveCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
                 if (cveDialog.isShowing()) {
@@ -811,6 +960,15 @@ public class Main extends Application {
             });
             downloadGraalCloseMacWindowButton.setOnMouseEntered(e -> downloadGraalCloseMacWindowButton.setHovered(true));
             downloadGraalCloseMacWindowButton.setOnMouseExited(e -> downloadGraalCloseMacWindowButton.setHovered(false));
+
+            searchableCloseMacWindowButton.setOnMouseReleased((Consumer<MouseEvent>) e -> {
+                if (searchableDialog.isShowing()) {
+                    searchableDialog.setResult(Boolean.TRUE);
+                    searchableDialog.close();
+                }
+            });
+            searchableCloseMacWindowButton.setOnMouseEntered(e -> searchableCloseMacWindowButton.setHovered(true));
+            searchableCloseMacWindowButton.setOnMouseExited(e -> searchableCloseMacWindowButton.setHovered(false));
         }
 
         downloadJDKBundledWithFXCheckBox.selectedProperty().addListener((o, ov, nv) -> {
@@ -1036,6 +1194,10 @@ public class Main extends Application {
                 downloadGraalCloseWinWindowButton.setDisable(true);
             }
         });
+
+        jepComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
+        jsrComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
+        projectComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
     }
 
     private void initOnFXApplicationThread() {
@@ -1043,6 +1205,9 @@ public class Main extends Application {
         downloadJDKDialog   = createDownloadJDKDialog();
         downloadGraalDialog = createDownloadGraalDialog();
         cveDialog           = createCveDialog();
+        searchableDialog    = createSearchableDialog();
+        searchResultPopup   = new Popup();
+        searchResultPopup.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
 
         registerListeners();
         if (online.get()) {
@@ -1151,6 +1316,15 @@ public class Main extends Application {
                 downloadGraalDialog.show();
             });
             trayIcon.addMenuItem(downloadGraalItem);
+
+            trayIcon.addSeparator();
+
+            MenuItem searchableItem = new MenuItem("JEP's, JSR's, Projects");
+            searchableItem.setOnAction(e -> {
+                if (searchableDialog.isShowing()) { return; }
+                searchableDialog.showAndWait();
+            });
+            trayIcon.addMenuItem(searchableItem);
 
             trayIcon.addSeparator();
 
@@ -1278,6 +1452,21 @@ public class Main extends Application {
 
             menu.getItems().add(new SeparatorMenuItem());
 
+            CustomMenuItem jepItem = new CustomMenuItem();
+            Label jepItemLabel = new Label("JEP's");
+            jepItemLabel.setTooltip(new Tooltip("JEP's"));
+            jepItemLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
+            jepItemLabel.addEventHandler(MouseEvent.MOUSE_EXITED, e -> hideMenu = true);
+            jepItem.setContent(jepItemLabel);
+            jepItem.setHideOnClick(false);
+            jepItem.setOnAction( e -> {
+                if (searchableDialog.isShowing()) { return; }
+                searchableDialog.show();
+            });
+            menu.getItems().add(jepItem);
+
+            menu.getItems().add(new SeparatorMenuItem());
+
             CustomMenuItem exitItem = new CustomMenuItem();
             Label exitLabel = new Label("Exit");
             exitLabel.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> hideMenu = false);
@@ -1312,7 +1501,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setAlwaysOnTop(true);
-        stage.setMaxWidth(850);
+        stage.setMaxWidth(700);
         stage.show();
         stage.getIcons().add(dukeStageIcon);
         stage.centerOnScreen();
@@ -1379,6 +1568,7 @@ public class Main extends Application {
                 URLConnection connection = url.openConnection();
                 connection.connect();
                 online.set(true);
+                updateAvailableVersions();
                 updateDownloadJDKPkgs();
                 updateDownloadGraalPkgs();
                 rescan();
@@ -1388,16 +1578,20 @@ public class Main extends Application {
         }
     }
 
+    private void updateAvailableVersions() {
+        this.availableVersions = Helper.getAvailableVersions();
+    }
+
     private void updateCves() {
         List<CVE> cvesFound = cveScanner.getCves();
         if (cvesFound.isEmpty()) { return; }
         cves.clear();
         cvesFound.forEach(cve -> {
-            final String       id               = cve.id();
-            final double       score            = cve.score();
-            final CVSS         cvss             = cve.cvss();
-            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
-            final List<String> affectedVersions = cve.affectedVersions();
+            final String              id               = cve.id();
+            final double              score            = cve.score();
+            final CVSS                cvss             = cve.cvss();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions();
             cves.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
@@ -1405,11 +1599,11 @@ public class Main extends Application {
         if (cvesGraalVMFound.isEmpty()) { return; }
         cvesGraalVM.clear();
         cvesGraalVMFound.forEach(cve -> {
-            final String       id               = cve.id();
-            final double       score            = cve.score();
-            final CVSS         cvss             = cve.cvss();
-            final Severity     severity         = Severity.fromText(cve.severity().getApiString());
-            final List<String> affectedVersions = cve.affectedVersions();
+            final String              id               = cve.id();
+            final double              score            = cve.score();
+            final CVSS                cvss             = cve.cvss();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions();
             cvesGraalVM.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
@@ -1521,7 +1715,35 @@ public class Main extends Application {
         });
     }
 
+    private void updateDaysToNextUpdate() {
+        Optional<JDKUpdate> optOpenJDKRelease = Helper.getNextRelease();
+        Optional<JDKUpdate> optOpenJDKUpdate  = Helper.getNextUpdate();
+        Platform.runLater(() -> {
+            int remainingDaysToUpdate  = (int) (optOpenJDKUpdate.isPresent()  ? optOpenJDKUpdate.get().remainingDays()  : -1);
+            String nextOpenJDKUpdateText;
+            switch (remainingDaysToUpdate) {
+                case -1 -> nextOpenJDKUpdateText = "";
+                case 0  -> nextOpenJDKUpdateText = "Next OpenJDK update is available TODAY";
+                case 1  -> nextOpenJDKUpdateText = "Next OpenJDK update is tomorrow";
+                default -> nextOpenJDKUpdateText = "Next OpenJDK update in " + remainingDaysToUpdate + " days";
+            }
+
+            int remainingDaysToRelease = (int) (optOpenJDKRelease.isPresent() ? optOpenJDKRelease.get().remainingDays() : -1);
+            String nextOpenJDKReleaseText;
+            switch (remainingDaysToRelease) {
+                case -1 -> nextOpenJDKReleaseText = "";
+                case 0  -> nextOpenJDKReleaseText = "Next OpenJDK release is available TODAY";
+                case 1  -> nextOpenJDKReleaseText = "Next OpenJDK release is tomorrow";
+                default -> nextOpenJDKReleaseText = "Next OpenJDK release in " + remainingDaysToRelease + " days";
+            }
+
+            nextOpenJDKUpdateLabel.setText(nextOpenJDKUpdateText);
+            nextOpenJDKReleaseLabel.setText(nextOpenJDKReleaseText);
+        });
+    }
+
     private void rescan() {
+        updateDaysToNextUpdate();
         Platform.runLater(() -> {
             checkForLatestJDKMonVersion();
             if (checkingForUpdates.get()) { return; }
@@ -1535,6 +1757,7 @@ public class Main extends Application {
             Set<Distro> distrosFound = finder.getDistributions(searchPaths);
             distros.setAll(distrosFound);
             SwingUtilities.invokeLater(() -> checkForUpdates());
+            Helper.createJdkSwitcherScript(operatingSystem, distrosFound);
         });
     }
 
@@ -1608,7 +1831,14 @@ public class Main extends Application {
             distroLabel.setGraphic(sdkmanImgVw);
         }
 
-        distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
+        //distroLabel.setTooltip(new Tooltip(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation()));
+        StringBuilder msgBuilder = new StringBuilder();
+        msgBuilder.append(distribution.getModulesText(false));
+        if (distribution.getSize() > 0) {
+            msgBuilder.append(" -> ").append(Helper.shortenNumber(distribution.getSize()));
+        }
+        msgBuilder.append(NEW_LINE).append(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation());
+        distroLabel.setTooltip(new Tooltip(msgBuilder.toString()));
         distroLabel.setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown()) {
                 openDistribution(distribution);
@@ -1629,8 +1859,10 @@ public class Main extends Application {
                 Hyperlink cveLink = new Hyperlink();
                 cveLink.setTooltip(new Tooltip(distribution.getName() + " " + distribution.getVersion() + " might be affected by " + cve.id()));
                 cveLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-                cveLink.setText(cve.id() + " (" + cve.cvss().name() + " Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
+                cveLink.setText(cve.id() + " (" + cve.cvss().getUiString() + " Score " + String.format(Locale.US, "%.1f", cve.score()) + ", Severity " + cve.severity().getUiString() + ")");
                 cveLink.setOnAction(e -> {
+                    Helper.openInDefaultBrowser(Main.this, cve.url());
+                    /*
                     if (Desktop.isDesktopSupported()) {
                         try {
                             Desktop.getDesktop().browse(new URI(cve.url()));
@@ -1649,7 +1881,7 @@ public class Main extends Application {
                             ex.printStackTrace();
                         }
                     }
-
+                    */
                 });
                 cveLink.setTextFill(Color.BLACK);
                 cveLink.setBackground(new Background(new BackgroundFill(Helper.getColorForCVE(cve, isDarkMode), new CornerRadii(5), Insets.EMPTY)));
@@ -1658,6 +1890,7 @@ public class Main extends Application {
             attentionIndicator.setVisible(true);
             attentionIndicator.setOnMousePressed(e -> {
                 cveLinks.setAll(cveLinksFound);
+                cveWindowTitleText.set(cveLinksFound.size() + " CVE's found in " + distroLabelBuilder);
                 cveBox.getChildren().setAll(cveLinks);
                 cveDialog.showAndWait();
             });
@@ -1669,8 +1902,24 @@ public class Main extends Application {
         HBox hBox = new HBox(5, distroBox);
         hBox.setMinWidth(360);
 
-        // Filter ubuntu and debian distribution related JDK's because they cannot be updated by JDKMon
-        if (distribution.getApiString().equals("ubuntu") || distribution.getApiString().equals("debian")) { return hBox; }
+        // Filter ubuntu, debian and homebrew distribution related JDK's because they cannot be updated by JDKMon
+        if (distribution.getApiString().equals("ubuntu") ||
+            distribution.getApiString().equals("debian") ||
+            distribution.getApiString().equals("homebrew")) {
+            List<VersionNumber> versions = availableVersions.get(Integer.parseInt(distribution.getJdkMajorVersion()));
+            Collections.sort(versions, Collections.reverseOrder());
+            if (!versions.isEmpty()) {
+                VersionNumber latestVersion = versions.get(0);
+                if (latestVersion.getUpdate().getAsInt() > distribution.getVersionNumber().getUpdate().getAsInt()) {
+                    Label arrowLabel   = new Label(" -> ");
+                    Label versionLabel = new Label(latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false));
+                    versionLabel.setMinWidth(56);
+                    Label infoLabel    = new Label("(no download via JDKMon)");
+                    hBox.getChildren().addAll(arrowLabel, versionLabel, infoLabel);
+                }
+            }
+            return hBox;
+        }
 
         if (pkgs.isEmpty()) { return hBox; }
 
@@ -2054,38 +2303,20 @@ public class Main extends Application {
 
         Node updateNode;
         if (isUpdateAvailable) {
-            Hyperlink updateLink = new Hyperlink();
-            updateLink.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
-            updateLink.setText("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
-            updateLink.setOnAction(e -> {
-                if (Desktop.isDesktopSupported()) {
-                    try {
-                        Desktop.getDesktop().browse(new URI(Constants.RELEASES_URI));
-                    } catch (IOException | URISyntaxException ex) {
-                        ex.printStackTrace();
-                    }
-                } else {
-                    if (OperatingSystem.LINUX == operatingSystem) {
-                        Runtime runtime = Runtime.getRuntime();
-                        try {
-                            runtime.exec(new String[] { "xdg-open", Constants.RELEASES_URI });
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            });
+            Label updateLabel = new Label("New Version (" + latestVersion.toString(OutputFormat.REDUCED_COMPRESSED, true, false) + ") available");
+            updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
+            updateLabel.setOnMousePressed(e -> Helper.openInDefaultBrowser(Main.this, Constants.RELEASES_URI));
             if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
                 if (isDarkMode) {
-                    updateLink.setTextFill(accentColor.getColorDark());
+                    updateLabel.setTextFill(accentColor.getColorDark());
                 } else {
-                    updateLink.setTextFill(accentColor.getColorAqua());
+                    updateLabel.setTextFill(accentColor.getColorAqua());
                 }
             } else {
-                updateLink.setTextFill(accentColor.getColorAqua());
+                updateLabel.setTextFill(accentColor.getColorAqua());
             }
 
-            updateNode = updateLink;
+            updateNode = updateLabel;
         } else {
             Label updateLabel = new Label("Latest version installed");
             updateLabel.setFont(isWindows ? Fonts.segoeUi(12) : Fonts.sfPro(12));
@@ -2099,7 +2330,9 @@ public class Main extends Application {
             updateNode = updateLabel;
         }
 
-        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater helps you keeping track of your installed OpenJDK distributions.");
+        Label descriptionLabel = new Label("JDKMon, your friendly JDK updater");
+        Hyperlink link = new Hyperlink(Constants.JDKMON_RELEASES_URI);
+        link.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> Helper.copyToClipBoard(Constants.JDKMON_RELEASES_URI));
         if (isWindows) {
             descriptionLabel.setFont(Fonts.segoeUi(11));
         } else if (OperatingSystem.MACOS == operatingSystem) {
@@ -2110,8 +2343,9 @@ public class Main extends Application {
         descriptionLabel.setTextAlignment(TextAlignment.LEFT);
         descriptionLabel.setWrapText(true);
         descriptionLabel.setAlignment(Pos.TOP_LEFT);
+        VBox descriptionBox = new VBox(5, descriptionLabel, link);
 
-        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, environmentLabel, updateNode, descriptionLabel);
+        VBox aboutTextBox = new VBox(10, nameLabel, versionLabel, environmentLabel, updateNode, descriptionBox);
 
         HBox aboutBox = new HBox(20, aboutImage, aboutTextBox);
         aboutBox.setAlignment(Pos.CENTER);
@@ -2399,19 +2633,11 @@ public class Main extends Application {
 
     private void checkForLatestJDKMonVersion() {
         if (!online.get()) { return; }
-        Helper.checkForJDKMonUpdateAsync().thenAccept(response -> {
-            if (null == response || null == response.body() || response.body().isEmpty()) {
-                isUpdateAvailable = false;
-            } else {
-                final Gson       gson       = new Gson();
-                final JsonObject jsonObject = gson.fromJson(response.body(), JsonObject.class);
-                if (jsonObject.has("tag_name")) {
-                    latestVersion     = VersionNumber.fromText(jsonObject.get("tag_name").getAsString());
-                    isUpdateAvailable = latestVersion.compareTo(Main.VERSION) > 0;
-                }
-            }
-        });
+        JDKMonUpdate jdkMonUpdate = Helper.checkForJDKMonUpdate();
+        isUpdateAvailable = jdkMonUpdate.isUpdateAvailable();
+        latestVersion     = jdkMonUpdate.latestVersion();
     }
+
 
     private Dialog createCveDialog() {
         final boolean isDarkMode = darkMode.get();
@@ -2432,7 +2658,8 @@ public class Main extends Application {
         cveCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
         cveCloseWinWindowButton.setDarkMode(isDarkMode);
 
-        cveWindowTitle = new Label("Vulnerabilities found");
+        cveWindowTitle = new Label();
+        cveWindowTitle.textProperty().bind(cveWindowTitleText);
         if (isWindows) {
             cveWindowTitle.setFont(Fonts.segoeUi(9));
             cveWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
@@ -2514,10 +2741,10 @@ public class Main extends Application {
         // Adjustments related to dark/light mode
         if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
             if (isDarkMode) {
-                downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+                cvePane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
             } else {
-                downloadJDKPane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+                cvePane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
                 contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
             }
         }
@@ -2557,6 +2784,219 @@ public class Main extends Application {
             }
         }
         return cveDialog;
+    }
+
+
+    private Dialog createSearchableDialog() {
+        final boolean isDarkMode = darkMode.get();
+
+        Dialog searchableDialog = new Dialog();
+        searchableDialog.initStyle(StageStyle.TRANSPARENT);
+        searchableDialog.initModality(Modality.WINDOW_MODAL);
+
+        searchableStage = (Stage) searchableDialog.getDialogPane().getScene().getWindow();
+        searchableStage.setAlwaysOnTop(true);
+        searchableStage.getIcons().add(dukeStageIcon);
+        searchableStage.getScene().setFill(Color.TRANSPARENT);
+        searchableStage.getScene().getStylesheets().add(Main.class.getResource(cssFile).toExternalForm());
+
+        searchableCloseMacWindowButton = new MacosWindowButton(WindowButtonType.CLOSE, WindowButtonSize.NORMAL);
+        searchableCloseMacWindowButton.setDarkMode(isDarkMode);
+
+        searchableCloseWinWindowButton = new WinWindowButton(WindowButtonType.CLOSE, WindowButtonSize.SMALL);
+        searchableCloseWinWindowButton.setDarkMode(isDarkMode);
+
+        searchableWindowTitle = new Label("JEP's, JSR's and Project's");
+        if (isWindows) {
+            searchableWindowTitle.setFont(Fonts.segoeUi(9));
+            searchableWindowTitle.setTextFill(isDarkMode ? Color.web("#969696") : Color.web("#000000"));
+            searchableWindowTitle.setAlignment(Pos.CENTER_LEFT);
+            searchableWindowTitle.setGraphic(new ImageView(new Image(getClass().getResourceAsStream(darkMode.get() ? "duke.png" : "duke_blk.png"), 12, 12, true, false)));
+            searchableWindowTitle.setGraphicTextGap(10);
+
+            AnchorPane.setTopAnchor(searchableCloseWinWindowButton, 0d);
+            AnchorPane.setRightAnchor(searchableCloseWinWindowButton, 0d);
+            AnchorPane.setTopAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setRightAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(searchableWindowTitle, 10d);
+        } else {
+            searchableWindowTitle.setFont(Fonts.sfProTextMedium(12));
+            searchableWindowTitle.setTextFill(isDarkMode ? Color.web("#dddddd") : Color.web("#000000"));
+            searchableWindowTitle.setAlignment(Pos.CENTER);
+
+            AnchorPane.setTopAnchor(searchableCloseMacWindowButton, 7.125d);
+            AnchorPane.setLeftAnchor(searchableCloseMacWindowButton, 11d);
+            AnchorPane.setTopAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setRightAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setBottomAnchor(searchableWindowTitle, 0d);
+            AnchorPane.setLeftAnchor(searchableWindowTitle, 0d);
+        }
+        searchableWindowTitle.setMouseTransparent(true);
+
+        searchableHeaderPane = new AnchorPane();
+        searchableHeaderPane.getStyleClass().add("header");
+        searchableHeaderPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.1), 1, 0.0, 0, 1));
+        if (isWindows) {
+            searchableHeaderPane.setMinHeight(31);
+            searchableHeaderPane.setMaxHeight(31);
+            searchableHeaderPane.setPrefHeight(31);
+            searchableHeaderPane.getChildren().addAll(searchableCloseWinWindowButton, searchableWindowTitle);
+        } else {
+            searchableHeaderPane.setMinHeight(26.25);
+            searchableHeaderPane.setMaxHeight(26.25);
+            searchableHeaderPane.setPrefHeight(26.25);
+            searchableHeaderPane.getChildren().addAll(searchableCloseMacWindowButton, searchableWindowTitle);
+        }
+
+        SearchTextField searchField = new SearchTextField();
+        searchField.setOnAction(e -> {
+            if (searchField.getText().isEmpty()) { return; }
+            ObservableList<Searchable> results = FXCollections.observableArrayList(Helper.searchFor(searchField.getText(), this.jeps, this.jsrs, this.prjs));
+            if (results.isEmpty()) { return; }
+            searchResultList = new ListView<>(results);
+            searchResultList.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+            searchResultList.getStyleClass().addAll("jdk-mon", "search-result-popup");
+            searchResultList.addEventFilter(KeyEvent.KEY_PRESSED, evt -> searchResultPopup.hide());
+            searchResultList.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+                if (null != nv) {
+                    Helper.openInDefaultBrowser(Main.this, nv.url());
+                    searchResultPopup.hide();
+                    if (searchableDialog.isShowing()) {
+                        searchableDialog.setResult(Boolean.TRUE);
+                        searchableDialog.close();
+                    }
+                }
+            });
+
+            searchResultPane = new StackPane(searchResultList);
+            searchResultPane.getStyleClass().add("jdk-mon");
+            searchResultPane.setPadding(new Insets(10));
+            searchResultPopup.setAutoHide(true);
+            searchResultPopup.setAutoFix(true);
+            searchResultPopup.setHideOnEscape(true);
+            searchResultPopup.getContent().setAll(searchResultPane);
+            searchResultPopup.getScene().addEventFilter(KeyEvent.KEY_PRESSED, evt -> {
+                if (KeyCode.ESCAPE == evt.getCode()) {
+                    searchResultPopup.hide();
+                    searchableDialog.close();
+                }
+            });
+
+            if (darkMode.get()) {
+                searchResultList.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, darkMode.get());
+                searchResultPane.pseudoClassStateChanged(DARK_MODE_PSEUDO_CLASS, darkMode.get());
+            }
+
+            Bounds screenBounds = searchField.localToScreen(searchField.getBoundsInLocal());
+            searchResultPopup.setX(screenBounds.getMinX());
+            searchResultPopup.setY(screenBounds.getMaxY());
+            searchResultPopup.show(stage);
+        });
+        searchField.setMinWidth(280);
+        searchField.setMaxWidth(280);
+        searchField.setPrefWidth(280);
+
+        jepComboBox = new ComboBox<>();
+        jepComboBox.setPromptText("JEP");
+        jepComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        jepComboBox.setMinWidth(280);
+        jepComboBox.setMaxWidth(280);
+        jepComboBox.setPrefWidth(280);
+
+        jsrComboBox = new ComboBox<>();
+        jsrComboBox.setPromptText("JSR");
+        jsrComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        jsrComboBox.setMinWidth(280);
+        jsrComboBox.setMaxWidth(280);
+        jsrComboBox.setPrefWidth(280);
+
+        projectComboBox = new ComboBox<>();
+        projectComboBox.setPromptText("Project");
+        projectComboBox.setCellFactory(srchblListView -> isWindows ? new SearchableCell() : new MacosSearchableCell());
+        projectComboBox.setMinWidth(280);
+        projectComboBox.setMaxWidth(280);
+        projectComboBox.setPrefWidth(280);
+
+        VBox searchableVBox = new VBox(15, searchField, jepComboBox, jsrComboBox, projectComboBox, searchableCloseButton);
+        searchableVBox.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+        searchableVBox.setAlignment(Pos.TOP_CENTER);
+        searchableVBox.setAlignment(Pos.CENTER);
+
+        searchablePane.getChildren().add(searchableVBox);
+        searchablePane.getStyleClass().add("jdk-mon");
+        searchablePane.setPadding(new Insets(10));
+
+        BorderPane searchableMainPane = new BorderPane();
+        searchableMainPane.setCenter(searchablePane);
+        searchableMainPane.setTop(searchableHeaderPane);
+
+        if (OperatingSystem.LINUX == operatingSystem && (Architecture.AARCH64 == architecture || Architecture.ARM64 == architecture)) {
+            searchableMainPane.setOnMousePressed(press -> searchableMainPane.setOnMouseDragged(drag -> {
+                searchableDialog.setX(drag.getScreenX() - press.getSceneX());
+                searchableDialog.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            searchableDialog.getDialogPane().setContent(new StackPane(searchableMainPane));
+        } else {
+            StackPane searchableGlassPane = new StackPane(searchableMainPane);
+            searchableGlassPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+            searchableGlassPane.setMinSize(300, isWindows ? 200 : 200);
+            searchableGlassPane.setEffect(new DropShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.35), 10.0, 0.0, 0.0, 5));
+            searchableMainPane.setOnMousePressed(press -> searchableMainPane.setOnMouseDragged(drag -> {
+                searchableDialog.setX(drag.getScreenX() - press.getSceneX());
+                searchableDialog.setY(drag.getScreenY() - press.getSceneY());
+            }));
+            searchableDialog.getDialogPane().setContent(searchableGlassPane);
+        }
+
+        searchableDialog.getDialogPane().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // Adjustments related to dark/light mode
+        if (OperatingSystem.MACOS == Detector.getOperatingSystem()) {
+            if (isDarkMode) {
+                searchablePane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorDark()));
+            } else {
+                searchablePane.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+                contextMenu.setStyle("-selection-color: " + Helper.colorToCss(accentColor.getColorAqua()));
+            }
+        }
+        if (isDarkMode) {
+            if (isWindows) {
+                searchableWindowTitle.setTextFill(Color.web("#969696"));
+                searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                searchableHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                searchableVBox.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchablePane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchableMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchableMainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+            } else {
+                searchableWindowTitle.setTextFill(Color.web("#dddddd"));
+                searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#343535"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                searchableVBox.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchablePane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                searchableMainPane.setBackground(new Background(new BackgroundFill(Color.web("#1d1f20"), new CornerRadii(10), Insets.EMPTY)));
+                searchableMainPane.setBorder(new Border(new BorderStroke(Color.web("#515352"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
+        } else {
+            if (isWindows) {
+                searchableWindowTitle.setTextFill(Color.web("#000000"));
+                searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#efedec"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                searchableHeaderPane.setBorder(new Border(new BorderStroke(Color.web("#f2f2f2"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 0.5, 0))));
+                searchableVBox.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchablePane.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchableMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchableMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1, 1, 1, 1))));
+            } else {
+                searchableWindowTitle.setTextFill(Color.web("#000000"));
+                searchableHeaderPane.setBackground(new Background(new BackgroundFill(Color.web("#edefef"), new CornerRadii(10, 10, 0, 0, false), Insets.EMPTY)));
+                searchableVBox.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), CornerRadii.EMPTY, Insets.EMPTY)));
+                searchablePane.setBackground(new Background(new BackgroundFill(Color.web("#e3e5e5"), new CornerRadii(0, 0, 10, 10, false), Insets.EMPTY)));
+                searchableMainPane.setBackground(new Background(new BackgroundFill(Color.web("#ecebe9"), new CornerRadii(10), Insets.EMPTY)));
+                searchableMainPane.setBorder(new Border(new BorderStroke(Color.web("#f6f4f4"), BorderStrokeStyle.SOLID, new CornerRadii(10, 10, 10, 10, false), new BorderWidths(1))));
+            }
+        }
+        return searchableDialog;
     }
 
 

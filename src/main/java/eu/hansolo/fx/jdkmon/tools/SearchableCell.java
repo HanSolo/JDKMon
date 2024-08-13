@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 by Gerrit Grunwald
+ * Copyright (c) 2023 by Gerrit Grunwald
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,24 @@
 
 package eu.hansolo.fx.jdkmon.tools;
 
-import eu.hansolo.fx.jdkmon.controls.MacosComboBoxCell;
-import eu.hansolo.jdktools.versioning.Semver;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.ListCell;
 
 
-public class MacosUpdateLevelCell extends MacosComboBoxCell<Semver> {
+public class SearchableCell extends ListCell<Searchable> {
 
-    @Override protected void updateItem(final Semver updateLevel, final boolean empty) {
-        super.updateItem(updateLevel, empty);
+    @Override protected void updateItem(final Searchable searchable, final boolean empty) {
+        super.updateItem(searchable, empty);
 
-        if (empty || null == updateLevel) {
+        if (empty || null == searchable) {
             setText(null);
             setGraphic(null);
         } else {
-            setText(updateLevel.toString(true));
-            setGraphic(isSelected() ? (isDark() ? WHITE_CHECK_MARK : BLACK_CHECK_MARK) : EMPTY_CHECK_MARK);
+            setText(searchable.toString());
         }
     }
 
     @Override public String toString() {
-        return getItem().toString(true);
+        return getItem().toString();
     }
 }

@@ -92,7 +92,7 @@ public class Finder {
     private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
     private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
     private static final String[]        MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
-    private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/usr/bin/sh", "-c", "echo $JAVA_HOME" };
+    private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/bin/sh", "-c", "echo $JAVA_HOME" };
     private static final String[]        WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
     private static final String[]        DETECT_ALPINE_CMDS        = { "/bin/sh", "-c", "cat /etc/os-release | grep 'NAME=' | grep -ic 'Alpine'" };
     private static final String[]        UX_DETECT_ARCH_CMDS       = { "/bin/sh", "-c", "uname -m" };
@@ -109,6 +109,7 @@ public class Finder {
     private              String          javafxPropertiesFile      = "javafx.properties";
     private              boolean         isAlpine                  = false;
     private              DiscoClient     discoclient;
+    private final        List<ProcessInfo> usedDistros;
 
 
     public Finder() {
@@ -116,6 +117,7 @@ public class Finder {
     }
     public Finder(final DiscoClient discoclient) {
         this.discoclient = discoclient;
+        this.usedDistros = getUsedDistros();
         getJavaHome();
         if (this.javaHome.isEmpty()) { this.javaHome = System.getProperties().get("java.home").toString(); }
         checkIfAlpineLinux();
@@ -124,6 +126,7 @@ public class Finder {
 
     public Set<Distro> getDistributions(final List<String> searchPaths) {
         Set<Distro> distros = new HashSet<>();
+
         if (null == searchPaths || searchPaths.isEmpty()) { return distros; }
 
         if (service.isShutdown()) {
@@ -134,7 +137,9 @@ public class Finder {
             final Path       path            = Paths.get(searchPath);
             final boolean    handledBySdkman = searchPath.equals(Detector.SDKMAN_FOLDER);
             final List<Path> javaFiles       = findByFileName(path, javaFile);
+            // TODO: make sure that no duplicates are detected e.g. Zulu JDK+FX also detects a JRE in the subfolder, check for existing folders
             javaFiles.stream().filter(java -> !java.toString().contains("jre")).forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
+            //javaFiles.stream().forEach(java -> checkForDistribution(java.toString(), distros, handledBySdkman));
         });
         service.shutdown();
         try {
@@ -202,7 +207,7 @@ public class Finder {
     public Architecture getArchitecture() { return architecture; }
 
     public static final OperatingSystem detectOperatingSystem() {
-        final String os = System.getProperty("os.name").toLowerCase();
+        final String os = Constants.OS_NAME_PROPERTY.toLowerCase();
         if (os.indexOf("win") >= 0) {
             return OperatingSystem.WINDOWS;
         } else if (os.indexOf("mac") >= 0) {
@@ -251,7 +256,7 @@ public class Finder {
             }
 
             // If not found yet try via system property
-            final String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
+            final String arch = Constants.OS_ARCH_PROPERTY.toLowerCase(Locale.ENGLISH);
             if (arch.contains("sparc")) return Architecture.SPARC;
             if (arch.contains("amd64") || arch.contains("86_64")) return Architecture.AMD64;
             if (arch.contains("86")) return Architecture.X86;
@@ -366,8 +371,8 @@ public class Finder {
     }
 
     private void checkForDistribution(final String java, final Set<Distro> distros, final boolean handledBySdkman) {
-        AtomicBoolean inUse = new AtomicBoolean(false);
-
+        AtomicBoolean inUse  = new AtomicBoolean(false);
+        List<String>  usedBy = new ArrayList<>();
         try {
             List<String> commands = new ArrayList<>();
             commands.add(java);
@@ -388,7 +393,7 @@ public class Finder {
                 String       architecture     = "";
                 Feature      feature          = Feature.NONE;
                 Boolean      fxBundled        = Boolean.FALSE;
-                //FPU          fpu              = FPU.UNKNOWN;
+                List<String> modules          = new ArrayList<>();
                 
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
                     inUse.set(true);
@@ -414,8 +419,26 @@ public class Finder {
                     withoutPrefix = line1.replaceFirst("openjdk version", "");
                 } else if (line1.startsWith("java")) {
                     withoutPrefix = line1.replaceFirst("java version", "");
-                    name          = "Oracle";
-                    apiString     = "oracle";
+                    // Find new GraalVM build (former enterprise edition)
+                    if (line2.contains("GraalVM")) {
+                        name       = "GraalVM";
+                        apiString  = "graalvm";
+                        buildScope = BuildScope.BUILD_OF_GRAALVM;
+                    } else {
+                        name       = "Oracle";
+                        apiString  = "oracle";
+                    }
+                }
+
+                // Find new GraalVM community builds
+                if (!apiString.equals("graalvm") && line2.contains("jvmci")) {
+                    VersionNumber newGraalVMBuild = VersionNumber.fromText("23.0-b12");
+                    VersionNumber graalvmBuildFound = VersionNumber.fromText(line2.substring(line2.indexOf("jvmci"), line2.length() - 1).replace("jvmci-", ""));
+                    if (graalvmBuildFound.compareTo(newGraalVMBuild) >= 0) {
+                        name       = "GraalVM Community";
+                        apiString  = "graalvm_community";
+                        buildScope = BuildScope.BUILD_OF_GRAALVM;
+                    }
                 }
                 if (line2.contains("Zulu")) {
                     name      = "Zulu";
@@ -429,6 +452,7 @@ public class Finder {
                 } else if(line2.contains("Zing") || line2.contains("Prime")) {
                     name      = "ZuluPrime";
                     apiString = "zulu_prime";
+                    ZULU_BUILD_MATCHER.reset(line2);
                     final List<MatchResult> results = ZULU_BUILD_MATCHER.results().collect(Collectors.toList());
                     if (!results.isEmpty()) {
                         MatchResult result = results.get(0);
@@ -448,6 +472,12 @@ public class Finder {
                 } else if (line2.contains("Bisheng")) {
                     name      = "Bishenq";
                     apiString = "bisheng";
+                } else if (line2.contains("Homebrew")) {
+                    name      = "Homebrew";
+                    apiString = "homebrew";
+                } else if (line2.startsWith("Java(TM) SE")) {
+                    name      = "Oracle";
+                    apiString = "oracle";
                 }
 
                 if (null == version) {
@@ -495,12 +525,24 @@ public class Finder {
                                 case "Bisheng"           -> { name = "Bisheng";        apiString = "bisheng"; }
                                 case "Debian"            -> { name = "Debian";         apiString = "debian"; }
                                 case "Ubuntu"            -> { name = "Ubuntu";         apiString = "ubuntu"; }
+                                case "Homebrew"          -> { name = "Homebrew";       apiString = "homebrew"; }
                                 case "N/A"               -> { }/* Unknown */
                             }
                         }
+
                         if (releaseProperties.containsKey("OS_ARCH")) {
                             architecture = releaseProperties.getProperty("OS_ARCH").toLowerCase().replaceAll("\"", "");
                         }
+                        
+                        if (releaseProperties.containsKey("BUILD_TYPE")) {
+                            switch(releaseProperties.getProperty("BUILD_TYPE").replaceAll("\"", "")) {
+                                case "commercial" -> {
+                                    name      = "Oracle";
+                                    apiString = "oracle";
+                                }
+                            }
+                        }
+                        
                         if (releaseProperties.containsKey("JVM_VARIANT")) {
                             if (name == "Adopt OpenJDK") {
                                 String jvmVariant = releaseProperties.getProperty("JVM_VARIANT").toLowerCase().replaceAll("\"", "");
@@ -513,6 +555,7 @@ public class Finder {
                                 }
                             }
                         }
+
                         if (releaseProperties.containsKey("OS_NAME")) {
                             switch(releaseProperties.getProperty("OS_NAME").toLowerCase().replaceAll("\"", "")) {
                                 case "darwin"  -> operatingSystem = "macos";
@@ -522,6 +565,8 @@ public class Finder {
                         }
                         if (releaseProperties.containsKey("MODULES") && !fxBundled) {
                             fxBundled = (releaseProperties.getProperty("MODULES").contains("javafx"));
+                            String[] modulesArray = releaseProperties.getProperty("MODULES").split("\s");
+                            modules.addAll(Arrays.asList(modulesArray));
                         }
                         /*
                         if (releaseProperties.containsKey("SUN_ARCH_ABI")) {
@@ -590,7 +635,7 @@ public class Finder {
 
                         }
                     } else {
-                        if (line3.contains("graalvm")) {
+                        if (line3.contains("graalvm") && !apiString.equals("graalvm_community") && !apiString.equals("graalvm")) {
                             name = "GraalVM CE";
                             String distroPreFix = "graalvm_ce";
                             if (releaseProperties.containsKey("IMPLEMENTOR")) {
@@ -618,8 +663,9 @@ public class Finder {
                             if (releaseProperties.containsKey("VENDOR")) {
                                 final String vendor = releaseProperties.getProperty("VENDOR").toLowerCase().replaceAll("\"", "");
                                 if (vendor.equalsIgnoreCase("Gluon")) {
-                                    name      = "Gluon GraalVM CE";
-                                    apiString = "gluon_graalvm";
+                                    name       = "Gluon GraalVM CE";
+                                    apiString  = "gluon_graalvm";
+                                    buildScope = BuildScope.BUILD_OF_GRAALVM;
                                 }
                             }
                             if (releaseProperties.containsKey("JAVA_VERSION")) {
@@ -649,9 +695,18 @@ public class Finder {
                     apiString = "oracle_open_jdk";
                 }
 
-                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman);
-                if (inUse.get()) { distributionFound.setInUse(true); }
+                // Check if found distro is in use
+                for (ProcessInfo processInfo : usedDistros) {
+                    if (java.contains(processInfo.cmd())) {
+                        inUse.set(true);
+                        usedBy.add(processInfo.cmdLine());
+                        break;
+                    }
+                }
 
+                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
+                distributionFound.setModules(modules);
+                if (inUse.get()) { distributionFound.setInUse(true); }
                 distros.add(distributionFound);
             });
             service.submit(streamer);
@@ -811,6 +866,18 @@ public class Finder {
             e.printStackTrace();
         }
         return availableOpenJfxVersions;
+    }
+
+    public List<ProcessInfo> getUsedDistros() {
+        final long              currentPid  = ProcessHandle.current().pid();
+        final List<ProcessInfo> usedDistros = ProcessHandle.allProcesses()
+                                                           .filter(process -> process.pid() != currentPid)
+                                                           .filter(process -> process.info().command().isPresent())
+                                                           .filter(process -> process.info().command().get().endsWith(this.javaFile))
+                                                           .filter(process -> !Files.isSymbolicLink(Path.of(process.info().command().get())))
+                                                           .map(process -> new ProcessInfo(process.pid(), process.info().command().get(), process.info().commandLine().isPresent() ? process.info().commandLine().get() : "unknown"))
+                                                           .collect(Collectors.toList());
+        return usedDistros;
     }
 
     private class Streamer implements Runnable {

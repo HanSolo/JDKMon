@@ -4,11 +4,7 @@
 
 [![Github all releases](https://img.shields.io/github/downloads/HanSolo/JDKMon/total.svg)](https://GitHub.com/HanSolo/JDKMon/releases/)
 
-[![Windows](https://svgshare.com/i/ZhY.svg)](https://svgshare.com/i/ZhY.svg)
-[![macOS](https://svgshare.com/i/ZjP.svg)](https://svgshare.com/i/ZjP.svg)
-[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
-
-[![GitHub license](https://badgen.net/github/license/HanSolo/JDKMon)](https://github.com/HanSolo/JDKMon/blob/master/LICENSE)
+[![JFXCentral](https://img.shields.io/badge/Find_me_on-JFXCentral-blue?logo=googlechrome&logoColor=white)](https://www.jfx-central.com/downloads/jdkmon)
 
 
 <br>
@@ -21,6 +17,8 @@ on your machine and will inform you about new updates and vulnerabilities of eac
 In addition JDKMon is also able to monitor JavaFX SDK versions that are installed on your
 machine.
 
+(On MacOS you need at least version 11.0 to run JDKMon)
+
 At the moment the following distributions will be identified:
 - AdoptOpenJDK
 - AdoptOpenJDK J9
@@ -29,10 +27,9 @@ At the moment the following distributions will be identified:
 - Debian (pkgs not downloadable)
 - Dragonwell
 - Gluon GraalVM
-- Graalvm CE8
-- Graalvm CE11
-- Graalvm CE16
-- Graalvm CE17
+- GraalVM CE8, CE11, CE16, CE17, CE19, CE20
+- GraalVM Community
+- GraalVM
 - JetBrains
 - Kona
 - Liberica
@@ -62,7 +59,7 @@ JDKMon can be build for:
 - MacOS x64
 - MacOS aarch64
 - Linux x64
-- Linux aarch64 (e.g. Raspberry Pi 4 running Raspberry Pi OS 64bit)
+- Linux aarch64
 
 You can always check if you have the latest version install by taking a look at the About window.
 This can be opened by selecting ```About``` from the menu. If there is a new version available
@@ -122,7 +119,7 @@ a menu will appear where you can select
 
 <b>ATTENTION:</b><br>
 When running the application via `java -jar` on Linux you might have to
-add `-Djdk.gtk.version=2` to make it work correctly e.g. `java -Djdk.gtk.version=2 -jar JDKMon-linux-17.0.37.jar`
+add `-Djdk.gtk.version=2` to make it work correctly e.g. `java -Djdk.gtk.version=3 -jar JDKMon-linux-22.0.0.jar`
 
 On Mac and Windows the dark mode will be detected automatically and the user interface will
 adjust it's design to either dark or light mode. On Linux you can change the variable "dark_mode" in the
@@ -149,18 +146,30 @@ and Liberica 11.0.13 installed ony your machine, JDKMon will show you the vulner
 OpenJDK 11.0.13 for both distributions. So there is no guarantee that your installed distribution is really
 affected by the CVE's found in the NVD but you at least get the info that there are vulnerabilities for 11.0.13.
 
-![vulnerability](https://i.ibb.co/JRTjp7R/JDKMon.png)
+![JDKMon](https://i.ibb.co/8MB9Lmx/JDKMon.png)
+
+If you hover over a distribution, a tooltip will pop up that shows you the path where the distribution is installed,
+the number of modules the distribution comes with if it is modular and the size of the folder it is installed in.
 
 When you click on the yellow circle a window will open which shows the CVE's found. 
 You can click on each CVE to open it in a browser with more detailled information.
 
-![vulnerability](https://i.ibb.co/jGVFVh2/vulnerabitlities.png)
+![Vulnerabilities](https://i.ibb.co/M50z992/vulnerabilities.png)
 
+In the menu you will find an entry named "JEP's, JSR's, Projects". This will open a dialog with 3 drop down boxes
+as you can see in the following image.
+
+![JepJsrProject](https://i.ibb.co/BPZwX98/Xnip2023-11-06-12-42-15.png)
+
+When selecting one item of those boxes, it will open the related JEP, JSR or project in your
+default browser so that you can read more about it.
+
+
+#### User Interface
 How it looks on MacOS and Linux (light/dark mode):
 ![Updates](https://i.ibb.co/HttqQ3n/update-mac-linux.png)
 
 ![Download](https://i.ibb.co/DbYK1F3/download-mac-linux.png)
-
 
 How it looks on Windows (light/dark mode):
 
@@ -182,6 +191,55 @@ features=loom,panama,metropolis,valhalla,lanai,kona_fiber (list of features to l
 autoextract=TRUE/FALSE Will directly extract downloaded JDK's (default is FALSE) EXPERIMENTAL!
 show_unknown_builds=TRUE/FALSE Will show unknown builds of OpenJDK (default is FALSE) EXPERIMENTAL!
 ```
+
+### Switch JDK script
+Since release 17.0.67 of JDKMon, it will create a script in your user home folder called
+
+- switch-jdk.sh (Linux and Mac)
+- switch-jdk.bat (Windows)
+
+With this script you can switch to a specific JDK that was found by JDKMon. 
+You can call the script with the -h parameter to get more help as follows:
+
+```
+>: ./switch-jdk.sh -h
+. ./switch-jdk.sh JDK_NAME
+
+JDK_NAME can be one of the following:
+zulu_17_0_7_0
+zulu_20_0_1_0
+zulu_8_0_372_0
+gluon_graalvm_22_1_0_1
+zulu_21_0_0_0
+graalvm_ce17_22_3_1_0
+zulu_11_0_19_0
+
+>: . ./switch-jdk.sh zulu_11_0_19_0
+Switched to zulu 11.0.19
+openjdk version "11.0.19" 2023-04-18 LTS
+OpenJDK Runtime Environment Zulu11.64+19-CA (build 11.0.19+7-LTS)
+OpenJDK 64-Bit Server VM Zulu11.64+19-CA (build 11.0.19+7-LTS, mixed mode)
+
+>: java -version
+openjdk version "11.0.19" 2023-04-18 LTS
+OpenJDK Runtime Environment Zulu11.64+19-CA (build 11.0.19+7-LTS)
+OpenJDK 64-Bit Server VM Zulu11.64+19-CA (build 11.0.19+7-LTS, mixed mode)
+```
+
+This script enables you to switch to a JDK of your choice for the current shell session.
+
+
+### Installation
+#### Linux
+Install the deb pkg via
+```sudo dpkg -i jdkmon_22.0.0-1_amd64.deb```
+
+#### Windows
+Make sure that you unblocked the msi package and set the rights correctly before you
+execute the msi installer
+
+#### MacOS
+Install the pkg and make sure it is not unblocked because it comes from an unknown source.
 
 ### Installation problems
 #### Linux

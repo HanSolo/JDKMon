@@ -641,7 +641,6 @@
     -fx-text-fill       : -disabled-text-color;
 }
 
-
 #success {
     -fx-shape: "M46.24,4.15C67.773,4.15 85.693,-13.721 85.693,-35.254C85.693,-56.787 67.725,-74.658 46.191,-74.658C24.707,-74.658 6.836,-56.787 6.836,-35.254C6.836,-13.721 24.756,4.15 46.24,4.15ZM41.895,-16.455C40.381,-16.455 39.16,-17.041 37.988,-18.604L28.906,-29.981C28.223,-30.811 27.881,-31.787 27.881,-32.764C27.881,-34.766 29.346,-36.377 31.397,-36.377C32.617,-36.377 33.594,-35.986 34.668,-34.522L41.699,-25.147L57.275,-50.342C58.057,-51.709 59.18,-52.393 60.352,-52.393C62.305,-52.393 64.063,-51.123 64.063,-49.023C64.063,-48.047 63.525,-47.022 62.94,-46.143L45.557,-18.604C44.629,-17.139 43.359,-16.455 41.895,-16.455Z";
 }
@@ -740,11 +739,17 @@
 .hyperlink:hover:visited,
 .hyperlink:visited:armed{
     -fx-underline: true;
+    -fx-text-fill: GRAY;
 }
 .hyperlink:focused {
     -fx-border-color: transparent;
     -fx-border-style: none;
     -fx-border-width: 0;
+}
+
+
+.separator:horizontal .line {
+    -fx-border-color: -fx-text-box-border transparent transparent transparent, transparent, transparent transparent transparent;
 }
 
 
@@ -959,6 +964,114 @@
     -fx-background-color : rgb(47, 46, 47);
 }
 .jdk-mon:dark .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+}
+
+
+/* Search text field */
+.jdk-mon .text-input {
+    -fx-background-color : rgb(213, 211, 212);
+    -fx-background-radius: 5;
+    -fx-border-color     : transparent;
+}
+.jdk-mon .text-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color    : -light-border-color;
+    -fx-border-radius   : 5px;
+}
+
+.jdk-mon:dark .text-input {
+    -fx-background-color : rgb(46, 46, 47);
+    -fx-background-radius: 5;
+    -fx-border-color     : transparent;
+}
+.jdk-mon:dark .text-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color    : -dark-border-color;
+    -fx-border-radius   : 5px;
+}
+
+.search-icon {
+    -fx-background-color : rgb(170, 168, 169);
+    -fx-background-insets: 2 4 2 4;
+    -fx-scale-shape      : true;
+    -fx-shape            : "M0,9.791c0,5.403 4.387,9.775 9.791,9.775c2.078,0 3.987,-0.646 5.573,-1.755l5.726,5.743c0.324,0.307 0.724,0.446 1.14,0.446c0.893,-0 1.539,-0.677 1.539,-1.57c0,-0.431 -0.169,-0.816 -0.431,-1.109l-5.696,-5.711c1.216,-1.632 1.924,-3.633 1.924,-5.819c0,-5.404 -4.372,-9.791 -9.775,-9.791c-5.404,-0 -9.791,4.387 -9.791,9.791Zm2.371,-0c-0,-4.11 3.31,-7.42 7.42,-7.42c4.095,-0 7.42,3.31 7.42,7.42c0,4.095 -3.325,7.42 -7.42,7.42c-4.11,0 -7.42,-3.325 -7.42,-7.42Z";
+}
+
+.search-text {
+    -fx-background-insets: 2 4 7 10;
+    -fx-fill             : rgb(170, 168, 169);
+    -fx-font-family      : 'SF Pro';
+    -fx-font-size        : 12;
+}
+
+.close-icon {
+    -fx-background-color : rgb(170, 168, 169);
+    -fx-background-insets: 2 4 2 4;
+    -fx-scale-shape      : true;
+    -fx-shape            : "M13,0c7.175,0 13,5.825 13,13c0,7.175 -5.825,13 -13,13c-7.175,0 -13,-5.825 -13,-13c0,-7.175 5.825,-13 13,-13Zm-1.202,13l-3.533,3.533c-0.389,0.389 -0.389,1.021 0,1.41c0.389,0.389 1.021,0.389 1.41,-0l3.533,-3.533l3.533,3.533c0.389,0.389 1.021,0.389 1.41,-0c0.389,-0.389 0.389,-1.021 -0,-1.41l-3.533,-3.533l3.533,-3.533c0.389,-0.389 0.389,-1.021 -0,-1.41c-0.389,-0.389 -1.021,-0.389 -1.41,0l-3.533,3.533l-3.533,-3.533c-0.389,-0.389 -1.021,-0.389 -1.41,0c-0.389,0.389 -0.389,1.021 0,1.41l3.533,3.533Z";
+}
+
+.search-result-popup {
+    -fx-background-color: transparent;
+    -fx-padding         : 10;
+}
+
+.jdk-mon .search-result-popup > .list-view {
+    -fx-background-color : rgb(215, 215, 215);
+    -fx-padding          : 0px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius    : 5;
+    -fx-border-insets    : 0;
+    -fx-border-color     : rgb(215, 215, 215);
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 8);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : black;
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : derive(rgb(237, 236, 236), -5%);
+}
+.jdk-mon .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
+    -fx-background-color : -selection-color;
+    -fx-background-color : derive(rgb(237, 236, 236), -5%), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+}
+
+.jdk-mon:dark .search-result-popup > .list-view {
+    -fx-background-color : -dark-main-background;
+    -fx-padding          : 0px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius    : 5;
+    -fx-border-insets    : 0;
+    -fx-border-color     : rgb(79, 78, 76);
+    -fx-effect           : dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 8);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell {
+    -fx-background-color: rgb(47, 46, 47);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:hover {
+    -fx-background-color : rgb(47, 46, 47), -selection-color;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 0, 4;
+    -fx-text-fill        : white;
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected {
+    -fx-background-color : rgb(47, 46, 47);
+}
+.jdk-mon:dark .search-result-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .macos-combo-box-cell:filled:selected:hover {
     -fx-background-color : -selection-color;
     -fx-background-color : rgb(47, 46, 47), -selection-color;
     -fx-background-insets: 0, 2;
