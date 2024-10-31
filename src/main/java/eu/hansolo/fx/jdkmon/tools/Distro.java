@@ -44,6 +44,7 @@ public class Distro {
     private final boolean       handledBySdkman;
     private final String        path;
     private       boolean       inUse;
+    private       boolean       supportsCRaC;
     private final List<String>  modules;
 
 
@@ -62,6 +63,7 @@ public class Distro {
         this.handledBySdkman = handledBySdkman;
         this.path            = path;
         this.inUse           = false;
+        this.supportsCRaC    = false;
         this.modules         = new ArrayList<>();
     }
 
@@ -94,6 +96,9 @@ public class Distro {
 
     public boolean isInUse() { return inUse; }
     public void setInUse(final boolean inUse) { this.inUse = inUse; }
+
+    public boolean supportsCRaC() { return this.supportsCRaC; }
+    public void setSupportsCRaC(final boolean supportsCRaC) { this.supportsCRaC = supportsCRaC; }
 
     public long getSize() {
         long size;
@@ -147,6 +152,7 @@ public class Distro {
                                   .append("\"handled_by_sdkman\":").append(isHandledBySdkman()).append(",")
                                   .append("\"path\":\"").append(path).append("\",")
                                   .append("\"in_use\":").append(isInUse()).append(",")
+                                  .append("\"supports_crac\":").append(supportsCRaC()).append(",")
                                   .append("\"modules\":\"").append(getModulesText(true)).append("\"")
                                   .append("}")
                                   .toString();
@@ -157,7 +163,8 @@ public class Distro {
         Distro distribution = (Distro) obj;
         return (distribution.getApiString().equals(distribution.getApiString()) &&
                 distribution.getVersion().equals(getVersion()) &&
-                distribution.getFxBundled() == fxBundled);
+                distribution.getFxBundled() == fxBundled &&
+                distribution.supportsCRaC() == supportsCRaC);
     }
 
     @Override public int hashCode() {

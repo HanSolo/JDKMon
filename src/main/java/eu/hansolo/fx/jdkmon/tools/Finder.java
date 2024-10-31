@@ -394,6 +394,7 @@ public class Finder {
                 Feature      feature          = Feature.NONE;
                 Boolean      fxBundled        = Boolean.FALSE;
                 List<String> modules          = new ArrayList<>();
+                Boolean      supportsCRaC     = Boolean.FALSE;
                 
                 if (!this.javaHome.isEmpty() && !inUse.get() && parentPath.contains(javaHome)) {
                     inUse.set(true);
@@ -589,13 +590,15 @@ public class Finder {
 
                     String[] features = PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_FEATURES).split(",");
                     for (String feat : features) {
-                            feat = feat.trim().toLowerCase();
-                            if (line3.contains(feat)) {
-                                feature = Feature.fromText(feat);
-                                break;
+                        feat = feat.trim().toLowerCase();
+                        if (line3.contains(feat)) {
+                            feature = Feature.fromText(feat);
+                            if (feature == Feature.CRAC) {
+                                supportsCRaC = Boolean.TRUE;
                             }
+                            break;
                         }
-
+                    }
                 }
 
                 if (name.equalsIgnoreCase("Mandrel")) {
@@ -707,6 +710,7 @@ public class Finder {
                 Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
                 distributionFound.setModules(modules);
                 if (inUse.get()) { distributionFound.setInUse(true); }
+                distributionFound.setSupportsCRaC(supportsCRaC);
                 distros.add(distributionFound);
             });
             service.submit(streamer);
