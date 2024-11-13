@@ -41,7 +41,9 @@ public class Constants {
     public static final long    RESCAN_INTERVAL_IN_SECONDS             = 3600;
     public static final long    INITIAL_CVE_DELAY_IN_MINUTES           = 2;
     public static final long    CVE_UPDATE_INTERVAL_IN_MINUTES         = 60;
-    public static final long    INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES   = 3;
+    public static final long    INITIAL_ZULU_CVE_DELAY_IN_MINUTES      = 3;
+    public static final long    ZULU_CVE_UPDATE_INTERVAL_IN_MINUTES    = 60;
+    public static final long    INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES   = 5;
     public static final long    GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES = 60;
     public static final long    INITIAL_PKG_DOWNLOAD_DELAY_IN_MINUTES  = 5;
     public static final long    UPDATE_PKGS_INTERVAL_IN_MINUTES        = 60;

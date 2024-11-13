@@ -145,6 +145,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -181,6 +182,7 @@ public class Main extends Application {
     private              boolean                           isWindows              = OperatingSystem.WINDOWS == operatingSystem;
     private              CveScanner                        cveScanner             = new CveScanner("9dfa6028-179b-46ba-84f5-ab19ed3053cd", 6);
     private              List<CVE>                         cves                   = new CopyOnWriteArrayList<>();
+    private              List<CVE>                         cvesZulu               = new CopyOnWriteArrayList<>();
     private              List<CVE>                         cvesGraalVM            = new CopyOnWriteArrayList<>();
     private              String                            cssFile;
     private              Notification.Notifier             notifier;
@@ -469,6 +471,7 @@ public class Main extends Application {
         executor = Executors.newScheduledThreadPool(2);
         executor.scheduleAtFixedRate(this::rescan, Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateCves(true); } }, Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateZuluCves(true); } }, Constants.INITIAL_ZULU_CVE_DELAY_IN_MINUTES, Constants.ZULU_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(true); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(this::isOnline, Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> {
@@ -1591,6 +1594,18 @@ public class Main extends Application {
             cves.add(new CVE(id, score, cvss, severity, affectedVersions));
         });
 
+        List<CVE> cvesZuluFound = cveScanner.getZuluCves();
+        if (cvesZuluFound.isEmpty()) { return; }
+        cvesZulu.clear();
+        cvesZuluFound.forEach(cve -> {
+            final String              id               = cve.id();
+            final double              score            = cve.score();
+            final CVSS                cvss             = cve.cvss();
+            final Severity            severity         = Severity.fromText(cve.severity().getApiString());
+            final List<VersionNumber> affectedVersions = cve.affectedVersions();
+            cvesZulu.add(new CVE(id, score, cvss, severity, affectedVersions));
+        });
+
         List<CVE> cvesGraalVMFound = cveScanner.getGraalVMCves();
         if (cvesGraalVMFound.isEmpty()) { return; }
         cvesGraalVM.clear();
@@ -1801,12 +1816,18 @@ public class Main extends Application {
 
     private HBox getDistroEntry(final Distro distribution, final List<Pkg> pkgs) {
         final boolean isDistributionInUse = distribution.isInUse();
-        List<CVE> vulnerabilities;
+        HashSet<CVE > setOfVulnerabilities;
         if (BuildScope.BUILD_OF_OPEN_JDK == distribution.getBuildScope()) {
-            vulnerabilities = Helper.getCVEsForVersion(cves, distribution.getVersionNumber());
+            setOfVulnerabilities = new HashSet<CVE>(Helper.getCVEsForVersion(cves, distribution.getVersionNumber()));
+
+            if (distribution.getApiString().equals("zulu")) {
+                List<CVE> zuluVulnerabilities = Helper.getCVEsForVersion(cvesZulu, distribution.getVersionNumber());
+                zuluVulnerabilities.forEach(cve -> setOfVulnerabilities.add(cve));
+            }
         } else {
-            vulnerabilities = Helper.getCVEsForVersion(cvesGraalVM, distribution.getVersionNumber());
+            setOfVulnerabilities = new HashSet<CVE>(Helper.getCVEsForVersion(cvesGraalVM, distribution.getVersionNumber()));
         }
+        List<CVE> vulnerabilities = new ArrayList<>(setOfVulnerabilities);
 
         StringBuilder distroLabelBuilder = new StringBuilder(distribution.getName()).append((null == distribution.getFeature() || Feature.NONE == distribution.getFeature()) ? "" : " (" + distribution.getFeature().getApiString() + ")")
                                                                                     .append(distribution.getFxBundled() ? " (FX)" : "")
