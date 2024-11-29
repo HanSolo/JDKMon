@@ -69,6 +69,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
@@ -140,6 +141,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -725,6 +727,12 @@ public class Main extends Application {
     }
 
     private void registerListeners() {
+        distros.addListener((ListChangeListener<Distro>) change -> {
+            if (online.get()) {
+                distros.forEach(distro -> Helper.updateJVMWithReleaseAndEndOfLifeDate(distro));
+            }
+        });
+
         cveScanner.addCveEvtConsumer(e -> {
             switch(e.type()) {
                 case UPDATED_OPENJDK, UPDATED_GRAALVM -> updateCves();
@@ -1854,6 +1862,12 @@ public class Main extends Application {
             msgBuilder.append(" -> ").append(Helper.shortenNumber(distribution.getSize()));
         }
         msgBuilder.append(NEW_LINE).append(isDistributionInUse ? "(Currently in use) " + distribution.getLocation() : distribution.getLocation());
+        if (distribution.getEndOfLifeDate().isPresent()) {
+            msgBuilder.append(NEW_LINE).append("End of Life ").append(Constants.DATE_FORMATTER.format(distribution.getEndOfLifeDate().get()));
+            if (LocalDateTime.now().isAfter(distribution.getEndOfLifeDate().get())) {
+                msgBuilder.append(NEW_LINE).append("\u26A0 Version is unsupported \u26A0");
+            }
+        }
         distroLabel.setTooltip(new Tooltip(msgBuilder.toString()));
         distroLabel.setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown()) {

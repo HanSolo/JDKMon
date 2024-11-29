@@ -21,8 +21,10 @@ import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.pkg.Feature;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static eu.hansolo.jdktools.Constants.COMMA;
@@ -30,22 +32,24 @@ import static eu.hansolo.jdktools.Constants.NEW_LINE;
 
 
 public class Distro {
-    private final String        name;
-    private final String        apiString;
-    private final String        version;
-    private final VersionNumber versionNumber;
-    private final String        jdkMajorVersion;
-    private final String        operatingSystem;
-    private final String        architecture;
-    private final Boolean       fxBundled;
-    private final String        location;
-    private final Feature       feature;
-    private final BuildScope    buildScope;
-    private final boolean       handledBySdkman;
-    private final String        path;
-    private       boolean       inUse;
-    private       boolean       supportsCRaC;
-    private final List<String>  modules;
+    private final String                  name;
+    private final String                  apiString;
+    private final String                  version;
+    private final VersionNumber           versionNumber;
+    private final String                  jdkMajorVersion;
+    private final String                  operatingSystem;
+    private final String                  architecture;
+    private final Boolean                 fxBundled;
+    private final String                  location;
+    private final Feature                 feature;
+    private final BuildScope              buildScope;
+    private final boolean                 handledBySdkman;
+    private final String                  path;
+    private       boolean                 inUse;
+    private       boolean                 supportsCRaC;
+    private final List<String>            modules;
+    private       Optional<LocalDateTime> releaseDate;
+    private       Optional<LocalDateTime> endOfLifeDate;
 
 
     public Distro(final String name, final String apiString, final String version, final String jdkMajorVersion, final String operatingSystem, final String architecture, final Boolean fxBundled, final String location, final Feature feature, final BuildScope buildScope, final boolean handledBySdkman, final String path) {
@@ -65,6 +69,8 @@ public class Distro {
         this.inUse           = false;
         this.supportsCRaC    = false;
         this.modules         = new ArrayList<>();
+        this.releaseDate     = Optional.empty();
+        this.endOfLifeDate   = Optional.empty();
     }
 
 
@@ -115,6 +121,12 @@ public class Distro {
         this.modules.clear();
         this.modules.addAll(modules);
     }
+
+    public Optional<LocalDateTime> getReleaseDate() { return this.releaseDate; }
+    public void setReleaseDate(final LocalDateTime releaseDate) { this.releaseDate = Optional.of(releaseDate); }
+
+    public Optional<LocalDateTime> getEndOfLifeDate() { return this.endOfLifeDate; }
+    public void setEndOfLifeDate(final LocalDateTime endOfLifeDate) { this.endOfLifeDate = Optional.of(endOfLifeDate); }
 
     public String getModulesText(final boolean includeModules) {
         if (getVersionNumber().getFeature().isPresent()) {

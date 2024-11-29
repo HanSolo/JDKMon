@@ -20,6 +20,7 @@ import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.scopes.Scope;
 
 import java.io.File;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +37,7 @@ public class Constants {
     public static final String  JSR_BASE_URL                           = "https://jcp.org/en/jsr/all";
     public static final String  JSR_URL                                = "https://jcp.org/en/jsr/detail?id=";
     public static final String  OPENJDK_PROJECT_URL                    = "https://openjdk.org/projects/";
+    public static final String  JAVA_RELEASES_URL                      = "https://java.oraclecloud.com/javaReleases/";
 
     public static final long    INITIAL_DELAY_IN_SECONDS               = 30;
     public static final long    RESCAN_INTERVAL_IN_SECONDS             = 3600;
@@ -50,6 +52,8 @@ public class Constants {
     public static final long    INITIAL_JEP_TASK_DELAY                 = 13;
     public static final long    INITIAL_JSR_TASK_DELAY                 = 18;
     public static final long    INITIAL_PROJECT_TASK_DELAY             = 21;
+
+    public static final DateTimeFormatter DATE_FORMATTER               = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public static final Pattern JEP_PATTERN                            = Pattern.compile("(class=\"jep\">)([0-9]{1,7})(<\\/td><td><a href=\"[0-9]{1,7}\">)([0-9a-zA-Z\\-\\s&;\\(\\)]+)");
     public static final Matcher JEP_MATCHER                            = JEP_PATTERN.matcher("");
@@ -67,6 +71,9 @@ public class Constants {
 
     public static final String  OS_NAME_PROPERTY                       = System.getProperty("os.name");
     public static final String  OS_ARCH_PROPERTY                       = System.getProperty("os.arch");
+
+    public static final Pattern HREF_FILE_PATTERN                      = Pattern.compile("href=\"([^\"]*(\\.zip|\\.msi|\\.pkg|\\.dmg|\\.tar\\.gz|\\.deb|\\.rpm|\\.cab|\\.7z))\"");
+    public static final Matcher HREF_FILE_MATCHER                      = HREF_FILE_PATTERN.matcher("");
 
     public static final long    INITIAL_CHECK_DELAY_IN_SECONDS         = 5;
 

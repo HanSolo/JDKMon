@@ -27,6 +27,7 @@ import eu.hansolo.fx.jdkmon.tools.Records.JDKMonUpdate;
 import eu.hansolo.fx.jdkmon.tools.Records.JDKUpdate;
 import eu.hansolo.jdktools.OperatingSystem;
 import eu.hansolo.jdktools.TermOfSupport;
+import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.VersionNumber;
 import javafx.application.Application;
@@ -64,7 +65,9 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -605,6 +608,39 @@ public class Helper {
         results.addAll(jsrsFound);
         results.addAll(projectsFound);
         return results;
+    }
+
+    public static final void updateJVMWithReleaseAndEndOfLifeDate(final Distro distro) {
+        if (BuildScope.BUILD_OF_OPEN_JDK == distro.getBuildScope()) {
+            final HttpResponse<String> response = get(Constants.JAVA_RELEASES_URL + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, false));
+            if (null == response) { return; }
+            final String bodyText = response.body();
+            if (null == bodyText || bodyText.isEmpty()) { return; }
+            final Gson        gson    = new Gson();
+            final JsonElement element = gson.fromJson(response.body(), JsonElement.class);
+            if (element instanceof JsonObject) {
+                final JsonObject jsonObj       = element.getAsJsonObject();
+                final JsonObject jdkDetailsObj = jsonObj.has("jdkDetails") ? jsonObj.getAsJsonObject("jdkDetails") : null;
+                if (null != jdkDetailsObj) {
+                    LocalDateTime endOfLifeDate = jdkDetailsObj.has("endOfSupportLifeDate") ? LocalDateTime.parse(jdkDetailsObj.get("endOfSupportLifeDate").getAsString(), DateTimeFormatter.ISO_DATE_TIME) : null;
+                    if (null != endOfLifeDate) {
+                        distro.setEndOfLifeDate(endOfLifeDate);
+                        System.out.println("End of Life date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(endOfLifeDate));
+                    } else {
+                        System.out.println("Error parsing end of life date");
+                    }
+                } else {
+                    System.out.println("Cannot find jdkDetails");
+                }
+                LocalDateTime releaseDate = jsonObj.has("releaseDate") ? LocalDateTime.parse(jsonObj.get("releaseDate").getAsString(), DateTimeFormatter.ISO_DATE_TIME) : null;
+                if (null != releaseDate) {
+                    distro.setReleaseDate(releaseDate);
+                    System.out.println("Release date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(releaseDate));
+                } else {
+                    System.out.println("Error parsing release date");
+                }
+            }
+        }
     }
 
 
