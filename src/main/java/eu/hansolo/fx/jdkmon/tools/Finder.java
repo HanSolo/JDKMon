@@ -30,6 +30,7 @@ import eu.hansolo.jdktools.versioning.VersionNumber;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Feature;
 import io.foojay.api.discoclient.pkg.Pkg;
+import javafx.beans.property.StringProperty;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -45,6 +46,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -91,6 +93,9 @@ public class Finder {
     private static final Matcher         GRAALVM_VERSION_MATCHER   = GRAALVM_VERSION_PATTERN.matcher("");
     private static final Pattern         ZULU_BUILD_PATTERN        = Pattern.compile("\\((build\\s)(.*)\\)");
     private static final Matcher         ZULU_BUILD_MATCHER        = ZULU_BUILD_PATTERN.matcher("");
+    private static final String[]        MAC_HOSTNAME_CMDS         = { "/bin/sh", "-c", "echo $HOST" };
+    private static final String[]        WIN_HOSTNAME_CMDS         = { "/bin/sh", "-c", "echo $COMPUTERNAME" };
+    private static final String[]        LINUX_HOSTNAME_CMDS       = { "/bin/sh", "-c", "echo $HOSTNAME" };
     private static final String[]        MAC_JAVA_HOME_CMDS        = { "/bin/sh", "-c", "echo $JAVA_HOME" };
     private static final String[]        LINUX_JAVA_HOME_CMDS      = { "/bin/sh", "-c", "echo $JAVA_HOME" };
     private static final String[]        WIN_JAVA_HOME_CMDS        = { "cmd.exe", "/c", "echo %JAVA_HOME%" };
@@ -104,6 +109,7 @@ public class Finder {
     private              Properties      releaseProperties         = new Properties();
     private              OperatingSystem operatingSystem           = detectOperatingSystem();
     private              Architecture    architecture              = detectArchitecture();
+    private              String          hostname                  = "";
     private              String          javaFile                  = OperatingSystem.WINDOWS == operatingSystem ? "java.exe" : "java";
     private              String          javaHome                  = "";
     private              String          javafxPropertiesFile      = "javafx.properties";
@@ -119,6 +125,7 @@ public class Finder {
         this.discoclient = discoclient;
         this.usedDistros = getUsedDistros();
         getJavaHome();
+        getHostname();
         if (this.javaHome.isEmpty()) { this.javaHome = System.getProperties().get("java.home").toString(); }
         checkIfAlpineLinux();
     }
@@ -733,13 +740,19 @@ public class Finder {
 
     private void getJavaHome() {
         try {
-            ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_JAVA_HOME_CMDS) : OperatingSystem.MACOS == operatingSystem ? new ProcessBuilder(MAC_JAVA_HOME_CMDS) : new ProcessBuilder(LINUX_JAVA_HOME_CMDS);
+            ProcessBuilder processBuilder = OperatingSystem.WINDOWS == operatingSystem ? new ProcessBuilder(WIN_HOSTNAME_CMDS) : OperatingSystem.MACOS == operatingSystem ? new ProcessBuilder(MAC_HOSTNAME_CMDS) : new ProcessBuilder(LINUX_HOSTNAME_CMDS);
             Process        process        = processBuilder.start();
             Streamer       streamer       = new Streamer(process.getInputStream(), d -> this.javaHome = d);
             service.submit(streamer);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getHostname() {
+        try {
+            this.hostname = InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {}
     }
 
     public Map<Semver, SemverUri> checkForJavaFXUpdates(final List<String> javafxSearchPaths) {

@@ -625,7 +625,7 @@ public class Helper {
                     LocalDateTime endOfLifeDate = jdkDetailsObj.has("endOfSupportLifeDate") ? LocalDateTime.parse(jdkDetailsObj.get("endOfSupportLifeDate").getAsString(), DateTimeFormatter.ISO_DATE_TIME) : null;
                     if (null != endOfLifeDate) {
                         distro.setEndOfLifeDate(endOfLifeDate);
-                        System.out.println("End of Life date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(endOfLifeDate));
+                        //System.out.println("End of Life date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(endOfLifeDate));
                     } else {
                         System.out.println("Error parsing end of life date");
                     }
@@ -635,7 +635,7 @@ public class Helper {
                 LocalDateTime releaseDate = jsonObj.has("releaseDate") ? LocalDateTime.parse(jsonObj.get("releaseDate").getAsString(), DateTimeFormatter.ISO_DATE_TIME) : null;
                 if (null != releaseDate) {
                     distro.setReleaseDate(releaseDate);
-                    System.out.println("Release date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(releaseDate));
+                    //System.out.println("Release date of " + distro.getName() + " " + distro.getVersionNumber().toString(OutputFormat.REDUCED_COMPRESSED, true, true) + " is " + Constants.DATE_FORMATTER.format(releaseDate));
                 } else {
                     System.out.println("Error parsing release date");
                 }

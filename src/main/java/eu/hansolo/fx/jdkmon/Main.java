@@ -52,6 +52,8 @@ import eu.hansolo.jdktools.scopes.BuildScope;
 import eu.hansolo.jdktools.util.OutputFormat;
 import eu.hansolo.jdktools.versioning.Semver;
 import eu.hansolo.jdktools.versioning.VersionNumber;
+import eu.hansolo.toolbox.evt.EvtObserver;
+import eu.hansolo.toolbox.evt.type.PropertyChangeEvt;
 import io.foojay.api.discoclient.DiscoClient;
 import io.foojay.api.discoclient.pkg.Distribution;
 import io.foojay.api.discoclient.pkg.Feature;
@@ -60,6 +62,7 @@ import io.foojay.api.discoclient.pkg.Pkg;
 import io.foojay.api.discoclient.util.ReadableConsumerByteChannel;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -155,6 +158,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -182,7 +186,7 @@ public class Main extends Application {
     private              Architecture                      architecture           = Finder.detectArchitecture();
     private              SysInfo                           sysInfo                = Finder.getOperaringSystemArchitectureOperatingMode();
     private              boolean                           isWindows              = OperatingSystem.WINDOWS == operatingSystem;
-    private              CveScanner                        cveScanner             = new CveScanner("9dfa6028-179b-46ba-84f5-ab19ed3053cd", 6);
+    private              CveScanner                        cveScanner             = new CveScanner("7f61cc72-67e4-43e8-8c69-1890eb57ebdb", 24);
     private              List<CVE>                         cves                   = new CopyOnWriteArrayList<>();
     private              List<CVE>                         cvesZulu               = new CopyOnWriteArrayList<>();
     private              List<CVE>                         cvesGraalVM            = new CopyOnWriteArrayList<>();
@@ -211,7 +215,7 @@ public class Main extends Application {
     private              Separator                         separator;
     private              VBox                              distroBox;
     private              VBox                              vBox;
-    private              List<String>                      searchPaths;
+    private              ObservableList<String>            searchPaths;
     private              List<String>                      javafxSearchPaths;
     private              DirectoryChooser                  directoryChooser;
     private              ProgressBar                       progressBar;
@@ -341,6 +345,8 @@ public class Main extends Application {
 
     private              AtomicBoolean                     online;
 
+    private              Map<String, FolderWatcher>        folderWatchers;
+
     public record SemverUri(Semver semver, String uri) {}
 
 
@@ -353,6 +359,7 @@ public class Main extends Application {
         jsrs              = FXCollections.observableArrayList();
         prjs              = FXCollections.observableArrayList();
         online            = new AtomicBoolean(false);
+        folderWatchers    = new ConcurrentHashMap<>();
 
         switch (operatingSystem) {
             case WINDOWS -> cssFile = "jdk-mon-win.css";
@@ -472,9 +479,9 @@ public class Main extends Application {
         // Scheduled jobs
         executor = Executors.newScheduledThreadPool(2);
         executor.scheduleAtFixedRate(this::rescan, Constants.INITIAL_DELAY_IN_SECONDS, Constants.RESCAN_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
-        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateCves(true); } }, Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
-        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateZuluCves(true); } }, Constants.INITIAL_ZULU_CVE_DELAY_IN_MINUTES, Constants.ZULU_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
-        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(true); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateCves(false); } }, Constants.INITIAL_CVE_DELAY_IN_MINUTES, Constants.CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateZuluCves(false); } }, Constants.INITIAL_ZULU_CVE_DELAY_IN_MINUTES, Constants.ZULU_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> { if (online.get()) { cveScanner.updateGraalVMCves(false); } }, Constants.INITIAL_GRAALVM_CVE_DELAY_IN_MINUTES, Constants.GRAALVM_CVE_UPDATE_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
         executor.scheduleAtFixedRate(this::isOnline, Constants.INITIAL_CHECK_DELAY_IN_SECONDS, Constants.CHECK_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         executor.scheduleAtFixedRate(() -> {
             updateAvailableVersions();
@@ -519,8 +526,17 @@ public class Main extends Application {
         discoclient        = new DiscoClient("JDKMon");
         blocked            = new SimpleBooleanProperty(false);
         checkingForUpdates = new AtomicBoolean(false);
-        searchPaths        = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_SEARCH_PATH).split(",")));
+        searchPaths        = FXCollections.observableArrayList(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_SEARCH_PATH).split(",")));
         javafxSearchPaths  = new ArrayList<>(Arrays.asList(PropertyManager.INSTANCE.getString(PropertyManager.PROPERTY_JAVAFX_SEARCH_PATH).split(",")));
+
+        searchPaths.forEach(folderName -> folderWatchers.put(folderName, new FolderWatcher(folderName)));
+        folderWatchers.values().forEach(folderWatcher -> {
+            folderWatcher.changeDetectedProperty().addOnChange(evt -> Platform.runLater(() -> rescan()));
+            Thread thread = Thread.ofVirtual().unstarted(() -> {
+                try { folderWatcher.startWatching(); } catch (Exception e) {}
+            });
+            thread.start();
+        });
 
         // If on Linux or Mac add .sdkman/candidates/java folder to search paths if present
         if (operatingSystem == OperatingSystem.LINUX || operatingSystem == OperatingSystem.MACOS) {
@@ -1205,6 +1221,23 @@ public class Main extends Application {
         jepComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
         jsrComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
         projectComboBox.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> Helper.openInDefaultBrowser(Main.this, nv.url()));
+
+        searchPaths.addListener((ListChangeListener<String>) c -> {
+            while (c.next()) {
+                if (c.wasAdded() || c.wasRemoved() || c.wasPermutated() || c.wasUpdated()) {
+                    searchPaths.forEach(folderName -> folderWatchers.putIfAbsent(folderName, new FolderWatcher(folderName)));
+                    folderWatchers.values().forEach(folderWatcher -> {
+                        if (!folderWatcher.isWatching()) {
+                            folderWatcher.changeDetectedProperty().addOnChange(evt -> Platform.runLater(() -> rescan()));
+                            Thread thread = Thread.ofVirtual().unstarted(() -> {
+                                try { folderWatcher.startWatching(); } catch (Exception e) { }
+                            });
+                            thread.start();
+                        }
+                    });
+                }
+            }
+        });
     }
 
     private void initOnFXApplicationThread() {

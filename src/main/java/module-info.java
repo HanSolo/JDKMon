@@ -12,12 +12,16 @@ module eu.hansolo.fx.jdkmon {
     // 3rd Party
     requires transitive com.google.gson;
     requires transitive eu.hansolo.jdktools;
+    requires transitive ch.qos.logback.classic;
+    requires transitive ch.qos.logback.core;
+    requires transitive org.slf4j;
     requires io.foojay.api.discoclient;
     requires eu.hansolo.cvescanner;
     requires com.dustinredmond.fxtrayicon;
     //requires FXTrayIcon;
     requires org.apache.commons.compress;
     requires org.tukaani.xz;
+    requires eu.hansolo.toolbox;
 
     exports eu.hansolo.fx.jdkmon;
     exports eu.hansolo.fx.jdkmon.tools;
