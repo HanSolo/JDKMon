@@ -54,8 +54,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     implementation 'com.google.code.gson:gson:2.11.0'
     //implementation 'io.foojay.api:discoclient:21.0.1'
-    implementation("eu.hansolo:toolbox:21.0.19")
-    implementation("eu.hansolo:jdktools:21.0.19")
+    implementation 'eu.hansolo:toolbox:21.0.25'
+    implementation 'eu.hansolo:jdktools:21.0.21'
     implementation 'com.google.gradle:osdetector-gradle-plugin:1.7.3'
     implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:4.2.0'
     //implementation 'com.dustinredmond.fxtrayicon:FXTrayIcon:3.1.2'
