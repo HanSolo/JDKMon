@@ -713,8 +713,9 @@ public class Finder {
                         break;
                     }
                 }
-
-                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, parentPath.substring(0, parentPath.lastIndexOf(File.separator)));
+                int lastSeparatorIndex = parentPath.lastIndexOf(File.separator);
+                String location = lastSeparatorIndex >= 0 ? parentPath.substring(0, lastSeparatorIndex) : "";
+                Distro distributionFound = new Distro(name, apiString, version.toString(OutputFormat.REDUCED_COMPRESSED, true, true), Integer.toString(jdkVersion.getMajorVersion().getAsInt()), operatingSystem, architecture, fxBundled, parentPath, feature, buildScope, handledBySdkman, location);
                 distributionFound.setModules(modules);
                 if (inUse.get()) { distributionFound.setInUse(true); }
                 distributionFound.setSupportsCRaC(supportsCRaC);
